@@ -18,4 +18,5 @@ services:
       - WATCHTOWER_CLEANUP=true
       - WATCHTOWER_POLL_INTERVAL=30
       - WATCHTOWER_LABEL_ENABLE=true
+      - DOCKER_API_VERSION=1.40
     command: --interval 30
