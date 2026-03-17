@@ -37,6 +37,34 @@ body {
   padding: 2rem;
 }
 
+header {
+  position: fixed;
+  top: 0;
+  padding: 1.5rem 2rem;
+}
+
+header:has(.login) {
+  right: 0;
+}
+
+header:has(.back) {
+  left: 0;
+}
+
+.login,
+.back {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.875rem;
+  letter-spacing: 0.05em;
+  transition: color 0.2s ease;
+}
+
+.login:hover,
+.back:hover {
+  color: var(--text);
+}
+
 main {
   display: flex;
   flex-direction: column;
@@ -104,6 +132,57 @@ li {
   color: var(--accent);
   font-size: 1rem;
   font-weight: 300;
+}
+
+.login-page {
+  text-align: center;
+}
+
+.login-page h1 {
+  margin-bottom: 2rem;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+input {
+  background: transparent;
+  border: 1px solid #262626;
+  border-radius: 4px;
+  padding: 0.875rem 1rem;
+  font-family: var(--font);
+  font-size: 1rem;
+  color: var(--text);
+  transition: border-color 0.2s ease;
+}
+
+input::placeholder {
+  color: var(--text-muted);
+}
+
+input:focus {
+  outline: none;
+  border-color: #404040;
+}
+
+button {
+  background: var(--text);
+  color: var(--bg);
+  border: none;
+  border-radius: 4px;
+  padding: 0.875rem 1rem;
+  font-family: var(--font);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+button:hover {
+  opacity: 0.9;
 }
 
 @media (max-width: 480px) {

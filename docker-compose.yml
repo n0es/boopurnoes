@@ -1,0 +1,21 @@
+services:
+  web:
+    image: ghcr.io/n0es/boopurnoes:latest
+    container_name: boopurnoes
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=30
+      - WATCHTOWER_LABEL_ENABLE=true
+    command: --interval 30
