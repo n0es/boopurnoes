@@ -4,7 +4,13 @@ services:
     container_name: boopurnoes
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "80:3000"
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - STUDIO_URL=${STUDIO_URL}
+      - STUDIO_USER=${STUDIO_USER}
+      - STUDIO_PASS=${STUDIO_PASS}
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
 
