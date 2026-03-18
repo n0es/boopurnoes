@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
-export default function Login() {
+export default function Signup() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -14,7 +14,7 @@ export default function Login() {
     setError('')
     setLoading(true)
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signUp({
       email,
       password,
     })
@@ -47,7 +47,7 @@ export default function Login() {
         <Link to="/" className="back">back</Link>
       </header>
       <main className="login-page">
-        <h1>login</h1>
+        <h1>sign up</h1>
 
         {error && <p className="error">{error}</p>}
 
@@ -65,9 +65,10 @@ export default function Login() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            minLength={6}
           />
           <button type="submit" disabled={loading}>
-            {loading ? 'signing in...' : 'sign in'}
+            {loading ? 'creating account...' : 'create account'}
           </button>
         </form>
 
@@ -80,7 +81,7 @@ export default function Login() {
         </button>
 
         <p className="signup-link">
-          don't have an account? <Link to="/signup">sign up</Link>
+          already have an account? <Link to="/login">sign in</Link>
         </p>
       </main>
     </>

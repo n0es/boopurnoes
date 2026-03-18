@@ -1,10 +1,19 @@
 import { Link } from 'react-router-dom'
+import { useAuth } from '../lib/AuthContext'
 
 export default function Home() {
+  const { user, loading, signOut } = useAuth()
+
   return (
     <>
       <header>
-        <Link to="/login" className="login">login</Link>
+        {!loading && (
+          user ? (
+            <button className="login" onClick={signOut}>logout</button>
+          ) : (
+            <Link to="/login" className="login">login</Link>
+          )
+        )}
       </header>
       <main>
         <section className="hero">
