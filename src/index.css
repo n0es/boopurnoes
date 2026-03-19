@@ -299,7 +299,7 @@ button:disabled {
 .menu-dropdown {
   position: absolute;
   top: calc(100% - 0.25rem);
-  left: 2rem;
+  left: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
