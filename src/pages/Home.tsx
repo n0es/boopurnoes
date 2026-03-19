@@ -1,11 +1,13 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
+import ServiceMenu from '../components/ServiceMenu'
 
 export default function Home() {
   const { user, loading, signOut } = useAuth()
 
   return (
     <>
+      {!loading && user && <ServiceMenu />}
       <header>
         {!loading && (
           user ? (
