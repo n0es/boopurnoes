@@ -298,8 +298,8 @@ button:disabled {
 
 .menu-dropdown {
   position: absolute;
-  top: calc(100% + 0.5rem);
-  left: 2rem;
+  top: calc(100% + 0.25rem);
+  left: 0;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
