@@ -792,7 +792,7 @@ function EditCardModal({ card, effects, onClose, onSaved }: {
             <div style={{ color: '#444', fontSize: 13, padding: '8px 0' }}>No effects. Click "+ Add" to create one.</div>
           )}
 
-          {visibleRows.map((row, vi) => {
+          {visibleRows.map((row) => {
             const realIdx = rows.indexOf(row)
             return (
               <div key={realIdx} style={{ background: '#1a1a26', borderRadius: 8, padding: '10px 12px', marginBottom: 8 }}>
