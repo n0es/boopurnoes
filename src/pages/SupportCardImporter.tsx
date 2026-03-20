@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase'
+import BatchCardImporter from '../components/Batchcardimporter';
 
 // ── Effect metadata (for display only — the edge function handles insertion) ──
 const EFFECT_META: Record<number, { name: string; symbol: string }> = {
@@ -77,6 +78,7 @@ export default function SupportCardImporter() {
   const [result, setResult] = useState<ImportResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [recentCards, setRecentCards] = useState<ImportResult[]>([]);
+  const [showBatch, setShowBatch] = useState<boolean>(false);
 
   const importCard = useCallback(async () => {
     if (!url.includes('gametora.com/umamusume/supports/')) {
@@ -155,6 +157,24 @@ export default function SupportCardImporter() {
           }}
         >
           {loading ? 'Importing…' : 'Import Card'}
+        </button>
+        <button
+          onClick={() => setShowBatch((s) => !s)}
+          disabled={loading}
+          style={{
+            padding: '10px 16px',
+            borderRadius: 8,
+            border: '1px solid var(--border, #333)',
+            background: showBatch ? '#111827' : 'transparent',
+            color: 'var(--text, #e4e4e7)',
+            fontSize: 14,
+            fontWeight: 600,
+            cursor: loading ? 'wait' : 'pointer',
+            fontFamily: 'inherit',
+            marginLeft: 8,
+          }}
+        >
+          {showBatch ? 'Hide Batch Importer' : 'Open Batch Importer'}
         </button>
       </div>
 
@@ -301,6 +321,12 @@ export default function SupportCardImporter() {
               </div>
             ))}
           </div>
+        </div>
+      )}
+      {/* Batch importer (toggled) */}
+      {showBatch && (
+        <div style={{ marginTop: 16 }}>
+          <BatchCardImporter supabase={supabase} />
         </div>
       )}
     </div>
