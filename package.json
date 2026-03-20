@@ -10,7 +10,12 @@
     "build:all": "npm run build && npm run build:server",
     "start": "node dist-server/index.js",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "db:setup": "tsx scripts/setup.ts",
+    "db:seed": "tsx scripts/seed.ts",
+    "db:images": "tsx scripts/download-images.ts",
+    "db:reset": "npm run db:setup && npm run db:seed && npm run db:images",
+    "db:sync": "tsx scripts/sync-prod.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.99.2",
@@ -26,6 +31,7 @@
     "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.6",
     "@types/node": "^24.12.0",
+    "@types/pg": "^8.18.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.0",
@@ -33,6 +39,8 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
+    "pg": "^8.20.0",
+    "tsx": "^4.21.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.56.1",
     "vite": "^8.0.0"
