@@ -2,7 +2,7 @@
 // Drop into your Vite app alongside SupportCardImporter.
 // Usage: <BatchCardImporter supabase={supabase} />
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 const RARITY_COLORS: Record<string, string> = { SSR: '#c084fc', SR: '#fbbf24', R: '#60a5fa' };
