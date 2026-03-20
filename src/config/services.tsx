@@ -13,7 +13,7 @@ export const services: Service[] = [
   {
     id: 'studio',
     name: 'Supabase Studio',
-    href: '/studio',
+    href: 'https://supabase.boopurno.es/',
     icon: SupabaseIcon,
   },
 ]

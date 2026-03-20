@@ -358,11 +358,12 @@ button:disabled {
   top: 50%;
   transform: translateY(-50%) translateX(-4px);
   padding: 0.375rem 0.75rem;
+  /* border: 1px solid #262626;
   background: #1a1a1a;
-  border: 1px solid #262626;
-  border-radius: 6px;
+  border-radius: 6px; */
+  font-family: var(--font);
   font-size: 0.8125rem;
-  font-weight: 400;
+  font-weight: 600;
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
@@ -370,7 +371,7 @@ button:disabled {
 }
 
 .menu-item:hover .menu-item-name {
-  opacity: 1;
+  opacity: .7;
   transform: translateY(-50%) translateX(0);
 }
 
