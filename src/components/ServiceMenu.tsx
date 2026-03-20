@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { MenuIcon, CloseIcon } from './Icons'
 import { services } from '../config/services'
 
@@ -24,24 +23,22 @@ export default function ServiceMenu() {
       <nav className={`menu-dropdown ${isOpen ? 'open' : ''}`}>
         {services.map((service, index) => {
           const Icon = service.icon
-          const linkProps = service.external
-            ? { as: 'a' as const, href: service.href, target: '_blank', rel: 'noopener noreferrer' }
-            : {}
 
           return (
-            <Link
+            <a
               key={service.id}
-              to={service.href}
+              href={service.href}
+              target="_blank"
+              rel="noopener noreferrer"
               className="menu-item"
               style={{ '--delay': `${index * 0.03}s` } as React.CSSProperties}
               onClick={() => setIsOpen(false)}
-              {...linkProps}
             >
               <span className="menu-item-icon">
                 <Icon size={20} />
               </span>
               <span className="menu-item-name">{service.name}</span>
-            </Link>
+            </a>
           )
         })}
       </nav>
