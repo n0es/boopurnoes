@@ -1,3 +1,11 @@
+// BatchCardImporter.tsx
+// Drop into your Vite app.
+// Usage: <BatchCardImporter supabase={supabase} />
+//
+// Requires: src/data/supportCardSlugs.json
+//   (downloaded from Gametora list page — 526 cards)
+//   Place the downloaded JSON file at that path, or adjust the import below.
+
 import { useState, useCallback, useEffect, useRef } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import cardList from '../data/supportCardSlugs.json';
@@ -22,6 +30,15 @@ interface ImportProgress {
   total: number;
   currentCard: string;
   results: ImportResult[];
+}
+
+interface ImageDownloadResult {
+  success: boolean;
+  processed: number;
+  icons_downloaded: number;
+  art_downloaded: number;
+  errors: { card_id: number; icon_error?: string | null; art_error?: string | null }[];
+  message?: string;
 }
 
 interface BatchCardImporterProps {
@@ -55,6 +72,10 @@ export default function BatchCardImporter({ supabase }: BatchCardImporterProps) 
     current: 0, total: 0, currentCard: '', results: [],
   });
   const abortRef = useRef(false);
+
+  // Image download state
+  const [downloadingImages, setDownloadingImages] = useState(false);
+  const [imageResult, setImageResult] = useState<ImageDownloadResult | null>(null);
 
   // ── Check which cards are already imported ────────────────────
   const fetchImportedIds = useCallback(async () => {
@@ -134,6 +155,31 @@ export default function BatchCardImporter({ supabase }: BatchCardImporterProps) 
   const stopImport = () => {
     abortRef.current = true;
   };
+
+  // ── Image download ────────────────────────────────────────────
+  const downloadAllImages = useCallback(async (skipExisting = true) => {
+    setDownloadingImages(true);
+    setImageResult(null);
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke(
+        'download-support-images',
+        { body: { skip_existing: skipExisting } },
+      );
+      if (fnError) throw new Error(fnError.message);
+      if (!data.success) throw new Error(data.error || 'Image download failed');
+      setImageResult(data as ImageDownloadResult);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setImageResult({
+        success: false,
+        processed: 0,
+        icons_downloaded: 0,
+        art_downloaded: 0,
+        errors: [{ card_id: 0, icon_error: message }],
+      });
+    }
+    setDownloadingImages(false);
+  }, [supabase]);
 
   const successCount = progress.results.filter((r) => r.status === 'success').length;
   const errorCount = progress.results.filter((r) => r.status === 'error').length;
@@ -234,6 +280,80 @@ export default function BatchCardImporter({ supabase }: BatchCardImporterProps) 
           </button>
         </div>
       )}
+
+      {/* ── Image Download Controls ────────────── */}
+      <div style={{
+        padding: 16, borderRadius: 10, marginBottom: 16,
+        background: 'var(--card-bg, #18181b)', border: '1px solid var(--border, #333)',
+      }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 13, fontWeight: 600, marginRight: 4 }}>Card Images</span>
+          <button
+            onClick={() => downloadAllImages(true)}
+            disabled={downloadingImages || importing}
+            style={{
+              padding: '8px 16px', borderRadius: 6, border: 'none',
+              background: downloadingImages ? '#555' : '#2563eb', color: '#fff', fontSize: 12,
+              fontWeight: 600, cursor: downloadingImages ? 'wait' : 'pointer', fontFamily: 'inherit',
+            }}
+          >
+            {downloadingImages ? 'Downloading…' : 'Download Missing Images'}
+          </button>
+          <button
+            onClick={() => downloadAllImages(false)}
+            disabled={downloadingImages || importing}
+            style={{
+              padding: '8px 16px', borderRadius: 6,
+              border: '1px solid var(--border, #333)', background: 'transparent',
+              color: 'var(--text, #e4e4e7)', fontSize: 12,
+              cursor: downloadingImages ? 'wait' : 'pointer', fontFamily: 'inherit',
+            }}
+          >
+            Re-download All
+          </button>
+          {downloadingImages && (
+            <span style={{ fontSize: 11, color: '#888' }}>
+              Processing in parallel batches of 10 — this may take a minute…
+            </span>
+          )}
+        </div>
+
+        {imageResult && (
+          <div style={{ marginTop: 12 }}>
+            {imageResult.message ? (
+              <span style={{ fontSize: 12, color: '#4ade80' }}>✓ {imageResult.message}</span>
+            ) : (
+              <>
+                <div style={{ display: 'flex', gap: 16, fontSize: 12, marginBottom: 4 }}>
+                  <span style={{ color: '#4ade80' }}>
+                    ✓ {imageResult.processed} cards processed
+                  </span>
+                  <span style={{ color: '#93c5fd' }}>
+                    🖼 {imageResult.icons_downloaded} icons
+                  </span>
+                  <span style={{ color: '#c4b5fd' }}>
+                    🎨 {imageResult.art_downloaded} art
+                  </span>
+                  {imageResult.errors.length > 0 && (
+                    <span style={{ color: '#fca5a5' }}>
+                      ✕ {imageResult.errors.length} errors
+                    </span>
+                  )}
+                </div>
+                {imageResult.errors.length > 0 && (
+                  <div style={{ maxHeight: 100, overflow: 'auto', fontSize: 11, marginTop: 6 }}>
+                    {imageResult.errors.map((e, i) => (
+                      <div key={i} style={{ color: '#fca5a5', padding: '1px 0' }}>
+                        #{e.card_id}: {e.icon_error || ''} {e.art_error || ''}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* ── Progress Bar ───────────────────────── */}
       {(importing || progress.results.length > 0) && (
