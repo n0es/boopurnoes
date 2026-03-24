@@ -14,6 +14,13 @@ dist-ssr
 *.local
 .env
 
+# Rust / Cargo
+uma-optimizer/target/
+
+# Supabase local
+supabase/.temp/
+supabase/.branches/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
