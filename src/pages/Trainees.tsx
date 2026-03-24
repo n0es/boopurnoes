@@ -422,6 +422,18 @@ function TraineeModal({ trainee, onClose }: { trainee: Trainee; onClose: () => v
     setSaving(false)
   }
 
+  async function handleRemove() {
+    if (!user) return
+    setSaving(true)
+    const { error } = await supabase
+      .from('user_trainee_collection')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('trainee_id', trainee.id)
+    if (!error) setCollectionEntry(null)
+    setSaving(false)
+  }
+
   return (
     <>
       {/* ── Overlay ── */}
@@ -505,19 +517,35 @@ function TraineeModal({ trainee, onClose }: { trainee: Trainee; onClose: () => v
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}
                 >✎</button>
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  style={{
-                    padding: '7px 14px', borderRadius: 7, fontSize: 12, fontWeight: 600,
-                    background: saving ? '#1e1e2a' : collectionEntry ? 'rgba(167,139,250,0.15)' : 'rgba(167,139,250,0.22)',
-                    border: `1px solid ${saving ? '#2a2a38' : '#a78bfa55'}`,
-                    color: saving ? '#444' : '#a78bfa', cursor: saving ? 'default' : 'pointer',
-                    transition: 'all 0.15s',
-                  }}
-                >
-                  {saving ? 'Saving…' : collectionEntry ? 'Update' : 'Add to Collection'}
-                </button>
+                {collectionEntry ? (
+                  <button
+                    onClick={handleRemove}
+                    disabled={saving}
+                    style={{
+                      padding: '7px 14px', borderRadius: 7, fontSize: 12, fontWeight: 600,
+                      background: saving ? '#1e1e2a' : 'rgba(248,113,113,0.12)',
+                      border: `1px solid ${saving ? '#2a2a38' : 'rgba(248,113,113,0.4)'}`,
+                      color: saving ? '#444' : '#f87171', cursor: saving ? 'default' : 'pointer',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {saving ? 'Removing…' : 'Remove'}
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleSave}
+                    disabled={saving}
+                    style={{
+                      padding: '7px 14px', borderRadius: 7, fontSize: 12, fontWeight: 600,
+                      background: saving ? '#1e1e2a' : 'rgba(167,139,250,0.22)',
+                      border: `1px solid ${saving ? '#2a2a38' : '#a78bfa55'}`,
+                      color: saving ? '#444' : '#a78bfa', cursor: saving ? 'default' : 'pointer',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {saving ? 'Saving…' : 'Add to Collection'}
+                  </button>
+                )}
               </div>
             )}
 
@@ -580,7 +608,10 @@ function TraineeModal({ trainee, onClose }: { trainee: Trainee; onClose: () => v
                   </div>
 
                   <button
-                    onClick={() => setEditOpen(false)}
+                    onClick={async () => {
+                      if (collectionEntry) await handleSave()
+                      setEditOpen(false)
+                    }}
                     style={{
                       width: '100%', padding: '8px 0', borderRadius: 8, fontSize: 12, fontWeight: 600,
                       background: 'rgba(167,139,250,0.18)', border: '1px solid #a78bfa55',
