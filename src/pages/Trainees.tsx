@@ -8,6 +8,7 @@ export interface Trainee {
   id: number
   name: string
   name_jp: string | null
+  title: string | null
   rarity: number   // 1 | 2 | 3
   // Aptitude grades (S/A/B/C/D/E/F/G)
   apt_turf: string | null
@@ -18,7 +19,7 @@ export interface Trainee {
   apt_long: string | null
   apt_leading: string | null
   apt_stalking: string | null
-  apt_midpack: string | null
+  apt_mid_pack: string | null
   apt_chasing: string | null
   // Stats arrays: [speed, stamina, power, guts, wisdom]
   stats_base: number[] | null
@@ -29,6 +30,8 @@ export interface Trainee {
   // stat_growth: percentage bonuses [speed, stamina, power, guts, wisdom]
   stat_growth: number[] | null
   skills_evo: Record<string, unknown> | null
+  image_path: string | null
+  icon_path: string | null
 }
 
 export interface SkillRecord {
@@ -74,10 +77,16 @@ export interface TrainingEvent {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const SUPABASE_STORAGE = 'https://supabase.boopurno.es/storage/v1/object/public/umamusume'
+const SUPABASE_STORAGE = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/umamusume`
 
-function getPortraitUrl(id: number) { return `${SUPABASE_STORAGE}/trainees/art/${id}.png` }
-function getIconUrl(id: number)     { return `${SUPABASE_STORAGE}/trainees/icons/${id}.png` }
+function getPortraitUrl(trainee: Trainee) {
+  const path = trainee.image_path ?? `trainees/art/${trainee.id}.png`
+  return `${SUPABASE_STORAGE}/${path}`
+}
+function getIconUrl(trainee: Trainee) {
+  const path = trainee.icon_path ?? `trainees/icons/${trainee.id}.png`
+  return `${SUPABASE_STORAGE}/${path}`
+}
 
 const STAT_COLORS = ['#60a5fa', '#fb923c', '#f87171', '#fbbf24', '#34d399']
 const STAT_MAX    = 1200  // approx bar ceiling
@@ -112,27 +121,9 @@ function getStatsForRank(trainee: Trainee, rank: number): number[] {
   return val ?? trainee.stats_base ?? [0, 0, 0, 0, 0]
 }
 
-function hasStatsForRank(trainee: Trainee, rank: number): boolean {
-  if (rank <= trainee.rarity) return trainee.stats_base != null
-  return Array.isArray(trainee[STAR_KEYS[rank]])
-}
 
 // ─── Micro-components ─────────────────────────────────────────────────────────
 
-function GradeBadge({ grade }: { grade: string | null }) {
-  if (!grade) return <span style={{ fontSize: 12, color: '#333' }}>—</span>
-  const gs = GRADE_STYLE[grade.toUpperCase()] ?? GRADE_STYLE['G']
-  return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-      width: 22, height: 22, borderRadius: 5,
-      background: gs.bg, border: `1px solid ${gs.color}`,
-      fontSize: 11, fontWeight: 700, color: gs.color, flexShrink: 0,
-    }}>
-      {grade.toUpperCase()}
-    </span>
-  )
-}
 
 // ─── Trainee tile ─────────────────────────────────────────────────────────────
 
@@ -164,7 +155,7 @@ function TraineeTile({ trainee, onClick }: { trainee: Trainee; onClick: () => vo
       }}
     >
       <img
-        src={getPortraitUrl(trainee.id)} alt={trainee.name}
+        src={getPortraitUrl(trainee)} alt={trainee.name}
         onLoad={() => setArtLoaded(true)}
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', opacity: artLoaded ? 1 : 0, transition: 'opacity 0.3s' }}
       />
@@ -363,7 +354,6 @@ function TraineeModal({ trainee, onClose }: { trainee: Trainee; onClose: () => v
   const { user }                          = useAuth()
   const [starRank, setStarRank]           = useState(trainee.rarity)
   const [potentialLevel, setPotentialLevel] = useState(1)
-  const [fullImage, setFullImage]         = useState(false)
   const [activeTab, setActiveTab]         = useState<'skills' | 'events'>('skills')
   const [awakening, setAwakening]         = useState<AwakeningSkill[]>([])
   const [unique, setUnique]               = useState<UniqueSkill[]>([])
@@ -371,20 +361,18 @@ function TraineeModal({ trainee, onClose }: { trainee: Trainee; onClose: () => v
   const [events, setEvents]               = useState<TrainingEvent[]>([])
   const [collectionEntry, setCollectionEntry] = useState<CollectionEntry | null>(null)
   const [saving, setSaving]               = useState(false)
+  const [editOpen, setEditOpen]           = useState(false)
   const overlayRef  = useRef<HTMLDivElement>(null)
 
   const stats = getStatsForRank(trainee, starRank)
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        if (fullImage) { setFullImage(false); return }
-        onClose()
-      }
+      if (e.key === 'Escape') onClose()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [onClose, fullImage])
+  }, [onClose])
 
   useEffect(() => {
     const id = trainee.id
@@ -456,10 +444,12 @@ function TraineeModal({ trainee, onClose }: { trainee: Trainee; onClose: () => v
 
           {/* ── 1. Hero image ── */}
           <div style={{ position: 'relative', height: 'min(260px, 38dvh)', flexShrink: 0, overflow: 'hidden' }}>
-            <img
-              src={getPortraitUrl(trainee.id)} alt={trainee.name}
-              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', display: 'block' }}
-            />
+            <div style={{ display: 'flex', alignItems: 'flex-start', height: '100%' }}>
+              <img
+                src={getPortraitUrl(trainee)} alt={trainee.name}
+                style={{ float: 'left', height: '100%', width: 'auto', objectFit: 'contain', objectPosition: 'top left', display: 'block' }}
+              />
+            </div>
             {/* Fade into modal bg at bottom */}
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #16161e 0%, rgba(22,22,30,0.55) 38%, transparent 65%)' }} />
             {/* Top vignette for button legibility */}
@@ -478,55 +468,128 @@ function TraineeModal({ trainee, onClose }: { trainee: Trainee; onClose: () => v
               }}
             >×</button>
 
-            {/* Expand — top-right */}
-            <button
-              onClick={() => setFullImage(true)}
-              title="View full portrait"
-              style={{
-                position: 'absolute', top: 10, right: 10,
-                width: 30, height: 30, padding: 0,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)',
-                border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8,
-                color: '#aaa', cursor: 'pointer',
-              }}
-            >
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M7.5 1.5H10.5V4.5M10.5 1.5L6.5 5.5M4.5 10.5H1.5V7.5M1.5 10.5L5.5 6.5" />
-              </svg>
-            </button>
-
-            {/* Bottom-left: trainee icon + static star rank */}
-            <div style={{ position: 'absolute', bottom: 14, left: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
-              <img
-                src={getIconUrl(trainee.id)} alt=""
-                style={{
-                  width: 46, height: 46, borderRadius: 10, objectFit: 'cover', display: 'block',
-                  border: '2px solid rgba(255,255,255,0.2)',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.7)',
-                }}
-              />
-              <div style={{ display: 'flex', gap: 1 }}>
+            {/* Top-right: text + icon, stars below */}
+            <div style={{ position: 'absolute', top: 10, right: 14, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+              <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <div style={{ textAlign: 'right' }}>
+                  {trainee.title && (
+                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
+                      [{trainee.title}]
+                    </div>
+                  )}
+                  <div style={{ fontSize: 22, fontWeight: 800, color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,0.9)', lineHeight: 1.15, letterSpacing: '-0.01em' }}>
+                    {trainee.name}
+                  </div>
+                </div>
+                <img src={getIconUrl(trainee)} alt="" style={{ width: 48, height: 48, objectFit: 'contain' }} />
+              </div>
+              <div style={{ display: 'flex', gap: 2 }}>
                 {[1,2,3,4,5].map(r => (
-                  <span key={r} style={{ fontSize: 10, lineHeight: 1, color: r <= starRank ? '#fbbf24' : 'rgba(255,255,255,0.2)', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>★</span>
+                  <span key={r} style={{ fontSize: 28, lineHeight: 1, color: r <= starRank ? '#fbbf24' : 'rgba(255,255,255,0.2)', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>★</span>
                 ))}
               </div>
-            </div>
-
-            {/* Bottom-right: name + JP name + potential level */}
-            <div style={{ position: 'absolute', bottom: 14, right: 14, textAlign: 'right', maxWidth: 'calc(100% - 90px)' }}>
-              <div style={{ fontSize: 22, fontWeight: 800, color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,0.9)', lineHeight: 1.15, letterSpacing: '-0.01em' }}>
-                {trainee.name}
-              </div>
-              {trainee.name_jp && (
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 3, textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
-                  {trainee.name_jp}
-                </div>
-              )}
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', marginTop: 4, textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
                 Potential Lv. {potentialLevel}
               </div>
             </div>
+
+            {/* Bottom-right: edit + save buttons */}
+            {user && (
+              <div style={{ position: 'absolute', bottom: 14, right: 14, display: 'flex', gap: 6 }}>
+                <button
+                  onClick={() => setEditOpen(true)}
+                  style={{
+                    width: 34, height: 34, padding: 0, borderRadius: 7,
+                    background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)',
+                    color: '#ccc', cursor: 'pointer', fontSize: 15,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                >✎</button>
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  style={{
+                    padding: '7px 14px', borderRadius: 7, fontSize: 12, fontWeight: 600,
+                    background: saving ? '#1e1e2a' : collectionEntry ? 'rgba(167,139,250,0.15)' : 'rgba(167,139,250,0.22)',
+                    border: `1px solid ${saving ? '#2a2a38' : '#a78bfa55'}`,
+                    color: saving ? '#444' : '#a78bfa', cursor: saving ? 'default' : 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {saving ? 'Saving…' : collectionEntry ? 'Update' : 'Add to Collection'}
+                </button>
+              </div>
+            )}
+
+            {/* Edit overlay */}
+            {editOpen && (
+              <div
+                onClick={() => setEditOpen(false)}
+                style={{
+                  position: 'fixed', inset: 0, zIndex: 100,
+                  background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}
+              >
+                <div
+                  onClick={e => e.stopPropagation()}
+                  style={{
+                    background: '#16161e', border: '1px solid #2a2a38', borderRadius: 16,
+                    padding: '28px 32px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20,
+                    minWidth: 240,
+                  }}
+                >
+                  <img src={getIconUrl(trainee)} alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} />
+                  {trainee.title && (
+                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>[{trainee.title}]</div>
+                  )}
+                  <div style={{ fontSize: 20, fontWeight: 800, color: '#fff', marginTop: -12 }}>{trainee.name}</div>
+
+                  {/* Star rank */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontSize: 10, color: '#555', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Star Rank</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <button onClick={() => setStarRank(r => Math.max(1, r - 1))} style={{ width: 28, height: 28, borderRadius: 6, background: '#1a1a26', border: '1px solid #2a2a38', color: '#aaa', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        −
+                      </button>
+                      <div style={{ display: 'flex', gap: 3, width: 112, justifyContent: 'center' }}>
+                        {[1,2,3,4,5].map(r => (
+                          <svg key={r} width="20" height="20" viewBox="0 0 24 24" fill={r <= starRank ? '#fbbf24' : 'none'} stroke={r <= starRank ? '#fbbf24' : '#2a2a38'} strokeWidth="2" strokeLinejoin="round">
+                            <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
+                          </svg>
+                        ))}
+                      </div>
+                      <button onClick={() => setStarRank(r => Math.min(5, r + 1))} style={{ width: 28, height: 28, borderRadius: 6, background: '#1a1a26', border: '1px solid #2a2a38', color: '#aaa', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Potential level */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontSize: 10, color: '#555', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Potential Level</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <button onClick={() => setPotentialLevel(l => Math.max(1, l - 1))} style={{ width: 28, height: 28, borderRadius: 6, background: '#1a1a26', border: '1px solid #2a2a38', color: '#aaa', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        −
+                      </button>
+                      <span style={{ fontSize: 22, color: '#a78bfa', width: 112, textAlign: 'center', display: 'inline-block' }}>{potentialLevel}</span>
+                      <button onClick={() => setPotentialLevel(l => Math.min(5, l + 1))} style={{ width: 28, height: 28, borderRadius: 6, background: '#1a1a26', border: '1px solid #2a2a38', color: '#aaa', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setEditOpen(false)}
+                    style={{
+                      width: '100%', padding: '8px 0', borderRadius: 8, fontSize: 12, fontWeight: 600,
+                      background: 'rgba(167,139,250,0.18)', border: '1px solid #a78bfa55',
+                      color: '#a78bfa', cursor: 'pointer',
+                    }}
+                  >Done</button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ── Scrollable content ── */}
@@ -591,43 +654,27 @@ function TraineeModal({ trainee, onClose }: { trainee: Trainee; onClose: () => v
             </div>
 
             {/* ── 3. Aptitudes ── */}
-            <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid #1a1a22', display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {/* Track */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 10, color: '#555', width: 54, flexShrink: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Track</span>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                  {([['Turf', trainee.apt_turf], ['Dirt', trainee.apt_dirt]] as [string, string | null][]).map(([label, grade]) => (
-                    <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <span style={{ fontSize: 10, color: '#666' }}>{label}</span>
-                      <GradeBadge grade={grade} />
-                    </div>
-                  ))}
+            <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid #1a1a22', display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {([
+                ['Track',    [['Turf', trainee.apt_turf], ['Dirt', trainee.apt_dirt]]],
+                ['Distance', [['Sprint', trainee.apt_short], ['Mile', trainee.apt_mile], ['Medium', trainee.apt_mid], ['Long', trainee.apt_long]]],
+                ['Style',    [['Front', trainee.apt_leading], ['Pace', trainee.apt_stalking], ['Late', trainee.apt_mid_pack], ['End', trainee.apt_chasing]]],
+              ] as [string, [string, string | null][]][]).map(([rowLabel, items]) => (
+                <div key={rowLabel} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 10, color: '#555', width: 54, flexShrink: 0, textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>{rowLabel}</span>
+                  <div style={{ display: 'flex', gap: 4, flex: 1 }}>
+                    {items.map(([label, grade]) => {
+                      const gs = grade ? (GRADE_STYLE[grade.toUpperCase()] ?? GRADE_STYLE['G']) : null
+                      return (
+                        <div key={label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, padding: '5px 4px', background: gs?.bg ?? 'rgba(255,255,255,0.04)', border: `1px solid ${gs?.color ?? '#333'}`, borderRadius: 6, boxSizing: 'border-box' }}>
+                          <span style={{ fontSize: 9, color: gs?.color ?? '#555', textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1, textAlign: 'center' }}>{label}</span>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: gs?.color ?? '#444', lineHeight: 1, textAlign: 'center' }}>{grade?.toUpperCase() ?? '—'}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
-              </div>
-              {/* Distance */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 10, color: '#555', width: 54, flexShrink: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Dist</span>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                  {([['Short', trainee.apt_short], ['Mile', trainee.apt_mile], ['Mid', trainee.apt_mid], ['Long', trainee.apt_long]] as [string, string | null][]).map(([label, grade]) => (
-                    <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <span style={{ fontSize: 10, color: '#666' }}>{label}</span>
-                      <GradeBadge grade={grade} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-              {/* Running style */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 10, color: '#555', width: 54, flexShrink: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Style</span>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                  {([['Lead', trainee.apt_leading], ['Stalk', trainee.apt_stalking], ['Mid', trainee.apt_midpack], ['Chase', trainee.apt_chasing]] as [string, string | null][]).map(([label, grade]) => (
-                    <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <span style={{ fontSize: 10, color: '#666' }}>{label}</span>
-                      <GradeBadge grade={grade} />
-                    </div>
-                  ))}
-                </div>
-              </div>
+              ))}
             </div>
 
             {/* ── 4. Skills + Career Events tabs ── */}
@@ -659,102 +706,9 @@ function TraineeModal({ trainee, onClose }: { trainee: Trainee; onClose: () => v
 
           </div>
 
-          {/* ── Collection action footer ── */}
-          {user && (
-            <div style={{
-              padding: '10px 16px 12px', borderTop: '1px solid #1a1a22',
-              flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8,
-              background: '#13131c',
-            }}>
-              {/* Star rank row */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 10, color: '#555', letterSpacing: '0.06em', textTransform: 'uppercase', width: 30, flexShrink: 0 }}>Rank</span>
-                <div style={{ display: 'flex', gap: 4 }}>
-                  {[1,2,3,4,5].map(rank => {
-                    const active    = rank === starRank
-                    const available = hasStatsForRank(trainee, rank)
-                    return (
-                      <button
-                        key={rank}
-                        onClick={() => { if (available) setStarRank(rank) }}
-                        style={{
-                          width: 38, height: 28, padding: 0, borderRadius: 6,
-                          border: active ? '1px solid #fbbf24' : '1px solid #2a2a38',
-                          background: active ? 'rgba(251,191,36,0.18)' : '#1a1a26',
-                          color: active ? '#fbbf24' : available ? '#666' : '#2a2a38',
-                          cursor: available ? 'pointer' : 'default',
-                          fontSize: 11, fontWeight: active ? 700 : 400,
-                          transition: 'all 0.12s',
-                        }}
-                      >
-                        {rank}★
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* Potential level row */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 10, color: '#555', letterSpacing: '0.06em', textTransform: 'uppercase', width: 30, flexShrink: 0 }}>Pot</span>
-                <div style={{ display: 'flex', gap: 4 }}>
-                  {[1,2,3,4,5].map(level => {
-                    const active = level === potentialLevel
-                    return (
-                      <button
-                        key={level}
-                        onClick={() => setPotentialLevel(level)}
-                        style={{
-                          width: 38, height: 28, padding: 0, borderRadius: 6,
-                          border: active ? '1px solid #a78bfa' : '1px solid #2a2a38',
-                          background: active ? 'rgba(167,139,250,0.18)' : '#1a1a26',
-                          color: active ? '#a78bfa' : '#666',
-                          cursor: 'pointer', fontSize: 11, fontWeight: active ? 700 : 400,
-                          transition: 'all 0.12s',
-                        }}
-                      >
-                        {level}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* Save button */}
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                style={{
-                  padding: '7px 14px', borderRadius: 7, fontSize: 12, fontWeight: 600,
-                  background: saving ? '#1e1e2a' : collectionEntry ? 'rgba(167,139,250,0.15)' : 'rgba(167,139,250,0.22)',
-                  border: `1px solid ${saving ? '#2a2a38' : '#a78bfa55'}`,
-                  color: saving ? '#444' : '#a78bfa', cursor: saving ? 'default' : 'pointer',
-                  transition: 'all 0.15s', width: '100%',
-                }}
-              >
-                {saving ? 'Saving…' : collectionEntry ? 'Update' : 'Add to Collection'}
-              </button>
-            </div>
-          )}
         </div>
       </div>
 
-      {/* ── Full-image lightbox ── */}
-      {fullImage && (
-        <div
-          onClick={() => setFullImage(false)}
-          style={{
-            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.95)',
-            zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: 16, cursor: 'zoom-out',
-          }}
-        >
-          <img
-            src={getPortraitUrl(trainee.id)} alt={trainee.name}
-            style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', borderRadius: 8 }}
-          />
-        </div>
-      )}
     </>
   )
 }
