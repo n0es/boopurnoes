@@ -254,6 +254,7 @@ function minStarRankForUnique(charRarity: number, uniqueIndex: number): number {
 // ── Parse trainee page data ───────────────────────────────────────────────────
 
 interface ParsedTrainee {
+  title: string | null
   awakeningSkills: Array<{ gametora_id: number; awakening_level: number }>
   uniqueSkills: Array<{ gametora_id: number; sort_order: number; min_star_rank: number }>
   hintSkills: Array<{ gametora_id: number }>
@@ -264,6 +265,8 @@ function parseTraineeData(charRarity: number, pageData: any): ParsedTrainee {
   const item = pageData.pageProps?.itemData
 
   if (!item) throw new Error('No itemData in page props')
+
+  const title: string | null = item.title ?? null
 
   // Awakening skills: skills_awakening is an array of 4 IDs → levels 2, 3, 4, 5
   const awakeningSkills: Array<{ gametora_id: number; awakening_level: number }> = []
@@ -293,7 +296,7 @@ function parseTraineeData(charRarity: number, pageData: any): ParsedTrainee {
     if (id) hintSkills.push({ gametora_id: id })
   })
 
-  return { awakeningSkills, uniqueSkills, hintSkills }
+  return { title, awakeningSkills, uniqueSkills, hintSkills }
 }
 
 // ── Save to Supabase ──────────────────────────────────────────────────────────
@@ -375,6 +378,15 @@ async function saveTraineeSkills(traineeId: number, charRarity: number, parsed: 
       const { error } = await supabase.from('trainee_hint_skills').insert(rows)
       if (error) throw new Error(`Insert hint skills: ${error.message}`)
     }
+  }
+
+  // Update title
+  if (parsed.title !== null) {
+    const { error } = await supabase
+      .from('trainees')
+      .update({ title: parsed.title })
+      .eq('id', traineeId)
+    if (error) throw new Error(`Update title: ${error.message}`)
   }
 }
 

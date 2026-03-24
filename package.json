@@ -14,8 +14,9 @@
     "db:setup": "tsx scripts/setup.ts",
     "db:seed": "tsx scripts/seed.ts",
     "db:images": "tsx scripts/download-images.ts",
-    "db:reset": "npm run db:setup && npm run db:seed && npm run db:images",
+    "db:reset": "npm run db:setup && npm run db:seed && npm run db:images && npm run db:scrape-trainees && npm run db:trainee-images",
     "db:sync": "tsx scripts/sync-prod.ts",
+    "db:reset-trainees": "npm run db:scrape-trainees && npm run db:trainee-images",
     "db:scrape-trainees": "tsx scripts/scrape-trainees.ts",
     "db:trainee-images": "tsx scripts/download-trainee-images.ts",
     "db:skill-icons": "tsx scripts/download-skill-icons.ts"
