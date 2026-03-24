@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 
@@ -87,6 +88,17 @@ export default function SupportCards() {
   const [sortDir, setSortDir]           = useState<SortDir>('asc')
   const [collectionMode, setCollectionMode] = useState(false)
   const [ownedMap, setOwnedMap]         = useState<Map<number, OwnedEntry> | null>(null)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const unownedMode = searchParams.get('unowned') === '1'
+  function toggleUnownedMode() {
+    if (!collectionMode) return
+    setSearchParams(p => {
+      const n = new URLSearchParams(p)
+      if (unownedMode) n.delete('unowned')
+      else n.set('unowned', '1')
+      return n
+    }, { replace: true })
+  }
   const [modalCard, setModalCard]       = useState<SupportCard | null>(null)
   const [cardSize, setCardSize]         = useState(100) // min card width in px
 
@@ -148,6 +160,7 @@ export default function SupportCards() {
       if (selectedType   && c.card_type !== selectedType)                           return false
       if (selectedRarity && c.rarity    !== selectedRarity)                         return false
       if (search         && !c.name.toLowerCase().includes(search.toLowerCase()))   return false
+      if (collectionMode && !unownedMode && user && ownedMap !== null && !ownedMap.has(c.id)) return false
       return true
     })
     .sort((a, b) => {
@@ -170,7 +183,32 @@ export default function SupportCards() {
             <span style={{ fontSize: 12, color: '#f87171' }}>Sign in to use collection mode</span>
           )}
           <button
-            onClick={() => setCollectionMode(m => !m)}
+            onClick={toggleUnownedMode}
+            disabled={!collectionMode}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '7px 14px', borderRadius: 8, border: '1px solid',
+              borderColor: unownedMode ? '#7dd3fc' : '#333',
+              background: unownedMode ? '#0c2a3f' : 'transparent',
+              color: (collectionMode && unownedMode) ? '#7dd3fc' : '#444',
+              cursor: collectionMode ? 'pointer' : 'default',
+              fontSize: 13, fontWeight: 500, transition: 'all 0.15s',
+              opacity: collectionMode ? 1 : 0.35,
+            }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+            </svg>
+            Show Unowned
+          </button>
+          <button
+            onClick={() => {
+              if (collectionMode) {
+                setSearchParams(p => { const n = new URLSearchParams(p); n.delete('unowned'); return n }, { replace: true })
+              }
+              setCollectionMode(m => !m)
+            }}
             style={{
               display: 'flex', alignItems: 'center', gap: 8,
               padding: '7px 14px', borderRadius: 8, border: '1px solid',
@@ -281,7 +319,7 @@ export default function SupportCards() {
                 key={card.id}
                 card={card}
                 owned={collectionMode && !!user && ownedMap !== null && ownedMap.has(card.id)}
-                dimmed={collectionMode && !!user && ownedMap !== null && !ownedMap.has(card.id)}
+                dimmed={collectionMode && unownedMode && !!user && ownedMap !== null && !ownedMap.has(card.id)}
                 onClick={() => { if (user) setModalCard(card) }}
               />
             ))}
@@ -325,7 +363,7 @@ function CardTile({ card, owned, dimmed, onClick }: {
         position: 'relative', borderRadius: 12, overflow: 'hidden',
         background: '#1a1a22', aspectRatio: '3 / 4',
         boxShadow: owned ? ownedShadow : defaultShadow,
-        transition: 'transform 0.15s, box-shadow 0.15s',
+        transition: 'transform 0.15s, box-shadow 0.15s, filter 0.2s ease',
         cursor: 'pointer',
         filter: dimmed ? 'grayscale(1) brightness(0.4)' : 'none',
       }}
@@ -333,11 +371,13 @@ function CardTile({ card, owned, dimmed, onClick }: {
         const d = e.currentTarget as HTMLDivElement
         d.style.transform = 'scale(1.03)'
         d.style.boxShadow = owned ? hoverOwned : hoverDefault
+        if (dimmed) d.style.filter = 'grayscale(0.2) brightness(0.85)'
       }}
       onMouseLeave={e => {
         const d = e.currentTarget as HTMLDivElement
         d.style.transform = 'scale(1)'
         d.style.boxShadow = owned ? ownedShadow : defaultShadow
+        if (dimmed) d.style.filter = 'grayscale(1) brightness(0.4)'
       }}
     >
       <img src={getArtUrl(card.id)} alt={card.name} onLoad={() => setArtLoaded(true)}
