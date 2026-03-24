@@ -18,6 +18,33 @@ interface SupportCardEffect {
   values_by_level: number[]
 }
 
+interface Skill {
+  name: string
+  description: string | null
+  icon_url: string | null
+  condition: string | null
+}
+
+interface HintSkill {
+  id: number
+  sort_order: number
+  skills: Skill
+}
+
+interface EventSkill {
+  id: number
+  sort_order: number
+  skills: Skill
+}
+
+interface TrainingEvent {
+  id: number
+  name: string
+  event_type: 'chain' | 'random'
+  chain_level: number | null
+  sort_order: number
+}
+
 interface OwnedEntry {
   level: number
   uncap: number
@@ -383,6 +410,9 @@ function CardModal({ card, owned, onClose, onAdd, onRemove, onCardUpdated }: {
   const [uncap, setUncap]   = useState(owned?.uncap ?? 0)
   const [level, setLevel]   = useState(owned?.level ?? 1)
   const [effects, setEffects] = useState<SupportCardEffect[]>([])
+  const [hints, setHints]   = useState<HintSkill[]>([])
+  const [eventSkills, setEventSkills] = useState<EventSkill[]>([])
+  const [trainingEvents, setTrainingEvents] = useState<TrainingEvent[]>([])
   const [busy, setBusy]     = useState(false)
   const [editing, setEditing] = useState(false)
   const overlayRef          = useRef<HTMLDivElement>(null)
@@ -400,6 +430,27 @@ function CardModal({ card, owned, onClose, onAdd, onRemove, onCardUpdated }: {
       .select('id, effect_name, symbol, unlock_level, values_by_level')
       .eq('card_id', card.id)
       .then(({ data }) => setEffects((data ?? []) as SupportCardEffect[]))
+
+    supabase
+      .from('support_card_hints')
+      .select('id, sort_order, skills(name, description, icon_url, condition)')
+      .eq('card_id', card.id)
+      .order('sort_order')
+      .then(({ data }) => setHints((data ?? []) as unknown as HintSkill[]))
+
+    supabase
+      .from('support_card_event_skills')
+      .select('id, sort_order, skills(name, description, icon_url, condition)')
+      .eq('card_id', card.id)
+      .order('sort_order')
+      .then(({ data }) => setEventSkills((data ?? []) as unknown as EventSkill[]))
+
+    supabase
+      .from('support_card_training_events')
+      .select('id, name, event_type, chain_level, sort_order')
+      .eq('card_id', card.id)
+      .order('sort_order')
+      .then(({ data }) => setTrainingEvents((data ?? []) as TrainingEvent[]))
   }, [card.id])
 
   useEffect(() => {
@@ -549,13 +600,75 @@ function CardModal({ card, owned, onClose, onAdd, onRemove, onCardUpdated }: {
             </div>
           </div>
 
-          {/* ── Right: skills (placeholder) ── */}
+          {/* ── Right: skills & events ── */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
             <div style={{ padding: '12px 14px 8px', fontSize: 12, fontWeight: 600, color: '#888', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}>
-              Skills
+              Skills &amp; Events
             </div>
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontSize: 12, color: '#333' }}>Coming soon</span>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '0 4px 12px' }}>
+              {hints.length === 0 && eventSkills.length === 0 && trainingEvents.length === 0 ? (
+                <div style={{ padding: '8px 10px', color: '#444', fontSize: 13 }}>No skills data.</div>
+              ) : (
+                <>
+                  {/* Hints */}
+                  {hints.length > 0 && (
+                    <div style={{ marginBottom: 10 }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: '#60a5fa', padding: '4px 10px', letterSpacing: '0.04em' }}>Hints</div>
+                      {hints.map(h => (
+                        <div key={h.id} style={{
+                          display: 'flex', alignItems: 'center', gap: 8,
+                          padding: '5px 10px', borderRadius: 7, margin: '2px 4px',
+                          background: '#1a1a26',
+                        }}>
+                          {h.skills?.icon_url && <img src={h.skills.icon_url} alt="" style={{ width: 20, height: 20, borderRadius: 3, flexShrink: 0 }} />}
+                          <span style={{ fontSize: 12, color: '#ccc' }}>{h.skills?.name}</span>
+                          {h.skills?.condition && <span style={{ fontSize: 10, color: '#888', marginLeft: 'auto', flexShrink: 0 }}>{h.skills.condition}</span>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Event skills */}
+                  {eventSkills.length > 0 && (
+                    <div style={{ marginBottom: 10 }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: '#a78bfa', padding: '4px 10px', letterSpacing: '0.04em' }}>Event Skills</div>
+                      {eventSkills.map(s => (
+                        <div key={s.id} style={{
+                          display: 'flex', alignItems: 'center', gap: 8,
+                          padding: '5px 10px', borderRadius: 7, margin: '2px 4px',
+                          background: '#1a1a26',
+                        }}>
+                          {s.skills?.icon_url && <img src={s.skills.icon_url} alt="" style={{ width: 20, height: 20, borderRadius: 3, flexShrink: 0 }} />}
+                          <span style={{ fontSize: 12, color: '#ccc' }}>{s.skills?.name}</span>
+                          {s.skills?.condition && <span style={{ fontSize: 10, color: '#888', marginLeft: 'auto', flexShrink: 0 }}>{s.skills.condition}</span>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Training events */}
+                  {trainingEvents.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: '#fbbf24', padding: '4px 10px', letterSpacing: '0.04em' }}>Training Events</div>
+                      {trainingEvents.map(ev => (
+                        <div key={ev.id} style={{
+                          display: 'flex', alignItems: 'center', gap: 6,
+                          padding: '5px 10px', borderRadius: 7, margin: '2px 4px',
+                          background: '#1a1a26',
+                        }}>
+                          {ev.event_type === 'chain' && (
+                            <span style={{ fontSize: 11, color: '#fbbf24', flexShrink: 0 }}>{'❯'.repeat(ev.chain_level ?? 1)}</span>
+                          )}
+                          {ev.event_type === 'random' && (
+                            <span style={{ fontSize: 10, color: '#888', flexShrink: 0 }}>⟡</span>
+                          )}
+                          <span style={{ fontSize: 12, color: '#ccc' }}>{ev.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>
