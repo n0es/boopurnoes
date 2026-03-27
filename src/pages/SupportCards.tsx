@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 
@@ -176,7 +176,7 @@ export default function SupportCards() {
     <div style={{ minHeight: '100vh', background: '#0f0f13', color: '#fff', fontFamily: 'sans-serif' }}>
       {/* Header */}
       <div style={{ padding: '10px 16px', borderBottom: '1px solid #222', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <a href="/" style={{ color: '#aaa', textDecoration: 'none', fontSize: 13 }}>← Home</a>
+        <Link to="/umamusume" style={{ color: '#aaa', textDecoration: 'none', fontSize: 13 }}>← Home</Link>
         <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Support Cards</h1>
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
           {collectionMode && !user && (

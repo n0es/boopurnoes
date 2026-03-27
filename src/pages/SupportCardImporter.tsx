@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase'
 import BatchCardImporter from '../components/Batchcardimporter';
 
@@ -117,7 +118,12 @@ export default function SupportCardImporter() {
   };
 
   return (
-    <div style={{ maxWidth: 720, margin: '0 auto' }}>
+    <div style={{ maxWidth: 720, margin: '0 auto', padding: '2rem' }}>
+      <header style={{ marginBottom: '2rem' }}>
+        <Link to="/umamusume" style={{ color: '#aaa', textDecoration: 'none', fontSize: 13 }}>← Home</Link>
+        <h1 style={{ margin: '0.5rem 0 0', fontSize: '1.5rem', fontWeight: 700 }}>Support Card Importer</h1>
+      </header>
+
       {/* ── Input Bar ─────────────────────────────────── */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         <input

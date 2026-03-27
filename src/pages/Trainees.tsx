@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 
@@ -90,7 +90,7 @@ function getIconUrl(trainee: Trainee) {
 }
 
 const STAT_COLORS = ['#60a5fa', '#fb923c', '#f87171', '#fbbf24', '#34d399']
-const STAT_MAX    = 1200  // approx bar ceiling
+const STAT_MAX = 1200  // approx bar ceiling
 
 const GRADE_STYLE: Record<string, { color: string; bg: string }> = {
   S: { color: '#fbbf24', bg: 'rgba(251,191,36,0.18)' },
@@ -130,7 +130,7 @@ function getStatsForRank(trainee: Trainee, rank: number): number[] {
 
 function TraineeTile({ trainee, dimmed, onClick }: { trainee: Trainee; dimmed?: boolean; onClick: () => void }) {
   const [artLoaded, setArtLoaded] = useState(false)
-  const shadow      = '0 2px 12px rgba(0,0,0,0.5)'
+  const shadow = '0 2px 12px rgba(0,0,0,0.5)'
   const hoverShadow = '0 6px 24px rgba(0,0,0,0.7)'
   const rs = RARITY_STYLE[trainee.rarity] ?? RARITY_STYLE[1]
 
@@ -365,22 +365,22 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
   onRankChange?: (rank: number) => void
   onPotChange?: (pot: number) => void
 }) {
-  const { user }                          = useAuth()
-  const [starRank, setStarRank]           = useState(initialRank ?? trainee.rarity)
+  const { user } = useAuth()
+  const [starRank, setStarRank] = useState(initialRank ?? trainee.rarity)
   const [potentialLevel, setPotentialLevel] = useState(initialPot ?? 1)
-  const [activeTab, setActiveTab]         = useState<'skills' | 'events'>(initialTab ?? 'skills')
+  const [activeTab, setActiveTab] = useState<'skills' | 'events'>(initialTab ?? 'skills')
 
   function changeStarRank(r: number) { setStarRank(r); onRankChange?.(r) }
   function changePotentialLevel(l: number) { setPotentialLevel(l); onPotChange?.(l) }
   function changeActiveTab(t: 'skills' | 'events') { setActiveTab(t); onTabChange?.(t) }
-  const [awakening, setAwakening]         = useState<AwakeningSkill[]>([])
-  const [unique, setUnique]               = useState<UniqueSkill[]>([])
-  const [hint, setHint]                   = useState<HintSkill[]>([])
-  const [events, setEvents]               = useState<TrainingEvent[]>([])
+  const [awakening, setAwakening] = useState<AwakeningSkill[]>([])
+  const [unique, setUnique] = useState<UniqueSkill[]>([])
+  const [hint, setHint] = useState<HintSkill[]>([])
+  const [events, setEvents] = useState<TrainingEvent[]>([])
   const [collectionEntry, setCollectionEntry] = useState<CollectionEntry | null>(null)
-  const [saving, setSaving]               = useState(false)
-  const [editOpen, setEditOpen]           = useState(false)
-  const overlayRef  = useRef<HTMLDivElement>(null)
+  const [saving, setSaving] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
+  const overlayRef = useRef<HTMLDivElement>(null)
 
   const stats = getStatsForRank(trainee, starRank)
 
@@ -514,7 +514,7 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
                 <img src={getIconUrl(trainee)} alt="" style={{ width: 48, height: 48, objectFit: 'contain' }} />
               </div>
               <div style={{ display: 'flex', gap: 2 }}>
-                {[1,2,3,4,5].map(r => (
+                {[1, 2, 3, 4, 5].map(r => (
                   <span key={r} style={{ fontSize: 28, lineHeight: 1, color: r <= starRank ? '#fbbf24' : 'rgba(255,255,255,0.2)', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>★</span>
                 ))}
               </div>
@@ -599,7 +599,7 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
                         −
                       </button>
                       <div style={{ display: 'flex', gap: 3, width: 112, justifyContent: 'center' }}>
-                        {[1,2,3,4,5].map(r => (
+                        {[1, 2, 3, 4, 5].map(r => (
                           <svg key={r} width="20" height="20" viewBox="0 0 24 24" fill={r <= starRank ? '#fbbf24' : 'none'} stroke={r <= starRank ? '#fbbf24' : '#2a2a38'} strokeWidth="2" strokeLinejoin="round">
                             <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
                           </svg>
@@ -705,9 +705,9 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
             {/* ── 3. Aptitudes ── */}
             <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid #1a1a22', display: 'flex', flexDirection: 'column', gap: 4 }}>
               {([
-                ['Track',    [['Turf', trainee.apt_turf], ['Dirt', trainee.apt_dirt]]],
+                ['Track', [['Turf', trainee.apt_turf], ['Dirt', trainee.apt_dirt]]],
                 ['Distance', [['Sprint', trainee.apt_short], ['Mile', trainee.apt_mile], ['Medium', trainee.apt_mid], ['Long', trainee.apt_long]]],
-                ['Style',    [['Front', trainee.apt_leading], ['Pace', trainee.apt_stalking], ['Late', trainee.apt_mid_pack], ['End', trainee.apt_chasing]]],
+                ['Style', [['Front', trainee.apt_leading], ['Pace', trainee.apt_stalking], ['Late', trainee.apt_mid_pack], ['End', trainee.apt_chasing]]],
               ] as [string, [string, string | null][]][]).map(([rowLabel, items]) => (
                 <div key={rowLabel} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ fontSize: 10, color: '#555', width: 54, flexShrink: 0, textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>{rowLabel}</span>
@@ -765,12 +765,12 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function Trainees() {
-  const { user }                          = useAuth()
-  const [searchParams, setSearchParams]   = useSearchParams()
-  const [trainees, setTrainees]           = useState<Trainee[]>([])
-  const [loading, setLoading]             = useState(true)
-  const [error, setError]                 = useState<string | null>(null)
-  const [search, setSearch]               = useState(() => searchParams.get('q') ?? '')
+  const { user } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [trainees, setTrainees] = useState<Trainee[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [search, setSearch] = useState(() => searchParams.get('q') ?? '')
   const sort = (searchParams.get('sort') ?? 'name-asc') as 'name-asc' | 'name-desc' | 'rarity'
 
   function setSort(value: 'name-asc' | 'name-desc' | 'rarity') {
@@ -782,8 +782,8 @@ export default function Trainees() {
     }, { replace: true })
   }
   const [selectedRarity, setSelectedRarity] = useState<number | null>(null)
-  const [modalTrainee, setModalTrainee]   = useState<Trainee | null>(null)
-  const [cardSize, setCardSize]           = useState(110)
+  const [modalTrainee, setModalTrainee] = useState<Trainee | null>(null)
+  const [cardSize, setCardSize] = useState(110)
   const collectionMode = searchParams.get('collection') === '1'
   function toggleCollectionMode() {
     setSearchParams(p => {
@@ -804,7 +804,7 @@ export default function Trainees() {
     }, { replace: true })
   }
   const [collectionIds, setCollectionIds] = useState<Set<number> | null>(null)
-  const searchTimerRef                    = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Expand root to full width (same pattern as SupportCards)
   useEffect(() => {
@@ -916,7 +916,7 @@ export default function Trainees() {
         borderBottom: '1px solid #1a1a1a',
       }}>
         <div style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <a href="/" style={{ color: '#aaa', textDecoration: 'none', fontSize: 13 }}>← Home</a>
+          <Link to="/umamusume" style={{ color: '#aaa', textDecoration: 'none', fontSize: 13 }}>← Home</Link>
           <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Trainees</h1>
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
             {collectionMode && !user && (
@@ -937,8 +937,8 @@ export default function Trainees() {
               }}
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+                <circle cx="12" cy="12" r="10" />
+                <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
               </svg>
               Show Unowned
             </button>
@@ -954,7 +954,7 @@ export default function Trainees() {
               }}
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill={collectionMode ? '#7dd3fc' : 'none'} stroke="currentColor" strokeWidth="2">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
               </svg>
               My Collection
             </button>
