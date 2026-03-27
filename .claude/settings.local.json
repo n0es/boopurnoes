@@ -13,7 +13,8 @@
       "mcp__plugin_discord_discord__fetch_messages",
       "mcp__plugin_discord_discord__react",
       "mcp__plugin_discord_discord__edit_message",
-      "mcp__plugin_discord_discord__download_attachment"
+      "mcp__plugin_discord_discord__download_attachment",
+      "Bash(cargo build:*)"
     ]
   }
 }
