@@ -1,5 +1,8 @@
 use rand::prelude::*;
 use std::collections::HashMap;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+use tokio::sync::mpsc;
 
 use crate::algorithms::traits::Optimizer;
 use crate::models::*;
@@ -18,6 +21,16 @@ struct Chromosome {
     /// Indices into the card pool (not card IDs).
     genes: Vec<usize>,
     fitness: f64,
+}
+
+/// Progress update sent after each generation.
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct GenerationUpdate {
+    pub generation: usize,
+    pub total_generations: usize,
+    pub best_fitness: f64,
+    pub top_decks: Vec<DeckScore>,
+    pub decks_evaluated: usize,
 }
 
 impl GeneticSearch {
@@ -40,11 +53,29 @@ impl GeneticSearch {
         config: &ScenarioConfig,
         params: &SearchParams,
     ) -> Vec<DeckScore> {
+        let (results, _) = Self::run_streaming(optimizer, trainee, card_pool, card_levels, locked, config, params, None, None);
+        results
+    }
+
+    /// Run the genetic algorithm with optional streaming progress and pause support.
+    ///
+    /// Returns the final top-N results and total decks evaluated.
+    pub fn run_streaming(
+        optimizer: &dyn Optimizer,
+        trainee: &Trainee,
+        card_pool: &[SupportCard],
+        card_levels: &[i32],
+        locked: &[usize],
+        config: &ScenarioConfig,
+        params: &SearchParams,
+        progress_tx: Option<&mpsc::Sender<GenerationUpdate>>,
+        pause_flag: Option<&Arc<AtomicBool>>,
+    ) -> (Vec<DeckScore>, usize) {
         let deck_size = 6;
         let free_slots = deck_size - locked.len();
 
         if card_pool.len() < deck_size {
-            return vec![];
+            return (vec![], 0);
         }
 
         let mut rng = thread_rng();
@@ -56,7 +87,7 @@ impl GeneticSearch {
             .collect();
 
         if free_indices.len() < free_slots {
-            return vec![];
+            return (vec![], 0);
         }
 
         // ─── Greedy initialization ──────────────────────────────────────
@@ -103,7 +134,14 @@ impl GeneticSearch {
             .cloned()
             .unwrap();
 
-        for _gen in 0..params.generations {
+        for gen in 0..params.generations {
+            // ─── Pause support: spin-wait while paused ──────────────────
+            if let Some(flag) = pause_flag {
+                while flag.load(Ordering::Relaxed) {
+                    std::thread::sleep(std::time::Duration::from_millis(50));
+                }
+            }
+
             // Sort by fitness (descending)
             population.sort_by(|a, b| b.fitness.partial_cmp(&a.fitness).unwrap());
 
@@ -142,29 +180,61 @@ impl GeneticSearch {
             }
 
             population = new_pop;
-        }
 
-        // ─── Collect top N results ──────────────────────────────────────
-        population.sort_by(|a, b| b.fitness.partial_cmp(&a.fitness).unwrap());
-
-        // Deduplicate (same card set = same deck)
-        let mut seen = std::collections::HashSet::new();
-        let mut results = Vec::new();
-
-        for chromo in &population {
-            let mut key = chromo.genes.clone();
-            key.sort();
-            if seen.insert(key) {
-                let score = full_score(optimizer, trainee, card_pool, card_levels, &chromo.genes, config);
-                results.push(score);
-                if results.len() >= params.top_n {
-                    break;
+            // ─── Send progress update every N generations ────────────────
+            if let Some(tx) = progress_tx {
+                // Send every 5 generations (but not the very last — the caller sends a "done" event for that)
+                if gen % 5 == 0 && gen < params.generations - 1 {
+                    let top_decks = collect_top_n(optimizer, trainee, card_pool, card_levels, &population, config, params.top_n);
+                    let update = GenerationUpdate {
+                        generation: gen + 1,
+                        total_generations: params.generations,
+                        best_fitness: best_ever.fitness,
+                        top_decks,
+                        decks_evaluated: total_evaluated,
+                    };
+                    // Non-blocking send; drop update if receiver is behind
+                    let _ = tx.try_send(update);
                 }
             }
         }
 
-        results
+        // ─── Collect top N results ──────────────────────────────────────
+        population.sort_by(|a, b| b.fitness.partial_cmp(&a.fitness).unwrap());
+        let results = collect_top_n(optimizer, trainee, card_pool, card_levels, &population, config, params.top_n);
+
+        (results, total_evaluated)
     }
+}
+
+/// Collect deduplicated top N scored decks from the population.
+fn collect_top_n(
+    optimizer: &dyn Optimizer,
+    trainee: &Trainee,
+    card_pool: &[SupportCard],
+    card_levels: &[i32],
+    population: &[Chromosome],
+    config: &ScenarioConfig,
+    top_n: usize,
+) -> Vec<DeckScore> {
+    let mut sorted: Vec<&Chromosome> = population.iter().collect();
+    sorted.sort_by(|a, b| b.fitness.partial_cmp(&a.fitness).unwrap());
+
+    let mut seen = std::collections::HashSet::new();
+    let mut results = Vec::new();
+
+    for chromo in sorted {
+        let mut key = chromo.genes.clone();
+        key.sort();
+        if seen.insert(key) {
+            let score = full_score(optimizer, trainee, card_pool, card_levels, &chromo.genes, config);
+            results.push(score);
+            if results.len() >= top_n {
+                break;
+            }
+        }
+    }
+    results
 }
 
 // ─── Helper functions ───────────────────────────────────────────────────────
@@ -272,7 +342,7 @@ fn mutate(
 
 fn repair_duplicates(
     chromo: &mut Chromosome,
-    locked: &[usize],
+    _locked: &[usize],
     free_indices: &[usize],
     rng: &mut impl Rng,
 ) {

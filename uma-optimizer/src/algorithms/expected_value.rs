@@ -107,8 +107,8 @@ impl Optimizer for ExpectedValueOptimizer {
             }
         }
 
-        // Add trainee starting stats (assume 5-star for optimization)
-        let starting = trainee.starting_stats(5);
+        // Add trainee starting stats based on their star rank
+        let starting = trainee.starting_stats(config.star_rank);
         for s in 0..5 {
             initial_stats[s] += starting[s];
         }
@@ -190,7 +190,7 @@ impl Optimizer for ExpectedValueOptimizer {
             // Friendship bonus — multiplicative, but we need to estimate the
             // expected product. For specialty cards at this facility with high
             // presence probability, use the log-expected-product approximation.
-            let friendship_active_turns = turns as f64 * 0.65; // ~65% of career has friendship
+            let _friendship_active_turns = turns as f64 * 0.65; // ~65% of career has friendship
             let expected_friendship_product: f64 = {
                 let mut product = 1.0;
                 for &i in &specialty_cards {
@@ -349,6 +349,17 @@ impl Optimizer for ExpectedValueOptimizer {
             warnings,
             explanation,
         }
+    }
+
+    fn simulate_turn(
+        &self,
+        _trainee: &Trainee,
+        _deck_cards: &[&SupportCard],
+        _deck_levels: &[i32],
+        _config: &ScenarioConfig,
+        _state: &RunState,
+    ) -> TurnResult {
+        panic!("simulate_turn not implemented for expected_value")
     }
 }
 

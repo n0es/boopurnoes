@@ -62,41 +62,41 @@ impl Trainee {
         }
     }
 
-    /// Convert an aptitude grade string to a numeric multiplier.
-    /// S=1.1, A=1.0, B=0.9, C=0.8, D=0.7, E=0.6, F=0.5, G=0.4
-    pub fn aptitude_multiplier(grade: &str) -> f64 {
-        match grade {
-            "S" => 1.1,
-            "A" => 1.0,
-            "B" => 0.9,
-            "C" => 0.8,
-            "D" => 0.7,
-            "E" => 0.6,
-            "F" => 0.5,
-            "G" => 0.4,
-            _ => 1.0,
-        }
-    }
+    // /// Convert an aptitude grade string to a numeric multiplier.
+    // /// S=1.1, A=1.0, B=0.9, C=0.8, D=0.7, E=0.6, F=0.5, G=0.4
+    // pub fn aptitude_multiplier(grade: &str) -> f64 {
+    //     match grade {
+    //         "S" => 1.1,
+    //         "A" => 1.0,
+    //         "B" => 0.9,
+    //         "C" => 0.8,
+    //         "D" => 0.7,
+    //         "E" => 0.6,
+    //         "F" => 0.5,
+    //         "G" => 0.4,
+    //         _ => 1.0,
+    //     }
+    // }
 
-    /// Get the strategy aptitude grade for a running style.
-    pub fn strategy_aptitude(&self, strategy: &str) -> Option<&str> {
-        match strategy {
-            "leading" | "runner" => self.apt_leading.as_deref(),
-            "stalking" | "leader" => self.apt_stalking.as_deref(),
-            "mid_pack" | "betweener" => self.apt_mid_pack.as_deref(),
-            "chasing" | "chaser" => self.apt_chasing.as_deref(),
-            _ => None,
-        }
-    }
+    // /// Get the strategy aptitude grade for a running style.
+    // pub fn strategy_aptitude(&self, strategy: &str) -> Option<&str> {
+    //     match strategy {
+    //         "leading" | "runner" => self.apt_leading.as_deref(),
+    //         "stalking" | "leader" => self.apt_stalking.as_deref(),
+    //         "mid_pack" | "betweener" => self.apt_mid_pack.as_deref(),
+    //         "chasing" | "chaser" => self.apt_chasing.as_deref(),
+    //         _ => None,
+    //     }
+    // }
 
-    /// Get the distance aptitude grade.
-    pub fn distance_aptitude(&self, distance: &str) -> Option<&str> {
-        match distance {
-            "short" | "sprint" => self.apt_short.as_deref(),
-            "mile" => self.apt_mile.as_deref(),
-            "mid" | "medium" => self.apt_mid.as_deref(),
-            "long" => self.apt_long.as_deref(),
-            _ => None,
-        }
-    }
+    // /// Get the distance aptitude grade.
+    // pub fn distance_aptitude(&self, distance: &str) -> Option<&str> {
+    //     match distance {
+    //         "short" | "sprint" => self.apt_short.as_deref(),
+    //         "mile" => self.apt_mile.as_deref(),
+    //         "mid" | "medium" => self.apt_mid.as_deref(),
+    //         "long" => self.apt_long.as_deref(),
+    //         _ => None,
+    //     }
+    // }
 }

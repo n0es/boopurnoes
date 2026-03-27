@@ -62,29 +62,29 @@ impl EffectType {
         }
     }
 
-    /// Returns true if this is a flat stat bonus (Speed/Stamina/Power/Guts/Wit Bonus).
-    pub fn is_stat_bonus(&self) -> bool {
-        matches!(
-            self,
-            Self::SpeedBonus
-                | Self::StaminaBonus
-                | Self::PowerBonus
-                | Self::GutsBonus
-                | Self::WitBonus
-        )
-    }
+    // /// Returns true if this is a flat stat bonus (Speed/Stamina/Power/Guts/Wit Bonus).
+    // pub fn is_stat_bonus(&self) -> bool {
+    //     matches!(
+    //         self,
+    //         Self::SpeedBonus
+    //             | Self::StaminaBonus
+    //             | Self::PowerBonus
+    //             | Self::GutsBonus
+    //             | Self::WitBonus
+    //     )
+    // }
 
-    /// Map stat bonus effect type to stat index (0-4). Returns None for non-stat effects.
-    pub fn stat_index(&self) -> Option<usize> {
-        match self {
-            Self::SpeedBonus | Self::InitialSpeed => Some(0),
-            Self::StaminaBonus | Self::InitialStamina => Some(1),
-            Self::PowerBonus | Self::InitialPower => Some(2),
-            Self::GutsBonus | Self::InitialGuts => Some(3),
-            Self::WitBonus | Self::InitialWit => Some(4),
-            _ => None,
-        }
-    }
+    // /// Map stat bonus effect type to stat index (0-4). Returns None for non-stat effects.
+    // pub fn stat_index(&self) -> Option<usize> {
+    //     match self {
+    //         Self::SpeedBonus | Self::InitialSpeed => Some(0),
+    //         Self::StaminaBonus | Self::InitialStamina => Some(1),
+    //         Self::PowerBonus | Self::InitialPower => Some(2),
+    //         Self::GutsBonus | Self::InitialGuts => Some(3),
+    //         Self::WitBonus | Self::InitialWit => Some(4),
+    //         _ => None,
+    //     }
+    // }
 }
 
 /// A single effect row from `support_card_effects`.
@@ -200,6 +200,41 @@ impl SupportCard {
             _ => None, // friend, group
         }
     }
+
+    /// Convenience: event recovery (energy restored from card events).
+    pub fn event_recovery(&self, level: i32) -> f64 {
+        self.effect_value(EffectType::EventRecovery, level)
+    }
+
+    /// Convenience: event effectiveness (bonus stat gain from card events), as decimal.
+    pub fn event_effectiveness(&self, level: i32) -> f64 {
+        self.effect_value(EffectType::EventEffectiveness, level) / 100.0
+    }
+
+    /// Convenience: failure protection as a percentage (e.g. 20 -> 20%).
+    pub fn failure_protection(&self, level: i32) -> f64 {
+        self.effect_value(EffectType::FailureProtection, level)
+    }
+
+    /// Convenience: energy cost reduction (flat reduction in energy per training).
+    pub fn energy_cost_reduction(&self, level: i32) -> f64 {
+        self.effect_value(EffectType::EnergyCostReduction, level)
+    }
+
+    // /// Convenience: hint levels bonus.
+    // pub fn hint_levels(&self, level: i32) -> f64 {
+    //     self.effect_value(EffectType::HintLevels, level)
+    // }
+
+    // /// Convenience: hint frequency bonus (decimal).
+    // pub fn hint_frequency(&self, level: i32) -> f64 {
+    //     self.effect_value(EffectType::HintFrequency, level) / 100.0
+    // }
+
+    // /// Convenience: skill point bonus (flat SP gain).
+    // pub fn skill_point_bonus(&self, level: i32) -> f64 {
+    //     self.effect_value(EffectType::SkillPointBonus, level)
+    // }
 
     /// Max level for a given uncap tier.
     pub fn max_level_for_uncap(rarity: &str, uncap: u8) -> i32 {

@@ -14,33 +14,33 @@ pub struct StatBlock {
 }
 
 impl StatBlock {
-    pub fn as_array(&self) -> [f64; 5] {
-        [self.speed, self.stamina, self.power, self.guts, self.wisdom]
-    }
+    // pub fn as_array(&self) -> [f64; 5] {
+    //     [self.speed, self.stamina, self.power, self.guts, self.wisdom]
+    // }
 
-    pub fn from_array(a: [f64; 5]) -> Self {
-        Self {
-            speed: a[0],
-            stamina: a[1],
-            power: a[2],
-            guts: a[3],
-            wisdom: a[4],
-        }
-    }
+    // pub fn from_array(a: [f64; 5]) -> Self {
+    //     Self {
+    //         speed: a[0],
+    //         stamina: a[1],
+    //         power: a[2],
+    //         guts: a[3],
+    //         wisdom: a[4],
+    //     }
+    // }
 
     pub fn total(&self) -> f64 {
         self.speed + self.stamina + self.power + self.guts + self.wisdom
     }
 
-    pub fn add(&self, other: &StatBlock) -> StatBlock {
-        StatBlock {
-            speed: self.speed + other.speed,
-            stamina: self.stamina + other.stamina,
-            power: self.power + other.power,
-            guts: self.guts + other.guts,
-            wisdom: self.wisdom + other.wisdom,
-        }
-    }
+    // pub fn add(&self, other: &StatBlock) -> StatBlock {
+    //     StatBlock {
+    //         speed: self.speed + other.speed,
+    //         stamina: self.stamina + other.stamina,
+    //         power: self.power + other.power,
+    //         guts: self.guts + other.guts,
+    //         wisdom: self.wisdom + other.wisdom,
+    //     }
+    // }
 }
 
 impl std::ops::Index<usize> for StatBlock {
@@ -78,9 +78,9 @@ pub struct Deck {
 }
 
 impl Deck {
-    pub fn card_ids(&self) -> Vec<i32> {
-        self.cards.iter().map(|(id, _)| *id).collect()
-    }
+    // pub fn card_ids(&self) -> Vec<i32> {
+    //     self.cards.iter().map(|(id, _)| *id).collect()
+    // }
 }
 
 /// The result of scoring a deck.
@@ -106,4 +106,26 @@ pub struct StatSources {
     pub initial_stats: StatBlock,
     pub training_expected_value: StatBlock,
     pub race_bonus_stats: StatBlock,
+}
+
+/// Represents the state of a single training run at a specific turn.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RunState {
+    pub turn: u32,
+    pub stats: StatBlock,
+    pub energy: f64,
+    pub mood: u8,
+    pub friendship: Vec<f64>,
+    pub facility_levels: Vec<u32>,
+    pub facility_trains: Vec<u32>,
+    pub skill_points: f64,
+}
+
+/// The result of simulating a single turn.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TurnResult {
+    pub state: RunState,
+    pub expected_gains: Vec<StatBlock>, // Gains for each of the 5 facilities
+    pub expected_energy_costs: Vec<f64>,
+    pub failure_rates: Vec<f64>,
 }

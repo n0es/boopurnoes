@@ -1,0 +1,44 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT card_id, effect_type_id, effect_name, unlock_level, values_by_level\n        FROM support_card_effects\n        ORDER BY card_id, effect_type_id\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "card_id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "effect_type_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "effect_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "unlock_level",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "values_by_level",
+        "type_info": "Int4Array"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "8a05c02b8775595fec9cab9979ab4811fa8ad0750762f421bea7a6b85e14a29a"
+}

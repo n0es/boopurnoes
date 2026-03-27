@@ -1,4 +1,4 @@
-use crate::models::{Deck, DeckScore, ScenarioConfig, SupportCard, Trainee};
+use crate::models::{DeckScore, ScenarioConfig, SupportCard, Trainee, RunState, TurnResult};
 
 /// The core trait that all optimizer algorithms must implement.
 ///
@@ -9,6 +9,7 @@ use crate::models::{Deck, DeckScore, ScenarioConfig, SupportCard, Trainee};
 ///
 /// The trait is intentionally simple — just one method. All complexity
 /// lives inside each implementation.
+#[allow(dead_code)]
 pub trait Optimizer: Send + Sync {
     /// Unique identifier for this algorithm.
     fn id(&self) -> &str;
@@ -39,4 +40,17 @@ pub trait Optimizer: Send + Sync {
         deck_levels: &[i32],
         config: &ScenarioConfig,
     ) -> DeckScore;
+
+    /// Simulates a single turn based on a current state.
+    /// Returns expected outcomes for each facility.
+    fn simulate_turn(
+        &self,
+        _trainee: &Trainee,
+        _deck_cards: &[&SupportCard],
+        _deck_levels: &[i32],
+        _config: &ScenarioConfig,
+        _state: &RunState,
+    ) -> TurnResult {
+        unimplemented!("simulate_turn not implemented for this optimizer")
+    }
 }

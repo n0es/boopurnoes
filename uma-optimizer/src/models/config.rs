@@ -1,21 +1,206 @@
 use serde::{Deserialize, Serialize};
 use super::deck::DeckScore;
 
+// ─── Legacy / Inheritance Configuration ──────────────────────────────────────
+
+/// A single factor (spark) on a legacy member.
+/// E.g. "Stamina 3x" = BlueStat { stat_index: 1, stars: 3 }
+/// E.g. "Corner Adept 3x" = SkillHint { skill_id: ..., stars: 3 }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type")]
+pub enum Factor {
+    /// Blue factor: flat stat bonus. stat_index: 0=spd,1=sta,2=pow,3=gut,4=wit
+    BlueStat { stat_index: usize, stars: u8 },
+    /// Green factor: unique skill hint
+    UniqueSkill { skill_id: u32, stars: u8 },
+    /// White factor: normal skill hint
+    SkillHint { skill_id: u32, stars: u8 },
+    /// White factor: race bonus (e.g. "Arima Kinen 2x")
+    RaceBonus { race_name: String, stars: u8 },
+    /// White factor: aptitude bonus (e.g. "Turf 3x", "Long 2x")
+    Aptitude { apt_name: String, stars: u8 },
+    /// White factor: scenario-specific
+    Scenario { name: String, stars: u8 },
+}
+
+impl Factor {
+    /// Fixed stat gain at career start for blue factors.
+    /// 1★ = 5, 2★ = 12, 3★ = 21
+    pub fn initial_stat_gain(stars: u8) -> f64 {
+        match stars {
+            1 => 5.0,
+            2 => 12.0,
+            3 => 21.0,
+            _ => 0.0,
+        }
+    }
+
+    /// Random stat gain range during Spark of Inspiration events.
+    /// 1★ = 1..10, 2★ = 1..16, 3★ = 1..25
+    pub fn spark_stat_range(stars: u8) -> (f64, f64) {
+        match stars {
+            1 => (1.0, 10.0),
+            2 => (1.0, 16.0),
+            3 => (1.0, 25.0),
+            _ => (0.0, 0.0),
+        }
+    }
+
+    /// Random hint levels gained from a skill factor spark.
+    /// Returns (min, max) hint levels.
+    pub fn spark_hint_range(stars: u8) -> (u8, u8) {
+        match stars {
+            1 => (0, 1),
+            2 => (1, 2),
+            3 => (1, 3),
+            _ => (0, 0),
+        }
+    }
+}
+
+/// A single legacy member (parent or grandparent).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LegacyMember {
+    /// Name of the character used as legacy (for display purposes).
+    pub name: String,
+    /// All factors on this legacy member.
+    pub factors: Vec<Factor>,
+}
+
+/// One legacy slot: a parent plus their two grandparents.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LegacySlot {
+    pub parent: LegacyMember,
+    pub grandparent_1: LegacyMember,
+    pub grandparent_2: LegacyMember,
+}
+
+/// Affinity level between trainee and their legacies.
+/// Affects probability of factor activation during mid-run inheritance.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum AffinityLevel {
+    /// △ — ~10% activation rate per factor
+    Triangle,
+    /// ○ — ~25% activation rate per factor
+    Circle,
+    /// ◎ — ~40% activation rate per factor
+    DoubleCircle,
+    /// ◎◎ — ~60%+ activation rate, 9 factor slots
+    Max,
+}
+
+impl AffinityLevel {
+    /// Probability that a single factor activates during a mid-run Spark event.
+    pub fn activation_rate(&self) -> f64 {
+        match self {
+            AffinityLevel::Triangle => 0.10,
+            AffinityLevel::Circle => 0.25,
+            AffinityLevel::DoubleCircle => 0.40,
+            AffinityLevel::Max => 0.60,
+        }
+    }
+}
+
+/// Full legacy configuration for a training run.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LegacyConfig {
+    pub legacy_1: LegacySlot,
+    pub legacy_2: LegacySlot,
+    /// Affinity level (determines mid-run activation probability).
+    #[serde(default = "default_affinity")]
+    pub affinity: AffinityLevel,
+}
+
+fn default_affinity() -> AffinityLevel { AffinityLevel::Circle }
+
+impl LegacyConfig {
+    /// Collect all blue stat factors across the entire legacy tree.
+    /// Returns Vec of (stat_index, stars, is_parent).
+    /// Parents contribute fixed bonuses; all members contribute to spark rolls.
+    pub fn all_blue_factors(&self) -> Vec<(usize, u8, bool)> {
+        let mut factors = Vec::new();
+        for slot in [&self.legacy_1, &self.legacy_2] {
+            for (member, is_parent) in [
+                (&slot.parent, true),
+                (&slot.grandparent_1, false),
+                (&slot.grandparent_2, false),
+            ] {
+                for factor in &member.factors {
+                    if let Factor::BlueStat { stat_index, stars } = factor {
+                        factors.push((*stat_index, *stars, is_parent));
+                    }
+                }
+            }
+        }
+        factors
+    }
+
+    /// Collect all skill hint factors across the entire legacy tree.
+    pub fn all_skill_factors(&self) -> Vec<(u32, u8)> {
+        let mut factors = Vec::new();
+        for slot in [&self.legacy_1, &self.legacy_2] {
+            for member in [&slot.parent, &slot.grandparent_1, &slot.grandparent_2] {
+                for factor in &member.factors {
+                    match factor {
+                        Factor::SkillHint { skill_id, stars }
+                        | Factor::UniqueSkill { skill_id, stars } => {
+                            factors.push((*skill_id, *stars));
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+        factors
+    }
+
+    /// Calculate the deterministic stat injection at career start.
+    /// Only parent blue factors contribute fixed values.
+    pub fn fixed_stat_injection(&self) -> [f64; 5] {
+        let mut stats = [0.0; 5];
+        for (stat_idx, stars, is_parent) in self.all_blue_factors() {
+            if is_parent {
+                stats[stat_idx] += Factor::initial_stat_gain(stars);
+            }
+        }
+        stats
+    }
+
+    /// Calculate the deterministic stat injection from grandparents at career start.
+    /// Grandparent blue factors also contribute fixed values.
+    pub fn fixed_grandparent_injection(&self) -> [f64; 5] {
+        let mut stats = [0.0; 5];
+        for (stat_idx, stars, is_parent) in self.all_blue_factors() {
+            if !is_parent {
+                stats[stat_idx] += Factor::initial_stat_gain(stars);
+            }
+        }
+        stats
+    }
+}
+
 /// Identifier for which algorithm to use.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum AlgorithmId {
     /// Deterministic expected-value scorer. Fast, no randomness.
     ExpectedValue,
+    /// V2 scorer: energy-aware with facility allocation and card events.
+    ExpectedValueV2,
     /// Monte Carlo simulation scorer. Slower, more accurate.
     MonteCarlo,
+    /// Monte Carlo simulation V2. More robust, better inheritance.
+    MonteCarloV2,
 }
 
 impl std::fmt::Display for AlgorithmId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::ExpectedValue => write!(f, "expected_value"),
+            Self::ExpectedValueV2 => write!(f, "expected_value_v2"),
             Self::MonteCarlo => write!(f, "monte_carlo"),
+            Self::MonteCarloV2 => write!(f, "monte_carlo_v2"),
         }
     }
 }
@@ -55,6 +240,21 @@ pub struct ScenarioConfig {
     /// Default [1, 1, 1, 0.8, 0.8] (speed/stamina/power weighted equally, guts/wisdom slightly less).
     #[serde(default = "default_stat_weights")]
     pub stat_weights: [f64; 5],
+
+    /// Star rank of the trainee (1-5). Determines starting stats.
+    /// This is populated from the request's star_rank field before scoring.
+    #[serde(default = "default_star_rank_config")]
+    pub star_rank: u8,
+
+    /// Awakening level of the trainee (1-5). Unlocks awakening skills.
+    #[serde(default = "default_awakening_level_config")]
+    pub awakening_level: u8,
+
+    /// Legacy configuration (parents + grandparents with factors).
+    /// Required for Monte Carlo v3 to model inheritance/spark mechanics.
+    /// If None, inheritance bonuses are skipped.
+    #[serde(default)]
+    pub legacy: Option<LegacyConfig>,
 }
 
 fn default_scenario() -> String { "default".to_string() }
@@ -63,6 +263,8 @@ fn default_strategy() -> String { "stalking".to_string() }
 fn default_turns() -> u32 { 72 }
 fn default_stat_caps() -> [f64; 5] { [1200.0, 1200.0, 1200.0, 1200.0, 1200.0] }
 fn default_stat_weights() -> [f64; 5] { [1.0, 1.0, 1.0, 0.8, 0.8] }
+fn default_star_rank_config() -> u8 { 5 }
+fn default_awakening_level_config() -> u8 { 5 }
 
 impl Default for ScenarioConfig {
     fn default() -> Self {
@@ -75,28 +277,30 @@ impl Default for ScenarioConfig {
             min_stamina: None,
             min_race_bonus: None,
             stat_weights: default_stat_weights(),
+            star_rank: default_star_rank_config(),
+            awakening_level: default_awakening_level_config(),
+            legacy: None,
         }
     }
 }
 
 impl ScenarioConfig {
-    /// Build config for the Beyond Dreams scenario.
-    pub fn beyond_dreams() -> Self {
+    pub fn unity_cup() -> Self {
         Self {
-            scenario: "beyond_dreams".to_string(),
-            stat_caps: [2100.0, 1700.0, 1700.0, 1700.0, 1800.0],
+            scenario: "unity_cup".to_string(),
+            stat_caps: [1200.0, 1200.0, 1200.0, 1200.0, 1200.0],
             ..Default::default()
         }
     }
 
-    /// Build config for the Trackblazer scenario.
-    pub fn trackblazer() -> Self {
-        Self {
-            scenario: "trackblazer".to_string(),
-            min_race_bonus: Some(0.35),
-            ..Default::default()
-        }
-    }
+    // /// Build config for the Trackblazer scenario.
+    // pub fn trackblazer() -> Self {
+    //     Self {
+    //         scenario: "trackblazer".to_string(),
+    //         min_race_bonus: Some(0.35),
+    //         ..Default::default()
+    //     }
+    // }
 
     /// HP modifier for the target strategy.
     pub fn strategy_hp_modifier(&self) -> f64 {
@@ -135,6 +339,11 @@ pub struct OptimizeRequest {
     /// Trainee ID to optimize for.
     pub trainee_id: i32,
 
+    /// Star rank of the trainee (1-5). Determines starting stats.
+    /// Defaults to 5 if not provided.
+    #[serde(default = "default_star_rank")]
+    pub star_rank: u8,
+
     /// Which algorithm to use.
     pub algorithm: AlgorithmId,
 
@@ -165,7 +374,7 @@ pub struct OwnedCard {
 #[derive(Debug, Deserialize)]
 pub struct LockedCard {
     pub card_id: i32,
-    pub level: i32,
+    // pub level: i32,
 }
 
 #[derive(Debug, Deserialize)]
@@ -184,6 +393,7 @@ pub struct SearchParams {
     pub top_n: usize,
 }
 
+fn default_star_rank() -> u8 { 5 }
 fn default_pop_size() -> usize { 200 }
 fn default_generations() -> usize { 500 }
 fn default_mutation_rate() -> f64 { 0.15 }

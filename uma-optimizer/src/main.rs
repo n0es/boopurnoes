@@ -19,9 +19,10 @@ async fn main() -> anyhow::Result<()> {
 
     // Initialize logging
     tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::try_from_default_env().unwrap_or_else(|_| {
-            EnvFilter::new("uma_optimizer=info,tower_http=info")
-        }))
+        .with_env_filter(
+            EnvFilter::try_from_env("RUST_LOG")
+                .unwrap_or_else(|_| EnvFilter::new("uma_optimizer=info,tower_http=info"))
+        )
         .init();
 
     // Connect to Supabase PostgreSQL
@@ -57,7 +58,11 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/trainees", get(handlers::list_trainees))
         .route("/api/cards", get(handlers::list_cards))
         .route("/api/optimize", post(handlers::optimize))
+        .route("/api/optimize/stream", post(handlers::optimize_stream))
+        .route("/api/optimize/pause", post(handlers::optimize_pause))
+        .route("/api/optimize/resume", post(handlers::optimize_resume))
         .route("/api/score", post(handlers::score_deck))
+        .route("/api/simulate-turn", post(handlers::simulate_turn))
         .layer(cors)
         .with_state(state);
 
