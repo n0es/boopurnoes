@@ -1,0 +1,68 @@
+{
+  "run_name": "Example Run: Sakura Bakushin O",
+  "trainee_id": 1,
+  "star_rank": 3,
+  "deck": [
+    { "card_id": 10001, "level": 50 },
+    { "card_id": 20001, "level": 50 },
+    { "card_id": 30001, "level": 45 },
+    { "card_id": 40001, "level": 45 },
+    { "card_id": 50001, "level": 50 },
+    { "card_id": 60001, "level": 40 }
+  ],
+  "final_stats": {
+    "speed": 1200,
+    "stamina": 450,
+    "power": 900,
+    "guts": 300,
+    "wisdom": 350
+  },
+  "turns": [
+    {
+      "turn": 1,
+      "energy_before": 100,
+      "card_locations": {
+        "speed": [10001, 50001],
+        "stamina": [20001],
+        "power": [30001],
+        "guts": [40001],
+        "wisdom": [60001],
+        "other": []
+      },
+      "action_taken": "train_speed",
+      "stat_gains": { "speed": 12, "power": 3, "stamina": 0, "guts": 0, "wisdom": 0 },
+      "energy_change": -20,
+      "friendship_gains": {
+        "10001": 8,
+        "50001": 8
+      }
+    },
+    {
+      "turn": 2,
+      "energy_before": 80,
+      "card_locations": {
+        "speed": [50001],
+        "stamina": [],
+        "power": [10001, 30001],
+        "guts": [20001, 40001],
+        "wisdom": [60001],
+        "other": []
+      },
+      "action_taken": "train_power",
+      "stat_gains": { "speed": 0, "power": 9, "stamina": 2, "guts": 0, "wisdom": 0 },
+      "energy_change": -20,
+      "friendship_gains": {
+        "10001": 5,
+        "30001": 5
+      }
+    },
+    {
+      "turn": 3,
+      "energy_before": 60,
+      "action_taken": "rest",
+      "stat_gains": { "speed": 0, "power": 0, "stamina": 0, "guts": 0, "wisdom": 0 },
+      "energy_change": 50,
+      "friendship_gains": {}
+    }
+  ]
+}
