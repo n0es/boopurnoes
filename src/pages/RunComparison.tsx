@@ -288,7 +288,6 @@ export default function RunComparison() {
   const [cards, setCards] = useState<CardBasic[]>([]);
   const [skills, setSkills] = useState<{id: number, name: string, icon_url?: string}[]>([]);
   const [cardHintSkills, setCardHintSkills] = useState<Record<number, { skill_id: number; name: string; icon_url?: string }[]>>({});
-  void cardHintSkills; // used in upcoming tasks
   const [scenarios, setScenarios] = useState<string[]>([]);
   const [races, setRaces] = useState<string[]>([]);
 
@@ -318,6 +317,7 @@ export default function RunComparison() {
   const [simPlacements, setSimPlacements] = useState<number[]>(Array(6).fill(-1));
   // Per-card unity bonus toggles (Unity Cup only)
   const [simUnityBonuses, setSimUnityBonuses] = useState<boolean[]>(Array(6).fill(false));
+  const [simHintCards, setSimHintCards] = useState<boolean[]>(Array(6).fill(false));
   // Currently selected training facility (0-4), null = none selected
   const [selectedFacility, setSelectedFacility] = useState<number | null>(null);
   // Which card slot is being dragged
@@ -1380,6 +1380,40 @@ export default function RunComparison() {
                                                                         🔥
                                                                     </button>
                                                                 )}
+                                                                {(() => {
+                                                                  const cardId = deck[i]?.id;
+                                                                  const hasHints = cardId && cardHintSkills[cardId]?.length > 0;
+                                                                  if (!hasHints) return null;
+                                                                  return (
+                                                                    <button
+                                                                      onMouseDown={e => e.stopPropagation()}
+                                                                      onClick={e => {
+                                                                        e.stopPropagation();
+                                                                        const nh = [...simHintCards];
+                                                                        nh[i] = !nh[i];
+                                                                        setSimHintCards(nh);
+                                                                        setTurnResult(null);
+                                                                      }}
+                                                                      title={simHintCards[i] ? 'Hint active — click to remove' : 'Mark hint (!) — click to add'}
+                                                                      style={{
+                                                                        background: simHintCards[i] ? 'rgba(239, 68, 68, 0.2)' : 'none',
+                                                                        border: simHintCards[i] ? '1px solid rgba(239, 68, 68, 0.4)' : 'none',
+                                                                        borderRadius: '4px',
+                                                                        padding: '1px 2px',
+                                                                        cursor: 'pointer',
+                                                                        fontSize: '0.65rem',
+                                                                        lineHeight: 1,
+                                                                        opacity: simHintCards[i] ? 1 : 0.3,
+                                                                        filter: simHintCards[i] ? 'drop-shadow(0 0 2px rgba(239, 68, 68, 0.8))' : 'grayscale(100%)',
+                                                                        flexShrink: 0,
+                                                                        color: simHintCards[i] ? '#ef4444' : '#888',
+                                                                        fontWeight: 700,
+                                                                      }}
+                                                                    >
+                                                                      !
+                                                                    </button>
+                                                                  );
+                                                                })()}
                                                             </div>
                                                         ))}
                                                     </div>
