@@ -117,7 +117,7 @@ pub async fn list_trainees(
             name: t.name.clone(),
             title: t.title.clone(),
             rarity: t.rarity,
-            stat_growth: t.stat_growth.clone(),
+            stat_growth: t.stat_growth.as_ref().map(|j| j.0.clone()),
         })
         .collect();
     Json(summaries)

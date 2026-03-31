@@ -119,13 +119,37 @@ pub struct RunState {
     pub facility_levels: Vec<u32>,
     pub facility_trains: Vec<u32>,
     pub skill_points: f64,
+    /// Observed card placements for this turn (index = card slot, value = facility 0-4, or -1 = away).
+    /// When provided, simulate_turn uses these fixed placements instead of random rolling,
+    /// giving exact expected gains for the actual configuration the player sees in-game.
+    #[serde(default)]
+    pub card_placements: Vec<i32>,
+    /// Per-slot unity bonus active this turn (Unity Cup only). Index matches card slot.
+    #[serde(default)]
+    pub unity_bonus_cards: Vec<bool>,
+    /// Per-slot hint active this turn (card showing ! icon). Index matches card slot.
+    #[serde(default)]
+    pub hint_cards: Vec<bool>,
 }
 
 /// The result of simulating a single turn.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TurnResult {
     pub state: RunState,
-    pub expected_gains: Vec<StatBlock>, // Gains for each of the 5 facilities
+    pub expected_gains: Vec<StatBlock>, // Total Gains for each of the 5 facilities
     pub expected_energy_costs: Vec<f64>,
     pub failure_rates: Vec<f64>,
+    /// Optional breakdowns for display in UI when card placements are fixed.
+    #[serde(default)]
+    pub base_gains: Option<Vec<StatBlock>>,
+    #[serde(default)]
+    pub special_gains: Option<Vec<StatBlock>>,
+    #[serde(default)]
+    pub base_sp_gains: Option<Vec<f64>>,
+    #[serde(default)]
+    pub special_sp_gains: Option<Vec<f64>>,
+    /// Composite score per facility accounting for stats, SP, friendship, and hints.
+    /// Frontend should use this (not raw stats) to highlight the best facility.
+    #[serde(default)]
+    pub facility_scores: Vec<f64>,
 }

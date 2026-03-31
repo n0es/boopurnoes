@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
@@ -124,21 +124,18 @@ export default function SupportCards() {
     fetchCards()
   }, [])
 
-  useEffect(() => {
-    if (!collectionMode || !user) { setOwnedMap(null); return }
-    fetchCollection()
-  }, [collectionMode, user])
-
-  async function fetchCollection() {
-    const { data } = await supabase
+  const fetchCollection = useCallback(() => {
+    supabase
       .from('user_support_card_collection')
       .select('card_id, level, uncap')
-    const map = new Map<number, OwnedEntry>()
-    for (const r of (data ?? []) as { card_id: number; level: number; uncap: number }[]) {
-      map.set(r.card_id, { level: r.level, uncap: r.uncap })
-    }
-    setOwnedMap(map)
-  }
+      .then(({ data }) => {
+        const map = new Map<number, OwnedEntry>()
+        for (const r of (data ?? []) as { card_id: number; level: number; uncap: number }[]) {
+          map.set(r.card_id, { level: r.level, uncap: r.uncap })
+        }
+        setOwnedMap(map)
+      })
+  }, [])
 
   async function addToCollection(cardId: number, level: number, uncap: number) {
     await supabase
@@ -154,6 +151,12 @@ export default function SupportCards() {
       .eq('card_id', cardId)
     await fetchCollection()
   }
+
+  useEffect(() => {
+    if (collectionMode && user) {
+      fetchCollection()
+    }
+  }, [collectionMode, user, fetchCollection])
 
   const filtered = cards
     .filter(c => {
@@ -459,11 +462,6 @@ function CardModal({ card, owned, onClose, onAdd, onRemove, onCardUpdated }: {
 
   const maxLevel = maxLevelForUncap(uncap, card.rarity)
 
-  // Clamp level when uncap is reduced
-  useEffect(() => {
-    if (level > maxLevel) setLevel(maxLevel)
-  }, [uncap])
-
   useEffect(() => {
     supabase
       .from('support_card_effects')
@@ -582,7 +580,11 @@ function CardModal({ card, owned, onClose, onAdd, onRemove, onCardUpdated }: {
                 <span style={{ fontSize: 13, fontWeight: 700, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
                   Lv. {level}
                 </span>
-                <UncapDiamonds value={uncap} interactive={!isOwned} onChange={v => setUncap(v)} />
+                <UncapDiamonds value={uncap} interactive={!isOwned} onChange={v => {
+                  setUncap(v)
+                  const newMax = maxLevelForUncap(v, card.rarity)
+                  if (level > newMax) setLevel(newMax)
+                }} />
               </div>
             </div>
 
@@ -876,8 +878,8 @@ function EditCardModal({ card, effects, onClose, onSaved }: {
 
       const updatedCard: SupportCard = { ...card, name, title: title || null, rarity, card_type: cardType }
       onSaved(updatedCard, (freshEffects ?? []) as SupportCardEffect[])
-    } catch (err: any) {
-      setError(err.message ?? 'Save failed')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Save failed')
     } finally {
       setBusy(false)
     }

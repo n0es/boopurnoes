@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use sqlx::types::Json;
 
 /// A trainee (character) loaded from the `trainees` table.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -21,15 +22,15 @@ pub struct Trainee {
     pub apt_mid_pack: Option<String>,  // Late Surger
     pub apt_chasing: Option<String>,   // End Closer
 
-    // Stats arrays: [speed, stamina, power, guts, wisdom]
-    pub stats_base: Option<Vec<i16>>,
-    pub stats_two_star: Option<Vec<i16>>,
-    pub stats_three_star: Option<Vec<i16>>,
-    pub stats_four_star: Option<Vec<i16>>,
-    pub stats_five_star: Option<Vec<i16>>,
+    // Stats arrays: [speed, stamina, power, guts, wisdom] — stored as JSONB
+    pub stats_base: Option<Json<Vec<i16>>>,
+    pub stats_two_star: Option<Json<Vec<i16>>>,
+    pub stats_three_star: Option<Json<Vec<i16>>>,
+    pub stats_four_star: Option<Json<Vec<i16>>>,
+    pub stats_five_star: Option<Json<Vec<i16>>>,
 
-    // Growth rate percentages: [speed, stamina, power, guts, wisdom]
-    pub stat_growth: Option<Vec<i16>>,
+    // Growth rate percentages: [speed, stamina, power, guts, wisdom] — stored as JSONB
+    pub stat_growth: Option<Json<Vec<i16>>>,
 }
 
 impl Trainee {
@@ -38,7 +39,7 @@ impl Trainee {
     pub fn growth_rate(&self, stat_index: usize) -> f64 {
         self.stat_growth
             .as_ref()
-            .and_then(|g| g.get(stat_index))
+            .and_then(|g| g.0.get(stat_index))
             .map(|&v| v as f64 / 100.0)
             .unwrap_or(0.0)
     }
@@ -53,7 +54,7 @@ impl Trainee {
             5 => &self.stats_five_star,
             _ => &self.stats_five_star,
         };
-        let v = stats.as_ref().or(self.stats_base.as_ref());
+        let v = stats.as_ref().map(|j| &j.0).or(self.stats_base.as_ref().map(|j| &j.0));
         match v {
             Some(s) if s.len() >= 5 => [
                 s[0] as f64, s[1] as f64, s[2] as f64, s[3] as f64, s[4] as f64,

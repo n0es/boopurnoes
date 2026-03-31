@@ -6,3 +6,6 @@ dist
 .dockerignore
 Dockerfile
 docker-compose.yml
+uma-optimizer/target
+uma-optimizer/.sqlx
+supabase/.temp

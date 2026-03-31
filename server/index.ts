@@ -4,6 +4,7 @@ import { createProxyMiddleware } from 'http-proxy-middleware'
 import { createClient } from '@supabase/supabase-js'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { ClientRequest } from 'http'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -63,7 +64,7 @@ const studioProxy = createProxyMiddleware({
   changeOrigin: true,
   pathRewrite: { '^/studio': '' },
   on: {
-    proxyReq: (proxyReq: any) => {
+    proxyReq: (proxyReq: ClientRequest) => {
       const auth = Buffer.from(`${studioUser}:${studioPass}`).toString('base64')
       proxyReq.setHeader('Authorization', `Basic ${auth}`)
     },

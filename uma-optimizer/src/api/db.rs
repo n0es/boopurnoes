@@ -81,9 +81,12 @@ pub async fn load_trainees(pool: &PgPool) -> Result<Vec<Trainee>, sqlx::Error> {
             apt_turf, apt_dirt,
             apt_short, apt_mile, apt_mid, apt_long,
             apt_leading, apt_stalking, apt_mid_pack, apt_chasing,
-            stats_base, stats_two_star, stats_three_star,
-            stats_four_star, stats_five_star,
-            stat_growth
+            stats_base as "stats_base: sqlx::types::Json<Vec<i16>>",
+            stats_two_star as "stats_two_star: sqlx::types::Json<Vec<i16>>",
+            stats_three_star as "stats_three_star: sqlx::types::Json<Vec<i16>>",
+            stats_four_star as "stats_four_star: sqlx::types::Json<Vec<i16>>",
+            stats_five_star as "stats_five_star: sqlx::types::Json<Vec<i16>>",
+            stat_growth as "stat_growth: sqlx::types::Json<Vec<i16>>"
         FROM trainees
         ORDER BY id
         "#

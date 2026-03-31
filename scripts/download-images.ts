@@ -79,8 +79,7 @@ async function fileExists(path: string): Promise<boolean> {
 
 async function downloadAndUpload(
   sourceUrl: string,
-  storagePath: string,
-  label: string
+  storagePath: string
 ): Promise<'uploaded' | 'skipped' | 'error'> {
   if (!force && await fileExists(storagePath)) return 'skipped'
 
@@ -107,11 +106,15 @@ async function processCard(id: number): Promise<{ icons: number; art: number; er
     [artUrl(id),  artPath(id),  'art'],
   ] as const) {
     try {
-      const result = await downloadAndUpload(url, path, type)
-      if (result === 'uploaded') type === 'icon' ? icons++ : art++
-    } catch (err: any) {
+      const result = await downloadAndUpload(url, path)
+      if (result === 'uploaded') {
+        if (type === 'icon') icons++
+        else art++
+      }
+    } catch (err) {
       errors++
-      process.stderr.write(`  ✗ #${id} ${type}: ${err.message}\n`)
+      const message = err instanceof Error ? err.message : String(err)
+      process.stderr.write(`  ✗ #${id} ${type}: ${message}\n`)
     }
   }
 
@@ -141,10 +144,11 @@ for (const { index, type } of CARD_TYPE_ICONS) {
   const src = `https://gametora.com/images/umamusume/icons/utx_ico_obtain_${index}.png`
   const dest = `icons/${type}.png`
   try {
-    const result = await downloadAndUpload(src, dest, type)
+    const result = await downloadAndUpload(src, dest)
     console.log(`  ${result === 'skipped' ? '~' : '✓'} ${type}`)
-  } catch (err: any) {
-    console.error(`  ✗ ${type}: ${err.message}`)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error(`  ✗ ${type}: ${message}`)
   }
 }
 console.log()

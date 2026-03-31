@@ -42,7 +42,7 @@ if (!supabaseUrl || !supabaseServiceKey) {
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const cards: { id: number; slug: string; name: string; rarity: string }[] =
+const cards: { id: number; slug: string; name: string; rarity: string; idx: number }[] =
   JSON.parse(readFileSync(resolve(__dirname, '../src/data/supportCardSlugs.json'), 'utf-8'))
     .map((c: { id: number; slug: string; name: string; rarity: string }, idx: number) => ({ ...c, idx }))
 
@@ -54,7 +54,7 @@ let inserted = 0
 let skipped = 0
 
 for (let i = 0; i < cards.length; i += BATCH_SIZE) {
-  const batch = cards.slice(i, i + BATCH_SIZE).map(({ id, slug, name, rarity, idx }: any) => ({
+  const batch = cards.slice(i, i + BATCH_SIZE).map(({ id, slug, name, rarity, idx }) => ({
     idx,
     id,
     name,

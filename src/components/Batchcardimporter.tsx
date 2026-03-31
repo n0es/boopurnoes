@@ -87,7 +87,7 @@ export default function BatchCardImporter({ supabase }: BatchCardImporterProps) 
       if (!error && data) {
         setImportedIds(new Set(data.map((r: { id: number }) => r.id)));
       }
-    } catch (_) {
+    } catch {
       // silently fail
     }
     setLoading(false);

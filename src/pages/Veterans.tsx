@@ -42,7 +42,7 @@ interface Veteran {
 const SUPABASE_STORAGE = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/umamusume`;
 
 const BLUE_SPARK_OPTIONS = ['Speed', 'Stamina', 'Power', 'Guts', 'Wisdom'];
-const PINK_SPARK_OPTIONS = ['Turf', 'Dirt', 'Short', 'Mile', 'Medium', 'Long', 'Runner', 'Leader', 'Betweener', 'Chaser'];
+const PINK_SPARK_OPTIONS = ['Turf', 'Dirt', 'Sprint', 'Mile', 'Medium', 'Long', 'Front Runner', 'Pace Chaser', 'Late Surger', 'End Closer'];
 const G1_RACES = [
   "Arima Kinen", "Asahi Hai Futurity Stakes", "Champions Cup", "February Stakes",
   "Hanshin Juvenile Fillies", "Hopeful Stakes", "JBC Classic", "JBC Ladies' Classic",
@@ -207,7 +207,15 @@ export default function Veterans() {
 
 // ─── Add/Edit Veteran Modal ───────────────────────────────────────────────────
 
-function AddVeteranModal({ trainees, veterans, initialData, onClose, onSave }: any) {
+interface AddVeteranModalProps {
+  trainees: Trainee[];
+  veterans: Veteran[];
+  initialData: Veteran | null;
+  onClose: () => void;
+  onSave: () => void;
+}
+
+function AddVeteranModal({ trainees, veterans, initialData, onClose, onSave }: AddVeteranModalProps) {
     const { user } = useAuth();
     const [form, setForm] = useState<Partial<Veteran>>({
         trainee_id: initialData?.trainee_id || undefined,
@@ -312,7 +320,7 @@ function AddVeteranModal({ trainees, veterans, initialData, onClose, onSave }: a
                                         style={inputStyle}
                                     >
                                         <option value="">-- Select --</option>
-                                        {trainees.map((t: any) => <option key={t.id} value={t.id}>[{t.title}] {t.name}</option>)}
+                                        {trainees.map((t) => <option key={t.id} value={t.id}>{t.title ? `[${t.title}] ` : ''}{t.name}</option>)}
                                     </select>
                                 </div>
                                 <div>
@@ -338,7 +346,7 @@ function AddVeteranModal({ trainees, veterans, initialData, onClose, onSave }: a
                                         style={inputStyle}
                                     >
                                         <option value="">-- None --</option>
-                                        {veterans?.map((v: any) => {
+                                        {veterans?.map((v) => {
                                             const b = v.spark_data?.blue;
                                             const s = b ? `[${b.name} ${b.stars}★]` : '';
                                             return <option key={v.id} value={v.id}>{s} {v.trainee?.name}</option>
@@ -353,7 +361,7 @@ function AddVeteranModal({ trainees, veterans, initialData, onClose, onSave }: a
                                         style={inputStyle}
                                     >
                                         <option value="">-- None --</option>
-                                        {veterans?.map((v: any) => {
+                                        {veterans?.map((v) => {
                                             const b = v.spark_data?.blue;
                                             const s = b ? `[${b.name} ${b.stars}★]` : '';
                                             return <option key={v.id} value={v.id}>{s} {v.trainee?.name}</option>
@@ -371,14 +379,26 @@ function AddVeteranModal({ trainees, veterans, initialData, onClose, onSave }: a
                                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                                         <select 
                                             value={form.spark_data?.blue?.name || ""}
-                                            onChange={e => setForm({ ...form, spark_data: { ...form.spark_data!, blue: { ...form.spark_data!.blue!, name: e.target.value } } })}
+                                            onChange={e => setForm(prev => ({ 
+                                                ...prev, 
+                                                spark_data: { 
+                                                    ...prev.spark_data!, 
+                                                    blue: { ...(prev.spark_data?.blue || { name: '', stars: 1 }), name: e.target.value } 
+                                                } 
+                                            }))}
                                             style={{ ...inputStyle, flex: 1 }}
                                         >
                                             {BLUE_SPARK_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
                                         </select>
                                         <select 
                                             value={form.spark_data?.blue?.stars || 1}
-                                            onChange={e => setForm({ ...form, spark_data: { ...form.spark_data!, blue: { ...form.spark_data!.blue!, stars: parseInt(e.target.value) } } })}
+                                            onChange={e => setForm(prev => ({ 
+                                                ...prev, 
+                                                spark_data: { 
+                                                    ...prev.spark_data!, 
+                                                    blue: { ...(prev.spark_data?.blue || { name: '', stars: 1 }), stars: parseInt(e.target.value) } 
+                                                } 
+                                            }))}
                                             style={{ ...inputStyle, width: '80px' }}
                                         >
                                             <option value={1}>1★</option>
@@ -394,14 +414,26 @@ function AddVeteranModal({ trainees, veterans, initialData, onClose, onSave }: a
                                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                                         <select 
                                             value={form.spark_data?.pink?.name || ""}
-                                            onChange={e => setForm({ ...form, spark_data: { ...form.spark_data!, pink: { ...form.spark_data!.pink!, name: e.target.value } } })}
+                                            onChange={e => setForm(prev => ({ 
+                                                ...prev, 
+                                                spark_data: { 
+                                                    ...prev.spark_data!, 
+                                                    pink: { ...(prev.spark_data?.pink || { name: '', stars: 1 }), name: e.target.value } 
+                                                } 
+                                            }))}
                                             style={{ ...inputStyle, flex: 1 }}
                                         >
                                             {PINK_SPARK_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
                                         </select>
                                         <select 
                                             value={form.spark_data?.pink?.stars || 1}
-                                            onChange={e => setForm({ ...form, spark_data: { ...form.spark_data!, pink: { ...form.spark_data!.pink!, stars: parseInt(e.target.value) } } })}
+                                            onChange={e => setForm(prev => ({ 
+                                                ...prev, 
+                                                spark_data: { 
+                                                    ...prev.spark_data!, 
+                                                    pink: { ...(prev.spark_data?.pink || { name: '', stars: 1 }), stars: parseInt(e.target.value) } 
+                                                } 
+                                            }))}
                                             style={{ ...inputStyle, width: '80px' }}
                                         >
                                             <option value={1}>1★</option>
@@ -419,12 +451,24 @@ function AddVeteranModal({ trainees, veterans, initialData, onClose, onSave }: a
                                             type="text"
                                             placeholder="Skill name"
                                             value={form.spark_data?.green?.name || ""}
-                                            onChange={e => setForm({ ...form, spark_data: { ...form.spark_data!, green: { ...form.spark_data!.green!, name: e.target.value } } })}
+                                            onChange={e => setForm(prev => ({ 
+                                                ...prev, 
+                                                spark_data: { 
+                                                    ...prev.spark_data!, 
+                                                    green: { ...(prev.spark_data?.green || { name: '', stars: 1 }), name: e.target.value } 
+                                                } 
+                                            }))}
                                             style={{ ...inputStyle, flex: 1 }}
                                         />
                                         <select 
                                             value={form.spark_data?.green?.stars || 1}
-                                            onChange={e => setForm({ ...form, spark_data: { ...form.spark_data!, green: { ...form.spark_data!.green!, stars: parseInt(e.target.value) } } })}
+                                            onChange={e => setForm(prev => ({ 
+                                                ...prev, 
+                                                spark_data: { 
+                                                    ...prev.spark_data!, 
+                                                    green: { ...(prev.spark_data?.green || { name: '', stars: 1 }), stars: parseInt(e.target.value) } 
+                                                } 
+                                            }))}
                                             style={{ ...inputStyle, width: '80px' }}
                                         >
                                             <option value={1}>1★</option>

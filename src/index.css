@@ -26,15 +26,10 @@ html {
 
 body {
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 #root {
   width: 100%;
-  max-width: 480px;
-  padding: 2rem;
 }
 
 header {

@@ -129,6 +129,7 @@ interface TurnResult {
     special_gains?: StatBlock[];
     base_sp_gains?: number[];
     special_sp_gains?: number[];
+    facility_scores?: number[];
 }
 
 const STAT_NAMES = ['Speed', 'Stamina', 'Power', 'Guts', 'Wisdom'];
@@ -270,7 +271,7 @@ const STAT_PLACEHOLDERS: StatBlock = { speed: 0, stamina: 0, power: 0, guts: 0, 
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const DEFAULT_FORMS: Record<EntryType, Record<string, any>> = {
-  training:    { facility: 0, card_placements: Array(6).fill(-1), friendship_deltas: Array(6).fill(0), stat_gains: { ...STAT_PLACEHOLDERS }, energy_change: -20, sp_gain: 2 },
+  training:    { facility: 0, card_placements: Array(6).fill(-1), friendship_deltas: Array(6).fill(0), stat_gains: { ...STAT_PLACEHOLDERS }, energy_change: -20, sp_gain: 2, hint_skills: [] as { card_index: number; skill_id: number | null; levels: number }[] },
   event:       { label: '', sp_change: 0, stat_changes: { ...STAT_PLACEHOLDERS }, energy_change: 0, mood_change: 0, save_to_db: false },
   hint:        { skills: [{ skill_id: null as number | null, levels: 1 }] },
   aptitude:    { name: '', grade: 'A' },
@@ -376,18 +377,36 @@ export default function RunComparison() {
     };
     fetchSkills();
 
+    // Load hint skills from support_cards.hints JSONB column, then resolve names from skills table
     supabase
-      .from('support_card_hints')
-      .select('card_id, skill_id, skills(gametora_id, name, icon_url)')
-      .order('sort_order')
-      .then(({ data }) => {
-        if (!data) return;
+      .from('support_cards')
+      .select('id, hints')
+      .not('hints', 'is', null)
+      .then(async ({ data: cardsWithHints }) => {
+        if (!cardsWithHints) return;
+        // Collect all unique skill IDs across all cards
+        const allSkillIds = new Set<number>();
+        const cardSkillMap: Record<number, number[]> = {};
+        for (const card of cardsWithHints) {
+          const hintSkills = (card.hints as { hint_skills?: number[] })?.hint_skills;
+          if (!hintSkills?.length) continue;
+          cardSkillMap[card.id] = hintSkills;
+          hintSkills.forEach(id => allSkillIds.add(id));
+        }
+        if (allSkillIds.size === 0) return;
+        // Fetch skill names for all referenced IDs
+        const ids = Array.from(allSkillIds);
+        const { data: skillRows } = await supabase.from('skills').select('gametora_id, name, icon_url').in('gametora_id', ids);
+        const skillLookup = new Map<number, { name: string; icon_url?: string }>();
+        for (const s of (skillRows || [])) {
+          skillLookup.set(Number(s.gametora_id), { name: s.name, icon_url: s.icon_url ?? undefined });
+        }
+        // Build the card hint map
         const map: Record<number, { skill_id: number; name: string; icon_url?: string }[]> = {};
-        for (const row of data) {
-          const skill = row.skills as unknown as { gametora_id: number; name: string; icon_url?: string } | null;
-          if (!skill) continue;
-          if (!map[row.card_id]) map[row.card_id] = [];
-          map[row.card_id].push({ skill_id: Number(skill.gametora_id), name: skill.name, icon_url: skill.icon_url ?? undefined });
+        for (const [cardId, skillIds] of Object.entries(cardSkillMap)) {
+          map[Number(cardId)] = skillIds
+            .filter(sid => skillLookup.has(sid))
+            .map(sid => ({ skill_id: sid, name: skillLookup.get(sid)!.name, icon_url: skillLookup.get(sid)!.icon_url }));
         }
         setCardHintSkills(map);
       });
@@ -610,6 +629,20 @@ export default function RunComparison() {
       image: s.icon_url || undefined
   })), [skills]);
 
+  // Max hint levels per deck slot. Hint levels in-game range from 1 to 5.
+  // Cards with HintLevels effect (type 17) add bonus levels on top of the base 1.
+  const cardMaxHintLevel = useMemo(() => {
+    return deck.map(slot => {
+      const card = cards.find(c => c.id === slot.id);
+      if (!card) return 1;
+      const hintEffect = card.effects.find(e => e.effect_type_id === 17);
+      if (!hintEffect) return 1;
+      const levelIdx = Math.min(slot.level, (hintEffect.values_by_level?.length ?? 1) - 1);
+      const bonus = hintEffect.values_by_level?.[levelIdx] ?? 0;
+      return Math.min(1 + bonus, 5);
+    });
+  }, [deck, cards]);
+
   const addFactor = (memberKey: string) => {
     const newLegacies = { ...legacies };
     const member = newLegacies[memberKey];
@@ -700,6 +733,7 @@ export default function RunComparison() {
             skill_points: currentState.sp,
             card_placements: simPlacements.some(p => p >= 0) ? simPlacements : [],
             unity_bonus_cards: simUnityBonuses,
+            hint_cards: simHintCards,
         }
     };
     try {
@@ -716,9 +750,9 @@ export default function RunComparison() {
         }
         const data: TurnResult = await response.json();
         setTurnResult(data);
-        // Auto-select best facility
-        const totalGain = (g: StatBlock) => g.speed + g.stamina + g.power + g.guts + g.wisdom;
-        const best = data.expected_gains.reduce((bi, g, i) => totalGain(g) > totalGain(data.expected_gains[bi]) ? i : bi, 0);
+        // Auto-select best facility using composite scores from backend (accounts for stats, SP, friendship, hints)
+        const scores = data.facility_scores?.length ? data.facility_scores : data.expected_gains.map(g => g.speed + g.stamina + g.power + g.guts + g.wisdom);
+        const best = scores.reduce((bi, s, i) => s > scores[bi] ? i : bi, 0);
         setSelectedFacility(best);
     } catch (err) {
         console.error(err);
@@ -869,19 +903,46 @@ export default function RunComparison() {
         setScenarioEvents(prev => [...prev, { id: se.id, trainee_id: selectedTrainee, name: String(entryForm.label ?? ''), description: null, sp_change: Number(entryForm.sp_change ?? 0), stat_changes: (entryForm.stat_changes as ScenarioEvent['stat_changes']) ?? {}, energy_change: Number(entryForm.energy_change ?? 0), mood_change: Number(entryForm.mood_change ?? 0), hints: [], aptitudes: [] }]);
     }
 
+    // For training entries with hint cards toggled, add +5 friendship per hinting card
+    let payload = entryForm;
+    if (entryType === 'training' && simHintCards.some(Boolean)) {
+        const fd = [...(entryForm.friendship_deltas || Array(6).fill(0))];
+        simHintCards.forEach((hinted, i) => { if (hinted) fd[i] = (fd[i] || 0) + 5; });
+        payload = { ...entryForm, friendship_deltas: fd };
+    }
+
     const { error } = await supabase.from('training_run_events').insert({
         run_id: currentRunId,
         sequence: timelineEvents.length,
         type: entryType,
-        payload: entryForm,
+        payload,
         scenario_event_id: scenarioEventId,
     });
 
     if (error) {
         alert('Error saving entry: ' + error.message);
     } else {
+        // Auto-insert companion hint event if any skill hints were selected
+        const selectedHints = (entryForm.hint_skills || []).filter(
+          (h: { skill_id: number | null; levels: number }) => h.skill_id != null
+        );
+        if (entryType === 'training' && selectedHints.length > 0) {
+            await supabase.from('training_run_events').insert({
+                run_id: currentRunId,
+                sequence: timelineEvents.length + 1,
+                type: 'hint',
+                payload: {
+                    skills: selectedHints.map((h: { skill_id: number; levels: number }) => ({
+                        skill_id: h.skill_id,
+                        levels: h.levels,
+                    })),
+                },
+            });
+        }
+
         await loadTimelineEvents();
         setAddingEntry(false);
+        setSimHintCards(Array(6).fill(false));
         if (entryType === 'training') {
             const placements = deck.map(slot => {
                 const card = cards.find(c => c.id === slot.id);
@@ -1254,7 +1315,11 @@ export default function RunComparison() {
                                                 const gains = turnResult.expected_gains[selectedFacility];
                                                 const cost = turnResult.expected_energy_costs[selectedFacility];
                                                 setEntryType('training');
-                                                setEntryForm({ ...DEFAULT_FORMS.training, facility: selectedFacility, stat_gains: gains, energy_change: Math.round(cost), sp_gain: 2, card_placements: simPlacements, friendship_deltas: friendshipDeltasForFacility(selectedFacility, simPlacements) });
+                                                const initialHints = simHintCards
+                                                    .map((h, i) => h ? { card_index: i, skill_id: null, levels: 1 } : null)
+                                                    .filter((h): h is { card_index: number; skill_id: null; levels: number } => h !== null);
+
+                                                setEntryForm({ ...DEFAULT_FORMS.training, facility: selectedFacility, stat_gains: gains, energy_change: Math.round(cost), sp_gain: 2, card_placements: simPlacements, friendship_deltas: friendshipDeltasForFacility(selectedFacility, simPlacements), hint_skills: initialHints });
                                                 setAddingEntry(true);
                                             }}
                                             style={{ ...primaryButtonStyle, width: 'auto', padding: '0.4rem 1rem', fontSize: '0.8rem', background: '#1d4ed8' }}
@@ -1273,7 +1338,10 @@ export default function RunComparison() {
                                 const COLS = [...STAT_NAMES, 'SP'];
                                 const totalGain = (g: StatBlock) => g.speed + g.stamina + g.power + g.guts + g.wisdom;
                                 const bestIdx = turnResult
-                                    ? turnResult.expected_gains.reduce((bi, g, i) => totalGain(g) > totalGain(turnResult.expected_gains[bi]) ? i : bi, 0)
+                                    ? (() => {
+                                        const scores = turnResult.facility_scores?.length ? turnResult.facility_scores : turnResult.expected_gains.map(g => g.speed + g.stamina + g.power + g.guts + g.wisdom);
+                                        return scores.reduce((bi, s, i) => s > scores[bi] ? i : bi, 0);
+                                      })()
                                     : null;
 
                                 return (
@@ -1642,6 +1710,71 @@ export default function RunComparison() {
                                                         <input type="number" value={entryForm.sp_gain ?? 0} onChange={e => setFormField('sp_gain', parseInt(e.target.value) || 0)} style={inputStyle} />
                                                     </div>
                                                 </div>
+                                                {/* Skill Hints from toggled cards */}
+                                                {simHintCards.some(Boolean) && (
+                                                    <div>
+                                                        <label style={miniLabelStyle}>Skill Hints</label>
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                            {deck.map((slot, i) => {
+                                                                if (!simHintCards[i] || !slot.id) return null;
+                                                                const hintSkills = cardHintSkills[slot.id];
+                                                                if (!hintSkills?.length) return null;
+                                                                const card = cards.find(c => c.id === slot.id);
+                                                                const maxLevel = cardMaxHintLevel[i];
+                                                                const selectedHint = (entryForm.hint_skills || []).find(
+                                                                    (h: { card_index: number }) => h.card_index === i
+                                                                );
+                                                                return (
+                                                                    <div key={i} style={{ background: '#111', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 6, padding: '6px 8px' }}>
+                                                                        <div style={{ fontSize: '0.65rem', color: '#ef4444', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                                                                            <img src={getCardIconUrl(slot.id)} alt="" style={{ width: 16, height: 16, borderRadius: 3 }} />
+                                                                            <span style={{ fontWeight: 600 }}>{card?.name ?? `Card ${slot.id}`}</span>
+                                                                            <span style={{ color: 'var(--text-muted)' }}>hint</span>
+                                                                        </div>
+                                                                        <div style={{ display: 'grid', gridTemplateColumns: maxLevel > 1 ? '1fr 70px' : '1fr', gap: '6px', alignItems: 'end' }}>
+                                                                            <SearchableSelect
+                                                                                options={hintSkills.map(s => ({ id: s.skill_id, label: s.name, image: s.icon_url || undefined }))}
+                                                                                value={selectedHint?.skill_id ?? null}
+                                                                                onChange={val => {
+                                                                                    const skillId = typeof val === 'string' ? parseInt(val) : val;
+                                                                                    const existing = [...(entryForm.hint_skills || [])];
+                                                                                    const idx = existing.findIndex((h: { card_index: number }) => h.card_index === i);
+                                                                                    if (idx >= 0) {
+                                                                                        existing[idx] = { ...existing[idx], skill_id: skillId };
+                                                                                    } else {
+                                                                                        existing.push({ card_index: i, skill_id: skillId, levels: 1 });
+                                                                                    }
+                                                                                    setFormField('hint_skills', existing);
+                                                                                }}
+                                                                                placeholder="Select skill"
+                                                                            />
+                                                                            {maxLevel > 1 && (
+                                                                                <select
+                                                                                    value={selectedHint?.levels ?? 1}
+                                                                                    onChange={e => {
+                                                                                        const existing = [...(entryForm.hint_skills || [])];
+                                                                                        const idx = existing.findIndex((h: { card_index: number }) => h.card_index === i);
+                                                                                        if (idx >= 0) {
+                                                                                            existing[idx] = { ...existing[idx], levels: parseInt(e.target.value) };
+                                                                                        } else {
+                                                                                            existing.push({ card_index: i, skill_id: null, levels: parseInt(e.target.value) });
+                                                                                        }
+                                                                                        setFormField('hint_skills', existing);
+                                                                                    }}
+                                                                                    style={inputStyle}
+                                                                                >
+                                                                                    {Array.from({ length: maxLevel }, (_, l) => l + 1).map(l => (
+                                                                                        <option key={l} value={l}>Lv+{l}</option>
+                                                                                    ))}
+                                                                                </select>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </>
                                         )}
 
@@ -2024,7 +2157,7 @@ export default function RunComparison() {
                                                                 )}
                                                             </div>
                                                         )}
-                                                        <div style={{ marginTop: 4, fontSize: '0.65rem', color: '#444' }}>Sequence: {event.sequence}</div>
+                                                        <div style={{ marginTop: 4, fontSize: '0.65rem', color: '#444' }}>Turn {event.sequence + 1}</div>
                                                     </div>
                                                 )}
                                             </div>

@@ -58,12 +58,18 @@ interface Trainee {
   stats_five_star: number[] | null;
 }
 
+interface SupportCardEffect {
+  effect_type_id: number;
+  unlock_level: number;
+  values_by_level: number[];
+}
+
 interface CardBasic { 
   id: number;
   name: string;
   rarity: string;
   card_type: string;
-  effects: any[];
+  effects: SupportCardEffect[];
 }
 
 interface TraineeCollectionEntry {
@@ -80,12 +86,15 @@ interface OwnedCardEntry {
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const STAT_NAMES = ['Speed', 'Stamina', 'Power', 'Guts', 'Wisdom'];
-const FACILITY_NAMES = ['speed', 'stamina', 'power', 'guts', 'wisdom'];
+const STAT_NAMES = ['Speed', 'Stamina', 'Power', 'Guts', 'Wisdom'] as const;
+const FACILITY_NAMES = ['speed', 'stamina', 'power', 'guts', 'wisdom'] as const;
 const ACTIONS = [
     'train_speed', 'train_stamina', 'train_power', 'train_guts', 'train_wisdom',
     'rest', 'race', 'event'
-];
+] as const;
+
+type StatName = typeof STAT_NAMES[number];
+type StatKey = Lowercase<StatName>;
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
@@ -115,6 +124,11 @@ export default function RunAnalyzer() {
   const [friendship, setFriendship] = useState<Record<number, number>>({});
 
   // ─── Load Data ──────────────────────────────────────────────────────────
+
+  const loadHistory = React.useCallback(async () => {
+    const { data } = await supabase.from('training_runs').select('*').order('created_at', { ascending: false });
+    if (data) setSavedRuns(data as RunData[]);
+  }, []);
   
   useEffect(() => {
     supabase.from('trainees')
@@ -124,30 +138,32 @@ export default function RunAnalyzer() {
 
     supabase.from('support_cards').select('id, name, rarity, card_type, effects:support_card_effects(*)')
       .then(({ data }) => { if (data) setCards(data as CardBasic[]) });
+  }, []);
 
+  useEffect(() => {
     if (user) {
         supabase.from('user_trainee_collection').select('trainee_id, star_rank, awakening_level').eq('user_id', user.id)
             .then(({ data }) => {
-                const m = new Map();
-                if (data) data.forEach(d => m.set(d.trainee_id, d));
+                const m = new Map<number, TraineeCollectionEntry>();
+                if (data) data.forEach(d => m.set(d.trainee_id, d as TraineeCollectionEntry));
                 setUserTrainees(m);
             });
 
         supabase.from('user_support_card_collection').select('card_id, level, uncap').eq('user_id', user.id)
             .then(({ data }) => {
-                const m = new Map();
-                if (data) data.forEach(d => m.set(d.card_id, d));
+                const m = new Map<number, OwnedCardEntry>();
+                if (data) data.forEach(d => m.set(d.card_id, d as OwnedCardEntry));
                 setUserCards(m);
             });
-        
-        loadHistory();
     }
   }, [user]);
 
-  const loadHistory = async () => {
-    const { data } = await supabase.from('training_runs').select('*').order('created_at', { ascending: false });
-    if (data) setSavedRuns(data as RunData[]);
-  };
+  useEffect(() => {
+    if (user) {
+        supabase.from('training_runs').select('*').order('created_at', { ascending: false })
+            .then(({ data }) => { if (data) setSavedRuns(data as RunData[]) });
+    }
+  }, [user]);
 
   // ─── Handlers ───────────────────────────────────────────────────────────
 
@@ -211,8 +227,8 @@ export default function RunAnalyzer() {
     setTurns([...turns, turn]);
     
     const newStats = { ...currentStats };
-    Object.keys(turn.stat_gains).forEach(k => {
-        (newStats as any)[k] += (turn.stat_gains as any)[k];
+    (Object.keys(turn.stat_gains) as (keyof Omit<StatBlock, 'sp'>)[]).forEach(k => {
+        newStats[k] += turn.stat_gains[k];
     });
     newStats.sp += turn.sp_gain;
 
@@ -328,7 +344,7 @@ function HistoryView({ savedRuns, trainees }: { savedRuns: RunData[], trainees: 
                         <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
                             {[...STAT_NAMES, 'SP'].map((s) => (
                                 <div key={s} style={{ fontSize: '0.75rem' }}>
-                                    {s[0]}: {(run.final_stats as any)[s.toLowerCase()]}
+                                    {s[0]}: {run.final_stats[s.toLowerCase() as keyof StatBlock]}
                                 </div>
                             ))}
                         </div>
@@ -339,8 +355,26 @@ function HistoryView({ savedRuns, trainees }: { savedRuns: RunData[], trainees: 
     );
 }
 
-function SetupView({ trainees, userTrainees, userCards, cards, onStart, selectedTrainee, setSelectedTrainee, selectedDeck, setSelectedDeck, runName, setRunName, inheritedStats, setInheritedStats, initialSp, setInitialSp }: any) {
-    const ownedTrainees = trainees.filter((t: any) => userTrainees.has(t.id));
+interface SetupViewProps {
+    trainees: Trainee[];
+    userTrainees: Map<number, TraineeCollectionEntry>;
+    userCards: Map<number, OwnedCardEntry>;
+    cards: CardBasic[];
+    onStart: () => void;
+    selectedTrainee: number | null;
+    setSelectedTrainee: (id: number | null) => void;
+    selectedDeck: { card_id: number; level: number }[];
+    setSelectedDeck: (deck: { card_id: number; level: number }[]) => void;
+    runName: string;
+    setRunName: (name: string) => void;
+    inheritedStats: Omit<StatBlock, 'sp'>;
+    setInheritedStats: (stats: Omit<StatBlock, 'sp'>) => void;
+    initialSp: number;
+    setInitialSp: (sp: number) => void;
+}
+
+function SetupView({ trainees, userTrainees, userCards, cards, onStart, selectedTrainee, setSelectedTrainee, selectedDeck, setSelectedDeck, runName, setRunName, inheritedStats, setInheritedStats, initialSp, setInitialSp }: SetupViewProps) {
+    const ownedTrainees = trainees.filter((t) => userTrainees.has(t.id));
     
     const handleCardChange = (index: number, cardId: number) => {
         const newDeck = [...selectedDeck];
@@ -374,7 +408,7 @@ function SetupView({ trainees, userTrainees, userCards, cards, onStart, selected
                                 <label style={labelStyle}>Select Trainee</label>
                                 <select value={selectedTrainee || ""} onChange={e => setSelectedTrainee(parseInt(e.target.value))} style={inputStyle}>
                                     <option value="">-- Select --</option>
-                                    {ownedTrainees.map((t: any) => {
+                                    {ownedTrainees.map((t) => {
                                         const col = userTrainees.get(t.id);
                                         return (
                                             <option key={t.id} value={t.id}>
@@ -394,7 +428,7 @@ function SetupView({ trainees, userTrainees, userCards, cards, onStart, selected
                                     <label style={{ fontSize: '0.7rem' }}>{s}</label>
                                     <input 
                                         type="number" 
-                                        value={inheritedStats[s.toLowerCase()]} 
+                                        value={inheritedStats[s.toLowerCase() as StatKey]} 
                                         onChange={e => setInheritedStats({ ...inheritedStats, [s.toLowerCase()]: parseInt(e.target.value) || 0 })}
                                         style={inputStyle} 
                                     />
@@ -417,7 +451,7 @@ function SetupView({ trainees, userTrainees, userCards, cards, onStart, selected
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: '0.75rem' }}>
                         {[0,1,2,3,4,5].map(i => {
                             const isFriendSlot = i === 5;
-                            const availableCards = isFriendSlot ? cards : cards.filter((c: any) => userCards.has(c.id));
+                            const availableCards = isFriendSlot ? cards : cards.filter((c) => userCards.has(c.id));
                             return (
                                 <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 80px', gap: '0.5rem', alignItems: 'center' }}>
                                     <select 
@@ -426,7 +460,7 @@ function SetupView({ trainees, userTrainees, userCards, cards, onStart, selected
                                         style={inputStyle}
                                     >
                                         <option value="">-- {isFriendSlot ? "Friend Slot" : `Slot ${i + 1}`} --</option>
-                                        {availableCards.sort((a: any, b: any) => a.name.localeCompare(b.name)).map((c: any) => (
+                                        {availableCards.sort((a, b) => a.name.localeCompare(b.name)).map((c) => (
                                             <option key={c.id} value={c.id}>[{c.rarity}] {c.name} ({c.card_type})</option>
                                         ))}
                                     </select>
@@ -449,7 +483,19 @@ function SetupView({ trainees, userTrainees, userCards, cards, onStart, selected
     );
 }
 
-function ActiveRunView({ run, stats, energy, friendship, turns, trainees, cards, onCommitTurn, onSave }: any) {
+interface ActiveRunViewProps {
+    run: RunData;
+    stats: StatBlock;
+    energy: number;
+    friendship: Record<number, number>;
+    turns: Turn[];
+    trainees: Trainee[];
+    cards: CardBasic[];
+    onCommitTurn: (turn: Turn) => void;
+    onSave: () => void;
+}
+
+function ActiveRunView({ run, stats, energy, friendship, turns, trainees, cards, onCommitTurn, onSave }: ActiveRunViewProps) {
     const [entry, setEntry] = useState<Turn>({
         turn_number: turns.length + 1,
         energy_before: energy,
@@ -461,12 +507,14 @@ function ActiveRunView({ run, stats, energy, friendship, turns, trainees, cards,
         friendship_gains: {}
     });
 
-    const [prediction, setPrediction] = useState<any>(null);
+    const [prediction, setPrediction] = useState<{ choice: string, gain: StatBlock } | null>(null);
 
     const handlePredict = () => {
-        const trainee = trainees.find((t: any) => t.id === run.trainee_id);
-        const cardMap = new Map(cards.map((c: any) => [c.id, c]));
-        const deckCards = run.deck.map((c: any) => cardMap.get(c.card_id)).filter(Boolean);
+        const trainee = trainees.find((t) => t.id === run.trainee_id);
+        const cardMap = new Map(cards.map((c) => [c.id, c]));
+        const deckCards = run.deck.map((c) => cardMap.get(c.card_id)).filter((c): c is CardBasic => !!c);
+
+        if (!trainee) return;
 
         let bestFacility = 'rest';
         let maxWeightedGain = -1.0;
@@ -477,7 +525,7 @@ function ActiveRunView({ run, stats, energy, friendship, turns, trainees, cards,
         for (let i = 0; i < 5; i++) {
             const gain = calculatePotentialGain(i, entry.card_locations, deckCards, run.deck, simState, trainee);
             const stat_weights = [1.0, 1.0, 1.0, 0.8, 0.8];
-            const weightedGain = Object.values(gain).reduce((sum, val, idx) => sum + (val * stat_weights[idx]), 0);
+            const weightedGain = (Object.values(gain) as number[]).reduce((sum, val, idx) => sum + (val * stat_weights[idx]), 0);
 
             if (weightedGain > maxWeightedGain) {
                 maxWeightedGain = weightedGain;
@@ -513,7 +561,7 @@ function ActiveRunView({ run, stats, energy, friendship, turns, trainees, cards,
                             {[...STAT_NAMES, 'SP'].map(s => (
                                 <div key={s}>
                                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{s}</div>
-                                    <div style={{ fontWeight: 600 }}>{(stats as any)[s.toLowerCase()]}</div>
+                                    <div style={{ fontWeight: 600 }}>{stats[s.toLowerCase() as keyof StatBlock]}</div>
                                 </div>
                             ))}
                         </div>
@@ -522,8 +570,8 @@ function ActiveRunView({ run, stats, energy, friendship, turns, trainees, cards,
                 
                 <Section title="Deck & Friendship">
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        {run.deck.map((c: any) => {
-                            const card = cards.find((card: any) => card.id === c.card_id);
+                        {run.deck.map((c) => {
+                            const card = cards.find((card) => card.id === c.card_id);
                             const fs = friendship[c.card_id] || 0;
                             return (
                                 <div key={c.card_id} style={{ fontSize: '0.8rem', background: '#1a1a1a', padding: '0.5rem', borderRadius: 4 }}>
@@ -546,18 +594,19 @@ function ActiveRunView({ run, stats, energy, friendship, turns, trainees, cards,
                         <div style={{ marginBottom: '1.5rem' }}>
                             <label style={labelStyle}>Card Locations</label>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
-                                {run.deck.map((c: any) => {
-                                    const card = cards.find((card: any) => card.id === c.card_id);
+                                {run.deck.map((c) => {
+                                    const card = cards.find((card) => card.id === c.card_id);
                                     return (
                                         <div key={c.card_id}>
                                             <div style={{ fontSize: '0.75rem', marginBottom: 4 }}>{card?.name}</div>
                                             <select 
-                                                value={Object.entries(entry.card_locations).find(([_, ids]) => ids.includes(c.card_id))?.[0] || "other"}
+                                                value={Object.entries(entry.card_locations).find(([, ids]) => ids.includes(c.card_id))?.[0] || "other"}
                                                 onChange={e => {
                                                     const loc = e.target.value as keyof CardLocationState;
                                                     const newLocations = { ...entry.card_locations };
                                                     Object.keys(newLocations).forEach(k => {
-                                                        (newLocations as any)[k] = (newLocations as any)[k].filter((id: number) => id !== c.card_id);
+                                                        const key = k as keyof CardLocationState;
+                                                        newLocations[key] = newLocations[key].filter((id: number) => id !== c.card_id);
                                                     });
                                                     newLocations[loc].push(c.card_id);
                                                     setEntry({ ...entry, card_locations: newLocations });
@@ -600,10 +649,11 @@ function ActiveRunView({ run, stats, energy, friendship, turns, trainees, cards,
                                             <label style={{ fontSize: '0.7rem' }}>{s}</label>
                                             <input 
                                                 type="number" 
-                                                value={(entry.stat_gains as any)[s.toLowerCase()]} 
+                                                value={entry.stat_gains[s.toLowerCase() as keyof Omit<StatBlock, 'sp'>]} 
                                                 onChange={e => {
                                                     const newGains = { ...entry.stat_gains };
-                                                    (newGains as any)[s.toLowerCase()] = parseInt(e.target.value) || 0;
+                                                    const key = s.toLowerCase() as keyof Omit<StatBlock, 'sp'>;
+                                                    newGains[key] = parseInt(e.target.value) || 0;
                                                     setEntry({ ...entry, stat_gains: newGains });
                                                 }} 
                                                 style={inputStyle} 
@@ -623,7 +673,7 @@ function ActiveRunView({ run, stats, energy, friendship, turns, trainees, cards,
                             <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'rgba(37,99,235,0.1)', border: '1px solid #2563eb', borderRadius: 8 }}>
                                 <div style={{ fontWeight: 600, color: '#60a5fa' }}>Algorithm Recommendation: {prediction.choice}</div>
                                 <div style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>
-                                    Predicted Gains: {STAT_NAMES.map(s => `${s[0]}: ${Math.round((prediction.gain as any)[s.toLowerCase()])}`).join(' ')}
+                                    Predicted Gains: {STAT_NAMES.map(s => `${s[0]}: ${Math.round(prediction.gain[s.toLowerCase() as keyof StatBlock])}`).join(' ')}
                                 </div>
                             </div>
                         )}
@@ -636,7 +686,7 @@ function ActiveRunView({ run, stats, energy, friendship, turns, trainees, cards,
                             <div key={t.turn_number} style={{ fontSize: '0.8rem', padding: '0.5rem', background: '#111', border: '1px solid #222', borderRadius: 4, display: 'flex', justifyContent: 'space-between' }}>
                                 <span>Turn {t.turn_number}: {t.action_taken}</span>
                                 <span style={{ color: 'var(--text-muted)' }}>
-                                    {[...STAT_NAMES.filter(s => (t.stat_gains as any)[s.toLowerCase()] > 0).map(s => `+${(t.stat_gains as any)[s.toLowerCase()]} ${s[0]}`), t.sp_gain > 0 ? `+${t.sp_gain} SP` : null].filter(Boolean).join(', ')}
+                                    {[...STAT_NAMES.filter(s => t.stat_gains[s.toLowerCase() as keyof Omit<StatBlock, 'sp'>] > 0).map(s => `+${t.stat_gains[s.toLowerCase() as keyof Omit<StatBlock, 'sp'>]} ${s[0]}`), t.sp_gain > 0 ? `+${t.sp_gain} SP` : null].filter(Boolean).join(', ')}
                                 </span>
                             </div>
                         ))}
@@ -647,7 +697,7 @@ function ActiveRunView({ run, stats, energy, friendship, turns, trainees, cards,
     );
 }
 
-function Section({ title, children }: any) {
+function Section({ title, children }: { title: string, children: React.ReactNode }) {
     return (
         <div style={{ marginBottom: '2rem' }}>
             <h3 style={sectionHeaderStyle}>{title}</h3>
@@ -680,18 +730,23 @@ function getCardEffectValue(card: CardBasic, effectId: number, level: number): n
     return effect.values_by_level[Math.min(idx, effect.values_by_level.length - 1)] ?? 0;
 }
 
+interface DeckCardConfig {
+    card_id: number;
+    level: number;
+}
+
 function calculatePotentialGain(
     facilityIdx: number,
     cardLocations: CardLocationState,
     deckCards: CardBasic[],
-    deckConfig: any[],
+    deckConfig: DeckCardConfig[],
     simState: { energy: number; friendship: Record<number, number> },
     trainee: Trainee,
 ): Omit<StatBlock, 'sp'> {
     const gains: Omit<StatBlock, 'sp'> = { speed: 0, stamina: 0, power: 0, guts: 0, wisdom: 0 };
     const [primaryStat, secondaryStats] = facilityLayout(facilityIdx);
     
-    const facilityName = FACILITY_NAMES[facilityIdx] as keyof CardLocationState;
+    const facilityName = FACILITY_NAMES[facilityIdx];
     const presentCardIds = cardLocations[facilityName];
     
     let totalTrainingEffectiveness = 0;
@@ -721,13 +776,15 @@ function calculatePotentialGain(
     
     const growthRate = (trainee.stat_growth?.[primaryStat] ?? 0) / 100.0;
     const primaryBase = BASE_PRIMARY[primaryStat] + totalStatBonuses[primaryStat];
-    (gains as any)[STAT_NAMES[primaryStat].toLowerCase()] = primaryBase
+    const primaryKey = STAT_NAMES[primaryStat].toLowerCase() as keyof Omit<StatBlock, 'sp'>;
+    gains[primaryKey] = primaryBase
         * moodMultiplier * trainingEffMultiplier * friendshipProduct * presence_bonus * (1.0 + growthRate);
 
     for (const secStat of secondaryStats) {
         const secGrowthRate = (trainee.stat_growth?.[secStat] ?? 0) / 100.0;
         const secBase = BASE_SECONDARY + totalStatBonuses[secStat];
-        (gains as any)[STAT_NAMES[secStat].toLowerCase()] = secBase
+        const secKey = STAT_NAMES[secStat].toLowerCase() as keyof Omit<StatBlock, 'sp'>;
+        gains[secKey] = secBase
             * moodMultiplier * trainingEffMultiplier * friendshipProduct * presence_bonus * (1.0 + secGrowthRate);
     }
     

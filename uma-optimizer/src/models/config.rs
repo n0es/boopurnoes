@@ -305,10 +305,10 @@ impl ScenarioConfig {
     /// HP modifier for the target strategy.
     pub fn strategy_hp_modifier(&self) -> f64 {
         match self.target_strategy.as_str() {
-            "leading" | "runner" => 0.95,
-            "stalking" | "leader" => 0.89,
-            "mid_pack" | "betweener" => 1.00,
-            "chasing" | "chaser" => 0.995,
+            "leading" | "Front Runner" => 0.95,
+            "stalking" | "Pace Chaser" => 0.89,
+            "mid_pack" | "Late Surger" => 1.00,
+            "chasing" | "End Closer" => 0.995,
             _ => 1.00,
         }
     }

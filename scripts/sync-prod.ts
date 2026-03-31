@@ -83,8 +83,21 @@ function splitStatements(sql: string): string[] {
   let current = ''
   let i = 0
   let dollarTag: string | null = null
+  let inLineComment = false
 
   while (i < sql.length) {
+    // Track -- line comments so semicolons inside them don't split statements
+    if (!dollarTag && !inLineComment && sql[i] === '-' && sql[i + 1] === '-') {
+      inLineComment = true
+      current += sql[i++]
+      continue
+    }
+    if (inLineComment) {
+      if (sql[i] === '\n') inLineComment = false
+      current += sql[i++]
+      continue
+    }
+
     if (dollarTag === null) {
       if (sql[i] === '$') {
         const end = sql.indexOf('$', i + 1)
@@ -128,10 +141,11 @@ for (const file of migrationFiles) {
   for (const stmt of splitStatements(sql)) {
     try {
       await dbClient.query(stmt)
-    } catch (err: any) {
-      if (err.code === '42710') { /* already exists, skip */ }
+    } catch (err: unknown) {
+      if (typeof err === 'object' && err !== null && 'code' in err && err.code === '42710') { /* already exists, skip */ }
       else {
-        console.error(`  ✗ ${file}: ${err.message}`)
+        const message = err instanceof Error ? err.message : String(err)
+        console.error(`  ✗ ${file}: ${message}`)
         await dbClient.end()
         process.exit(1)
       }
@@ -288,9 +302,10 @@ await runConcurrent(storagePaths, CONCURRENCY, async (path) => {
     const result = await syncFile(path)
     if (result === 'uploaded') uploaded++
     else skipped++
-  } catch (err: any) {
+  } catch (err: unknown) {
     errors++
-    process.stderr.write(`  ✗ ${path}: ${err.message}\n`)
+    const message = err instanceof Error ? err.message : String(err)
+    process.stderr.write(`  ✗ ${path}: ${message}\n`)
   }
   process.stdout.write(`\r  ${uploaded + skipped + errors}/${storagePaths.length}  uploaded: ${uploaded}  skipped: ${skipped}  errors: ${errors}  `)
 })

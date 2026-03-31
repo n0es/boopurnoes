@@ -14,7 +14,15 @@
       "mcp__plugin_discord_discord__react",
       "mcp__plugin_discord_discord__edit_message",
       "mcp__plugin_discord_discord__download_attachment",
-      "Bash(cargo build:*)"
+      "Bash(cargo build:*)",
+      "Bash(curl:*)",
+      "Bash(npx supabase:*)",
+      "WebFetch(domain:umamusu.wiki)",
+      "Bash(node -e \":*)",
+      "Bash(node:*)",
+      "WebFetch(domain:gametora.com)",
+      "Bash(npx tsc:*)",
+      "Bash(git status:*)"
     ]
   }
 }

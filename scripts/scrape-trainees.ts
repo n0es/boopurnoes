@@ -260,7 +260,18 @@ interface ParsedTrainee {
   hintSkills: Array<{ gametora_id: number }>
 }
 
-function parseTraineeData(charRarity: number, pageData: any): ParsedTrainee {
+interface GametoraPageData {
+  pageProps?: {
+    itemData?: {
+      title?: string
+      skills_awakening?: number[]
+      skills_unique?: number[]
+      skills_innate?: number[]
+    }
+  }
+}
+
+function parseTraineeData(charRarity: number, pageData: GametoraPageData): ParsedTrainee {
   // Gametora puts trainee/card data in itemData (charData has only bio fields)
   const item = pageData.pageProps?.itemData
 
@@ -442,8 +453,9 @@ async function scrapeAll(limit?: number) {
       await saveTraineeSkills(t.id, t.rarity, parsed)
       console.log(`done (${parsed.awakeningSkills.length}awk ${parsed.uniqueSkills.length}unq ${parsed.hintSkills.length}hint)`)
       success++
-    } catch (err: any) {
-      console.log(`ERROR: ${err.message}`)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err)
+      console.log(`ERROR: ${message}`)
       errors++
     }
     // Rate limit

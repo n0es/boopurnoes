@@ -2,5 +2,8 @@ FROM node:20-alpine
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
+COPY . .
+# Fail the build if there are lint or type errors
+RUN npm run lint && npx tsc -b
 EXPOSE 5173
 CMD ["npm", "run", "dev"]

@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 
 interface Option {
-  id: number;
+  id: number | string;
   label: string;
   subLabel?: string;
   image?: string;
@@ -10,8 +11,8 @@ interface Option {
 
 interface SearchableSelectProps {
   options: Option[];
-  value: number | null;
-  onChange: (value: number) => void;
+  value: number | string | null;
+  onChange: (value: number | string | null) => void;
   placeholder?: string;
   style?: React.CSSProperties;
 }
@@ -19,6 +20,8 @@ interface SearchableSelectProps {
 export default function SearchableSelect({ options, value, onChange, placeholder, style }: SearchableSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
+  
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -33,9 +36,36 @@ export default function SearchableSelect({ options, value, onChange, placeholder
     );
   }, [options, search]);
 
+  const updateCoords = () => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setCoords({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+        width: rect.width
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      updateCoords();
+      // Use capture to catch scrolls in parents (like modals)
+      window.addEventListener('scroll', updateCoords, true);
+      window.addEventListener('resize', updateCoords);
+    }
+    return () => {
+      window.removeEventListener('scroll', updateCoords, true);
+      window.removeEventListener('resize', updateCoords);
+    };
+  }, [isOpen]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        // Also check if click was on the portal
+        const portal = document.getElementById('searchable-select-portal');
+        if (portal && portal.contains(event.target as Node)) return;
         setIsOpen(false);
       }
     };
@@ -43,7 +73,7 @@ export default function SearchableSelect({ options, value, onChange, placeholder
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSelect = (id: number) => {
+  const handleSelect = (id: number | string | null) => {
     onChange(id);
     setIsOpen(false);
     setSearch('');
@@ -83,21 +113,23 @@ export default function SearchableSelect({ options, value, onChange, placeholder
         )}
       </div>
 
-      {isOpen && (
-        <div style={{
-          position: 'absolute',
-          top: '100%',
-          left: 0,
-          right: 0,
-          marginTop: 4,
-          background: '#1a1a1a',
-          border: '1px solid #333',
-          borderRadius: 8,
-          zIndex: 100,
-          maxHeight: '300px',
-          overflowY: 'auto',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
-        }}>
+      {isOpen && createPortal(
+        <div 
+          id="searchable-select-portal"
+          style={{
+            position: 'absolute',
+            top: coords.top + 4,
+            left: coords.left,
+            width: coords.width,
+            background: '#1a1a1a',
+            border: '1px solid #333',
+            borderRadius: 8,
+            zIndex: 9999,
+            maxHeight: '300px',
+            overflowY: 'auto',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.7)'
+          }}
+        >
           <div style={{ position: 'sticky', top: 0, background: '#1a1a1a', padding: '8px', borderBottom: '1px solid #333' }}>
             <input
               ref={inputRef}
@@ -105,6 +137,7 @@ export default function SearchableSelect({ options, value, onChange, placeholder
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search..."
+              onMouseDown={e => e.stopPropagation()} // Prevent closing on click
               style={{
                 width: '100%',
                 padding: '6px 10px',
@@ -155,7 +188,8 @@ export default function SearchableSelect({ options, value, onChange, placeholder
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

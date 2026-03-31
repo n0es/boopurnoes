@@ -130,10 +130,14 @@ async function processTrainee(
   ] as const) {
     try {
       const result = await downloadAndUpload(url, path)
-      if (result === 'uploaded') type === 'portrait' ? portraits++ : icons++
-    } catch (err: any) {
+      if (result === 'uploaded') {
+        if (type === 'portrait') portraits++
+        else icons++
+      }
+    } catch (err) {
       errors++
-      process.stderr.write(`  ✗ ${trainee.name} (${trainee.id}) ${type}: ${err.message}\n`)
+      const message = err instanceof Error ? err.message : String(err)
+      process.stderr.write(`  ✗ ${trainee.name} (${trainee.id}) ${type}: ${message}\n`)
     }
   }
 

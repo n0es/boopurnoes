@@ -17,7 +17,7 @@ const SUMMER_REST_ENERGY_GAIN: f64 = 35.0;
 
 // Mood levels: 0=Very Bad, 1=Bad, 2=Normal, 3=Good, 4=Very Good
 const MOOD_MULTIPLIERS: [f64; 5] = [0.80, 0.90, 1.00, 1.10, 1.20];
-const STARTING_MOOD: u8 = 3; // Good
+const STARTING_MOOD: u8 = 2; // Normal (1.0)
 
 // Friendship
 const FRIENDSHIP_THRESHOLD: f64 = 80.0;
@@ -29,10 +29,6 @@ const SPIRIT_THRESHOLD: f64 = 100.0;
 const SPIRIT_GAIN_PER_TRAIN: f64 = 7.0;
 const MAX_SPIRIT: f64 = 100.0;
 
-// Scenario Multipliers
-const UNITY_TRAINING_MULT: f64 = 1.20; // Bonus when card friendship >= 80
-const PERFORMANCE_BONUS_MULT: f64 = 1.30; // Approx 30% average bonus from Great Performance buffs
-
 // Card placement weights
 const BASE_FACILITY_WEIGHT: f64 = 100.0;
 const VACATION_WEIGHT: f64 = 50.0;
@@ -41,46 +37,49 @@ const VACATION_WEIGHT: f64 = 50.0;
 // Format: [speed, stamina, power, guts, wisdom, SP, energy_cost]
 // Negative energy = cost, positive = recovery.
 // Indexed as FACILITY_DATA[level-1][facility_idx]
+// Base training gains per facility per level. Format: [speed, stamina, power, guts, wisdom, SP, energy]
+// Calibrated for Unity Cup (Aoharu Hai) - Global Server.
+// Training Level is determined by Team Stat Rank (G/F=Lv1, E/D=Lv2, C/B=Lv3, A=Lv4, S=Lv5).
 const FACILITY_DATA: [[[f64; 7]; 5]; 5] = [
-    // Level 1
+    // Level 1 (Team Rank G/F)
     [
-        [10.0, 0.0, 5.0, 0.0, 0.0,  2.0, -21.0], // Speed
-        [0.0,  9.0, 0.0, 4.0, 0.0,  2.0, -19.0], // Stamina
-        [0.0,  5.0, 8.0, 0.0, 0.0,  2.0, -20.0], // Power
-        [4.0,  0.0, 4.0, 8.0, 0.0,  2.0, -22.0], // Guts
-        [2.0,  0.0, 0.0, 0.0, 9.0,  4.0,   5.0], // Wisdom
+        [ 8.0, 0.0, 4.0, 0.0, 0.0,  2.0, -19.0], // Speed
+        [ 0.0, 7.0, 0.0, 3.0, 0.0,  2.0, -17.0], // Stamina
+        [ 0.0, 4.0, 6.0, 0.0, 0.0,  2.0, -18.0], // Power
+        [ 3.0, 0.0, 3.0, 6.0, 0.0,  2.0, -20.0], // Guts
+        [ 2.0, 0.0, 0.0, 0.0, 6.0,  3.0,   5.0], // Wisdom
     ],
-    // Level 2
+    // Level 2 (Team Rank E/D)
     [
-        [11.0, 0.0, 5.0, 0.0, 0.0,  2.0, -22.0],
-        [0.0, 10.0, 0.0, 4.0, 0.0,  2.0, -20.0],
-        [0.0,  5.0, 9.0, 0.0, 0.0,  2.0, -21.0],
-        [4.0,  0.0, 4.0, 9.0, 0.0,  2.0, -23.0],
-        [2.0,  0.0, 0.0, 0.0, 10.0, 4.0,   5.0],
+        [10.0, 0.0, 5.0, 0.0, 0.0,  2.0, -20.0],
+        [ 0.0, 9.0, 0.0, 4.0, 0.0,  2.0, -18.0],
+        [ 0.0, 5.0, 8.0, 0.0, 0.0,  2.0, -19.0],
+        [ 3.0, 0.0, 3.0, 8.0, 0.0,  2.0, -21.0],
+        [ 2.0, 0.0, 0.0, 0.0, 7.0,  3.0,   5.0],
     ],
-    // Level 3
+    // Level 3 (Team Rank C/B)
     [
-        [12.0, 0.0, 5.0, 0.0, 0.0,  2.0, -23.0],
-        [0.0, 11.0, 0.0, 4.0, 0.0,  2.0, -21.0],
-        [0.0,  5.0, 10.0, 0.0, 0.0, 2.0, -22.0],
-        [4.0,  0.0, 4.0, 10.0, 0.0, 2.0, -24.0],
-        [2.0,  0.0, 0.0, 0.0, 11.0, 4.0,   5.0],
+        [12.0, 0.0, 6.0, 0.0, 0.0,  2.0, -21.0],
+        [ 0.0,11.0, 0.0, 5.0, 0.0,  2.0, -19.0],
+        [ 0.0, 6.0,10.0, 0.0, 0.0,  2.0, -20.0],
+        [ 4.0, 0.0, 4.0,10.0, 0.0,  2.0, -22.0],
+        [ 3.0, 0.0, 0.0, 0.0, 8.0,  3.0,   5.0],
     ],
-    // Level 4
+    // Level 4 (Team Rank A)
     [
-        [13.0, 0.0, 6.0, 0.0, 0.0,  2.0, -25.0],
-        [0.0, 12.0, 0.0, 5.0, 0.0,  2.0, -23.0],
-        [0.0,  6.0, 11.0, 0.0, 0.0, 2.0, -24.0],
-        [5.0,  0.0, 4.0, 11.0, 0.0, 2.0, -26.0],
-        [3.0,  0.0, 0.0, 0.0, 12.0, 4.0,   5.0],
+        [14.0, 0.0, 7.0, 0.0, 0.0,  2.0, -23.0],
+        [ 0.0,13.0, 0.0, 6.0, 0.0,  2.0, -21.0],
+        [ 0.0, 7.0,12.0, 0.0, 0.0,  2.0, -22.0],
+        [ 5.0, 0.0, 5.0,12.0, 0.0,  2.0, -24.0],
+        [ 4.0, 0.0, 0.0, 0.0, 9.0,  3.0,   5.0],
     ],
-    // Level 5
+    // Level 5 (Team Rank S)
     [
-        [14.0, 0.0, 7.0, 0.0, 0.0,  2.0, -27.0],
-        [0.0, 13.0, 0.0, 6.0, 0.0,  2.0, -25.0],
-        [0.0,  7.0, 12.0, 0.0, 0.0, 2.0, -26.0],
-        [5.0,  0.0, 5.0, 12.0, 0.0, 2.0, -28.0],
-        [4.0,  0.0, 0.0, 0.0, 13.0, 4.0,   5.0],
+        [16.0, 0.0, 8.0, 0.0, 0.0,  2.0, -25.0],
+        [ 0.0,15.0, 0.0, 7.0, 0.0,  2.0, -23.0],
+        [ 0.0, 8.0,14.0, 0.0, 0.0,  2.0, -24.0],
+        [ 6.0, 0.0, 6.0,14.0, 0.0,  2.0, -26.0],
+        [ 5.0, 0.0, 0.0, 0.0,10.0,  3.0,   5.0],
     ],
 ];
 
@@ -259,6 +258,7 @@ pub struct SimState {
     // --- Support card state ---
     pub friendship: [f64; 6],      // Friendship gauge per card (0-100)
     pub spirit: [f64; 6],          // Spirit gauge per card (0-100) — Unity Cup scenario
+    pub unity_bonuses: [bool; 6],  // Whether each card has a unity bonus active this turn
 
     // --- Facility state ---
     pub facility_levels: [u32; 5], // Current level of each facility (1-5)
@@ -295,6 +295,7 @@ impl SimState {
             mood: STARTING_MOOD,
             friendship,
             spirit: [0.0; 6],
+            unity_bonuses: [false; 6],
             facility_levels: [1; 5],  // All facilities start at level 1
             facility_trains: [0; 5],
             hint_levels: HashMap::new(),
@@ -325,10 +326,100 @@ impl SimState {
 // ─── Training Calculation ────────────────────────────────────────────────────
 
 /// Result of evaluating a training action at a facility.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct TrainingResult {
-    pub stat_gains: [f64; 5],  // Stat gains for each of the 5 stats
-    pub sp_gain: f64,          // Skill points gained
-    pub energy_cost: f64,      // Energy change (negative = cost, positive = recovery)
+    pub stat_gains: [f64; 5],           // Total stat gains for each of the 5 stats
+    pub sp_gain: f64,                   // Total skill points gained
+    pub energy_cost: f64,               // Energy change (negative = cost, positive = recovery)
+    pub base_stat_gains: [f64; 5],      // Base stat gains (before special training)
+    pub base_sp_gain: f64,              // Base SP gain (before special training)
+    pub special_stat_gains: [f64; 5],   // Special training stat bonuses
+    pub special_sp_gain: f64,           // Special training SP bonus
+}
+
+/// Identifies if a card is scenario-linked for the Unity Cup (Grand Masters).
+pub fn is_scenario_linked(card_name: &str) -> bool {
+    let name = card_name.to_lowercase();
+    name.contains("kitasan black") || 
+    name.contains("satono diamond") || 
+    name.contains("rice shower") || 
+    name.contains("machikane tannhauser") || 
+    name.contains("haru urara") || 
+    name.contains("sweep tosho") || 
+    name.contains("king halo") ||
+    name.contains("mejiro ardan") ||
+    name.contains("sakura chiyono o")
+}
+
+/// Returns the flat special training bonuses for a given facility and flame count.
+/// Returns (stat_bonuses, sp_bonus).
+pub fn get_special_training_bonus(
+    facility_idx: usize, 
+    flames: usize, 
+    has_scenario_linked: bool
+) -> ([f64; 5], f64) {
+    let mut stats = [0.0; 5];
+    let mut sp = 0.0;
+    
+    if flames < 2 {
+        return (stats, sp);
+    }
+    
+    // (primary, secondary, secondary_2, sp)
+    let (p, s1, s2, b_sp) = match (facility_idx, flames) {
+        // Speed/Stamina/Power
+        (0..=2, 2) => (2.0, 0.0, 0.0, 0.0),
+        (0..=2, 3) => (3.0, 1.0, 0.0, 1.0),
+        (0..=2, 4) => (5.0, 2.0, 0.0, 2.0),
+        (0..=2, 5) => (7.0, 3.0, 0.0, 3.0),
+        
+        // Guts
+        (3, 2) => (2.0, 0.0, 0.0, 0.0),
+        (3, 3) => (2.0, 1.0, 1.0, 1.0),
+        (3, 4) => (4.0, 2.0, 1.0, 2.0),
+        (3, 5) => (6.0, 2.0, 2.0, 3.0),
+        
+        // Wisdom
+        (4, 2) => (1.0, 0.0, 0.0, 0.0),
+        (4, 3) => (2.0, 0.0, 0.0, 1.0),
+        (4, 4) => (3.0, 1.0, 0.0, 2.0),
+        (4, 5) => (4.0, 2.0, 0.0, 3.0),
+        
+        _ => (0.0, 0.0, 0.0, 0.0),
+    };
+    
+    let lb = if has_scenario_linked { 1.0 } else { 0.0 };
+    
+    match facility_idx {
+        0 => { // Speed
+            stats[0] = p + lb;
+            if s1 > 0.0 { stats[2] = s1 + lb; } // Power secondary
+        }
+        1 => { // Stamina
+            stats[1] = p + lb;
+            if s1 > 0.0 { stats[3] = s1 + lb; } // Guts secondary
+        }
+        2 => { // Power
+            stats[2] = p + lb;
+            if s1 > 0.0 { stats[1] = s1 + lb; } // Stamina secondary
+        }
+        3 => { // Guts
+            stats[3] = p + lb;
+            if s1 > 0.0 { stats[0] = s1 + lb; } // Speed
+            if s2 > 0.0 { stats[2] = s2 + lb; } // Power
+        }
+        4 => { // Wisdom
+            stats[4] = p + lb;
+            if s1 > 0.0 { stats[0] = s1 + lb; } // Speed
+        }
+        _ => {}
+    }
+    
+    if b_sp > 0.0 {
+        sp = b_sp + lb;
+    }
+    
+    (stats, sp)
 }
 
 /// Calculates the full training result for a given facility this turn.
@@ -369,9 +460,12 @@ pub fn calculate_training_result(
     // --- Aggregate card effects ---
     let mut total_training_effectiveness = 0.0;
     let mut friendship_product = 1.0;
-    let mut unity_training_mult = 1.0;
     let mut total_stat_bonuses = [0.0; 5];
     let mut total_energy_reduction = 0.0;
+    let mut card_sp_bonus = 0.0;
+    
+    let mut flames = 0;
+    let mut has_scenario_linked = false;
 
     let is_unity_cup = config.scenario == "unity_cup";
 
@@ -383,10 +477,13 @@ pub fn calculate_training_result(
 
         if state.friendship[card_idx] >= FRIENDSHIP_THRESHOLD {
             friendship_product *= 1.0 + card.friendship_bonus(level);
-            
-            // Unity Cup "Special Training" (Unity Training) bonus
-            if is_unity_cup {
-                unity_training_mult = UNITY_TRAINING_MULT; 
+        }
+
+        // Special training flames (Unity Cup)
+        if is_unity_cup && state.unity_bonuses[card_idx] {
+            flames += 1;
+            if is_scenario_linked(&card.name) {
+                has_scenario_linked = true;
             }
         }
 
@@ -395,38 +492,55 @@ pub fn calculate_training_result(
         }
 
         total_energy_reduction += card.energy_cost_reduction(level);
+        card_sp_bonus += card.effect_value(EffectType::SkillPointBonus, level);
     }
 
     // --- Multiplier chain ---
     let mood_mult = state.mood_multiplier();
     let training_eff_mult = 1.0 + total_training_effectiveness;
-    let presence_bonus = 1.0 + 0.05 * present_cards.len() as f64;
-    
-    // Unity Cup "Great Performance" passive bonuses (approx 30% average)
-    let scenario_mult = if is_unity_cup { PERFORMANCE_BONUS_MULT } else { 1.0 };
 
-    // --- Calculate stat gains ---
-    let mut stat_gains = [0.0; 5];
+    // --- Calculate base stat gains (before special training) ---
+    let mut base_stat_gains = [0.0; 5];
     for s in 0..5 {
         let base_stat = base[s];
         if base_stat > 0.0 {
-            let growth_mult = 1.0 + trainee.growth_rate(s);
-            stat_gains[s] = (base_stat + total_stat_bonuses[s])
-                * mood_mult
-                * training_eff_mult
-                * friendship_product
-                * unity_training_mult
-                * presence_bonus
-                * scenario_mult
-                * growth_mult;
+            // raw = base_stat × mood × (1 + TE) × friendship_product
+            let raw = base_stat * mood_mult * training_eff_mult * friendship_product;
+            
+            // post_growth = floor(floor(raw) × (1 + growth_rate))
+            let growth_rate = trainee.growth_rate(s);
+            let raw_floored = raw.floor();
+            let after_growth = (raw_floored * (1.0 + growth_rate)).floor();
+            
+            // base_gain = after_growth + flat_stat_bonuses_from_cards
+            base_stat_gains[s] = after_growth + total_stat_bonuses[s];
         }
     }
 
-    // --- SP gain (base SP, not multiplied by stat chain) ---
-    let sp_gain = base_sp;
+    // --- Base SP gain ---
+    // sp = floor(base_sp × (1 + TE)) + num_partners + card_sp_bonus
+    let base_sp_gain = if base_sp > 0.0 {
+        (base_sp * training_eff_mult).floor() + (present_cards.len() as f64) + card_sp_bonus
+    } else {
+        0.0
+    };
 
-    // --- Energy cost (base + card reductions) ---
-    let energy_cost = if base_energy < 0.0 {
+    // --- Special Training bonuses (Unity Cup) ---
+    let (special_stat_gains, special_sp_gain) = if is_unity_cup {
+        get_special_training_bonus(facility_idx, flames, has_scenario_linked)
+    } else {
+        ([0.0; 5], 0.0)
+    };
+
+    // --- Totals ---
+    let mut total_stat_gains = [0.0; 5];
+    for s in 0..5 {
+        total_stat_gains[s] = base_stat_gains[s] + special_stat_gains[s];
+    }
+    let total_sp_gain = base_sp_gain + special_sp_gain;
+
+    // --- Energy cost (base + card reductions + special training penalty) ---
+    let mut energy_cost = if base_energy < 0.0 {
         // Training costs energy — card reductions reduce the cost
         (base_energy + total_energy_reduction).min(-1.0)
     } else {
@@ -434,10 +548,26 @@ pub fn calculate_training_result(
         base_energy
     };
 
+    // Aoharu Special Training Energy Penalty/Bonus
+    if is_unity_cup && flames > 0 {
+        let penalty = if flames >= 2 { 4.0 } else { 2.0 };
+        if facility_idx == 4 {
+            // Wisdom recovers MORE energy with special training
+            energy_cost += penalty;
+        } else {
+            // Other facilities cost MORE energy
+            energy_cost -= penalty;
+        }
+    }
+
     TrainingResult {
-        stat_gains,
-        sp_gain,
+        stat_gains: total_stat_gains,
+        sp_gain: total_sp_gain,
         energy_cost,
+        base_stat_gains,
+        base_sp_gain,
+        special_stat_gains,
+        special_sp_gain,
     }
 }
 
@@ -974,44 +1104,133 @@ impl Optimizer for MonteCarloV2Optimizer {
             internal_state.facility_levels[i] = state.facility_levels[i];
             internal_state.facility_trains[i] = state.facility_trains[i];
         }
+        for (i, &has_unity) in state.unity_bonus_cards.iter().enumerate().take(6) {
+            internal_state.unity_bonuses[i] = has_unity;
+        }
 
         let mut total_gains = vec![StatBlock::default(); 5];
         let mut total_costs = vec![0.0; 5];
         let mut total_fails = vec![0.0; 5];
+        
+        let mut base_gains_out = None;
+        let mut special_gains_out = None;
+        let mut base_sp_gains_out = None;
+        let mut special_sp_gains_out = None;
 
-        // Since card placement is random, we average over 1000 samples for the "expected" turn result
-        let mut rng = rand::thread_rng();
-        let samples = 1000;
+        // If the caller provided observed card placements, use them directly (exact result).
+        // Otherwise average over 1000 random samples to get the expected result.
+        if !state.card_placements.is_empty() {
+            // Build fixed card_locations from observed placements (-1 = away → 5)
+            let mut card_locations = [5usize; 6];
+            for (i, &p) in state.card_placements.iter().enumerate().take(6) {
+                card_locations[i] = if p >= 0 { p as usize } else { 5 };
+            }
+            
+            let mut base_gains = vec![StatBlock::default(); 5];
+            let mut special_gains = vec![StatBlock::default(); 5];
+            let mut base_sp_gains = vec![0.0; 5];
+            let mut special_sp_gains = vec![0.0; 5];
 
-        for _ in 0..samples {
-            let card_locations = roll_card_placement(deck_cards, deck_levels, &mut rng);
             for f in 0..5 {
                 let res = calculate_training_result(f, &card_locations, deck_cards, deck_levels, &internal_state, trainee, is_summer, config);
-                total_gains[f].speed += res.stat_gains[0];
-                total_gains[f].stamina += res.stat_gains[1];
-                total_gains[f].power += res.stat_gains[2];
-                total_gains[f].guts += res.stat_gains[3];
-                total_gains[f].wisdom += res.stat_gains[4];
-                total_costs[f] += res.energy_cost;
-                total_fails[f] += failure_rate(internal_state.energy + res.energy_cost, f == 4);
+                total_gains[f].speed = res.stat_gains[0];
+                total_gains[f].stamina = res.stat_gains[1];
+                total_gains[f].power = res.stat_gains[2];
+                total_gains[f].guts = res.stat_gains[3];
+                total_gains[f].wisdom = res.stat_gains[4];
+                
+                base_gains[f].speed = res.base_stat_gains[0];
+                base_gains[f].stamina = res.base_stat_gains[1];
+                base_gains[f].power = res.base_stat_gains[2];
+                base_gains[f].guts = res.base_stat_gains[3];
+                base_gains[f].wisdom = res.base_stat_gains[4];
+                
+                special_gains[f].speed = res.special_stat_gains[0];
+                special_gains[f].stamina = res.special_stat_gains[1];
+                special_gains[f].power = res.special_stat_gains[2];
+                special_gains[f].guts = res.special_stat_gains[3];
+                special_gains[f].wisdom = res.special_stat_gains[4];
+                
+                base_sp_gains[f] = res.base_sp_gain;
+                special_sp_gains[f] = res.special_sp_gain;
+
+                total_costs[f] = res.energy_cost;
+                total_fails[f] = failure_rate(internal_state.energy + res.energy_cost, f == 4);
+            }
+            
+            base_gains_out = Some(base_gains);
+            special_gains_out = Some(special_gains);
+            base_sp_gains_out = Some(base_sp_gains);
+            special_sp_gains_out = Some(special_sp_gains);
+        } else {
+            // Since card placement is random, we average over 1000 samples for the "expected" turn result
+            let mut rng = rand::thread_rng();
+            let samples = 1000;
+
+            for _ in 0..samples {
+                let card_locations = roll_card_placement(deck_cards, deck_levels, &mut rng);
+                for f in 0..5 {
+                    let res = calculate_training_result(f, &card_locations, deck_cards, deck_levels, &internal_state, trainee, is_summer, config);
+                    total_gains[f].speed += res.stat_gains[0];
+                    total_gains[f].stamina += res.stat_gains[1];
+                    total_gains[f].power += res.stat_gains[2];
+                    total_gains[f].guts += res.stat_gains[3];
+                    total_gains[f].wisdom += res.stat_gains[4];
+                    total_costs[f] += res.energy_cost;
+                    total_fails[f] += failure_rate(internal_state.energy + res.energy_cost, f == 4);
+                }
+            }
+
+            for f in 0..5 {
+                total_gains[f].speed /= samples as f64;
+                total_gains[f].stamina /= samples as f64;
+                total_gains[f].power /= samples as f64;
+                total_gains[f].guts /= samples as f64;
+                total_gains[f].wisdom /= samples as f64;
+                total_costs[f] /= samples as f64;
+                total_fails[f] /= samples as f64;
             }
         }
 
-        for f in 0..5 {
-            total_gains[f].speed /= samples as f64;
-            total_gains[f].stamina /= samples as f64;
-            total_gains[f].power /= samples as f64;
-            total_gains[f].guts /= samples as f64;
-            total_gains[f].wisdom /= samples as f64;
-            total_costs[f] /= samples as f64;
-            total_fails[f] /= samples as f64;
-        }
+        // Compute composite facility scores: stats + SP + friendship + hint value
+        let facility_scores: Vec<f64> = (0..5).map(|f| {
+            let stat_total = total_gains[f].total();
+            let sp_total = base_sp_gains_out.as_ref().map_or(0.0, |v| v[f])
+                + special_sp_gains_out.as_ref().map_or(0.0, |v| v[f]);
+
+            // Friendship bonus: cards at this facility gain friendship.
+            // Worth more when approaching the 80-point training bonus threshold.
+            let friendship_bonus: f64 = state.card_placements.iter().enumerate()
+                .filter(|&(_, &p)| p == f as i32)
+                .map(|(card_idx, _)| {
+                    let current = state.friendship.get(card_idx).copied().unwrap_or(0.0);
+                    if current >= 70.0 && current < 80.0 { 8.0 }
+                    else if current < 80.0 { 3.0 }
+                    else { 1.0 }
+                })
+                .sum();
+
+            // Hint bonus: cards at this facility with hint active (! icon).
+            // A hint is worth ~15 equivalent stat points (unlocks/discounts a skill).
+            let hint_bonus: f64 = state.card_placements.iter().enumerate()
+                .filter(|&(_, &p)| p == f as i32)
+                .filter(|&(card_idx, _)| state.hint_cards.get(card_idx).copied().unwrap_or(false))
+                .map(|_| 15.0)
+                .sum();
+
+            stat_total + sp_total * 0.5 + friendship_bonus + hint_bonus
+        }).collect();
 
         TurnResult {
             state: state.clone(),
             expected_gains: total_gains,
             expected_energy_costs: total_costs,
             failure_rates: total_fails,
+            base_gains: base_gains_out,
+            special_gains: special_gains_out,
+            base_sp_gains: base_sp_gains_out,
+            special_sp_gains: special_sp_gains_out,
+            facility_scores,
         }
     }
 }

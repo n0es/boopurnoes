@@ -1,0 +1,140 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            id,\n            name,\n            name_jp,\n            title,\n            rarity as \"rarity!: i16\",\n            apt_turf, apt_dirt,\n            apt_short, apt_mile, apt_mid, apt_long,\n            apt_leading, apt_stalking, apt_mid_pack, apt_chasing,\n            stats_base as \"stats_base: sqlx::types::Json<Vec<i16>>\",\n            stats_two_star as \"stats_two_star: sqlx::types::Json<Vec<i16>>\",\n            stats_three_star as \"stats_three_star: sqlx::types::Json<Vec<i16>>\",\n            stats_four_star as \"stats_four_star: sqlx::types::Json<Vec<i16>>\",\n            stats_five_star as \"stats_five_star: sqlx::types::Json<Vec<i16>>\",\n            stat_growth as \"stat_growth: sqlx::types::Json<Vec<i16>>\"\n        FROM trainees\n        ORDER BY id\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "name_jp",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "title",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "rarity!: i16",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "apt_turf",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "apt_dirt",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "apt_short",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 8,
+        "name": "apt_mile",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 9,
+        "name": "apt_mid",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 10,
+        "name": "apt_long",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 11,
+        "name": "apt_leading",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 12,
+        "name": "apt_stalking",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 13,
+        "name": "apt_mid_pack",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 14,
+        "name": "apt_chasing",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 15,
+        "name": "stats_base: sqlx::types::Json<Vec<i16>>",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 16,
+        "name": "stats_two_star: sqlx::types::Json<Vec<i16>>",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 17,
+        "name": "stats_three_star: sqlx::types::Json<Vec<i16>>",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 18,
+        "name": "stats_four_star: sqlx::types::Json<Vec<i16>>",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 19,
+        "name": "stats_five_star: sqlx::types::Json<Vec<i16>>",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 20,
+        "name": "stat_growth: sqlx::types::Json<Vec<i16>>",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "9c5331604185096db943a14ab29b408d5e39ae33bcb2a9dffb5478c6d23b3470"
+}

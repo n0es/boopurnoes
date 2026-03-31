@@ -69,12 +69,32 @@ async function getBuildId(): Promise<string> {
   return _buildId
 }
 
-async function fetchPageData(slug: string): Promise<any> {
+interface GametoraPageData {
+  pageProps?: {
+    itemData?: {
+      card_id: number
+      rarity?: number
+      name_en?: string
+      name_jp?: string
+      title?: string
+      aptitude?: string[]
+      base_stats?: number[]
+      four_star_stats?: number[]
+      five_star_stats?: number[]
+      stat_bonus?: number[]
+      skills_awakening?: number[]
+      skills_unique?: number[]
+      skills_innate?: (number | null)[]
+    }
+  }
+}
+
+async function fetchPageData(slug: string): Promise<GametoraPageData> {
   const buildId = await getBuildId()
   const url = `https://gametora.com/_next/data/${buildId}/umamusume/characters/${slug}.json`
   const resp = await fetch(url)
   if (!resp.ok) throw new Error(`HTTP ${resp.status} fetching ${slug}`)
-  return resp.json()
+  return resp.json() as Promise<GametoraPageData>
 }
 
 // ── Skills upsert (reused logic from scrape-trainees) ─────────────────────────
@@ -303,8 +323,9 @@ async function downloadImages(id: number, name: string): Promise<{ ok: number; e
       const { error } = await supabase.storage.from(BUCKET).upload(path, buf, { contentType: 'image/png', upsert: true })
       if (error) throw new Error(error.message)
       ok++
-    } catch (e: any) {
-      process.stderr.write(`  ✗ ${name} (${id}) image error: ${e.message}\n`)
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e)
+      process.stderr.write(`  ✗ ${name} (${id}) image error: ${message}\n`)
       err++
     }
   }
@@ -352,9 +373,10 @@ await runConcurrent(slugs, CONCURRENCY, async (slug) => {
     const imgs = await downloadImages(cardId, slug)
     imgOk  += imgs.ok
     imgErr += imgs.err
-  } catch (e: any) {
+  } catch (e) {
     dataErr++
-    process.stderr.write(`  ✗ ${slug}: ${e.message}\n`)
+    const message = e instanceof Error ? e.message : String(e)
+    process.stderr.write(`  ✗ ${slug}: ${message}\n`)
   }
   done++
   process.stdout.write(`\r  ${done}/${slugs.length}  data: ${dataOk} ok ${dataErr} err  images: ${imgOk} ok ${imgErr} err  `)

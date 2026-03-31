@@ -192,9 +192,10 @@ for (const [iconId, skills] of byIconId) {
       .update({ icon_url: storagePath })
       .in('id', idsToUpdate)
     if (dbErr) throw new Error(`DB update: ${dbErr.message}`)
-  } catch (err: any) {
+  } catch (err) {
     errors++
-    process.stderr.write(`  ✗ icon ${iconId} (${skills.map(s => s.gametora_id).join(', ')}): ${err.message}\n`)
+    const message = err instanceof Error ? err.message : String(err)
+    process.stderr.write(`  ✗ icon ${iconId} (${skills.map(s => s.gametora_id).join(', ')}): ${message}\n`)
   }
 
   done++

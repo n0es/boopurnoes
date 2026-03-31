@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
@@ -370,9 +370,10 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
   const [potentialLevel, setPotentialLevel] = useState(initialPot ?? 1)
   const [activeTab, setActiveTab] = useState<'skills' | 'events'>(initialTab ?? 'skills')
 
-  function changeStarRank(r: number) { setStarRank(r); onRankChange?.(r) }
-  function changePotentialLevel(l: number) { setPotentialLevel(l); onPotChange?.(l) }
-  function changeActiveTab(t: 'skills' | 'events') { setActiveTab(t); onTabChange?.(t) }
+  const changeStarRank = useCallback((r: number) => { setStarRank(r); onRankChange?.(r) }, [onRankChange])
+  const changePotentialLevel = useCallback((l: number) => { setPotentialLevel(l); onPotChange?.(l) }, [onPotChange])
+  const changeActiveTab = useCallback((t: 'skills' | 'events') => { setActiveTab(t); onTabChange?.(t) }, [onTabChange])
+
   const [awakening, setAwakening] = useState<AwakeningSkill[]>([])
   const [unique, setUnique] = useState<UniqueSkill[]>([])
   const [hint, setHint] = useState<HintSkill[]>([])
@@ -409,7 +410,7 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
 
   // Load existing collection entry for this trainee
   useEffect(() => {
-    if (!user) { setCollectionEntry(null); return }
+    if (!user) { return }
     supabase
       .from('user_trainee_collection')
       .select('star_rank, awakening_level')
@@ -425,7 +426,7 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
           setCollectionEntry(null)
         }
       })
-  }, [trainee.id, user])
+  }, [trainee.id, user, changeStarRank, changePotentialLevel])
 
   async function handleSave() {
     if (!user) return
@@ -782,9 +783,15 @@ export default function Trainees() {
     }, { replace: true })
   }
   const [selectedRarity, setSelectedRarity] = useState<number | null>(null)
-  const [modalTrainee, setModalTrainee] = useState<Trainee | null>(null)
   const [cardSize, setCardSize] = useState(110)
   const collectionMode = searchParams.get('collection') === '1'
+
+  const paramId = searchParams.get('trainee')
+  const modalTrainee = useMemo(() => {
+    if (!paramId || trainees.length === 0) return null
+    return trainees.find(t => String(t.id) === paramId) ?? null
+  }, [paramId, trainees])
+
   function toggleCollectionMode() {
     setSearchParams(p => {
       const n = new URLSearchParams(p)
@@ -816,7 +823,6 @@ export default function Trainees() {
   }, [])
 
   useEffect(() => {
-    setLoading(true)
     supabase
       .from('trainees')
       .select('*')
@@ -828,7 +834,7 @@ export default function Trainees() {
       })
   }, [])
 
-  function refreshCollection() {
+  const refreshCollection = useCallback(() => {
     if (!user) return
     supabase
       .from('user_trainee_collection')
@@ -836,25 +842,15 @@ export default function Trainees() {
       .then(({ data }) => {
         setCollectionIds(new Set((data ?? []).map((r: { trainee_id: number }) => r.trainee_id)))
       })
-  }
+  }, [user])
 
   useEffect(() => {
-    if (!collectionMode || !user) { setCollectionIds(null); return }
-    refreshCollection()
-  }, [collectionMode, user])
-
-  // Open modal for trainee param present on load / navigation back
-  useEffect(() => {
-    const paramId = searchParams.get('trainee')
-    if (!paramId || trainees.length === 0) return
-    setModalTrainee(prev => {
-      if (prev && String(prev.id) === paramId) return prev
-      return trainees.find(t => String(t.id) === paramId) ?? prev
-    })
-  }, [searchParams, trainees])
+    if (collectionMode && user) {
+      refreshCollection()
+    }
+  }, [collectionMode, user, refreshCollection])
 
   function openModal(t: Trainee) {
-    setModalTrainee(t)
     setSearchParams(p => {
       const n = new URLSearchParams(p)
       n.set('trainee', String(t.id))
@@ -866,7 +862,6 @@ export default function Trainees() {
   }
 
   function closeModal() {
-    setModalTrainee(null)
     setSearchParams(p => {
       const n = new URLSearchParams(p)
       n.delete('trainee')

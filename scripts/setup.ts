@@ -43,47 +43,57 @@ if (!databaseUrl || !supabaseUrl || !supabaseServiceKey) {
 }
 
 // --- Run migrations ---
-/** Split SQL into individual statements, correctly handling $$-quoted bodies. */
+/** Split SQL into individual statements, correctly handling comments and $$-quoted bodies. */
 function splitStatements(sql: string): string[] {
-  const statements: string[] = []
-  let current = ''
-  let i = 0
-  let dollarTag: string | null = null
+  // Remove block comments /* ... */
+  let cleaned = sql.replace(/\/\*[\s\S]*?\*\//g, '');
+  
+  // Remove line comments -- ...
+  cleaned = cleaned.split('\n').map(line => {
+    const idx = line.indexOf('--');
+    return idx === -1 ? line : line.slice(0, idx);
+  }).join('\n');
 
-  while (i < sql.length) {
+  const statements: string[] = [];
+  let current = '';
+  let i = 0;
+  let dollarTag: string | null = null;
+
+  while (i < cleaned.length) {
     if (dollarTag === null) {
-      // Check for start of a dollar-quoted string
-      if (sql[i] === '$') {
-        const end = sql.indexOf('$', i + 1)
-        if (end !== -1) {
-          dollarTag = sql.slice(i, end + 1)
-          current += dollarTag
-          i = end + 1
-          continue
+      if (cleaned[i] === '$') {
+        const nextDollar = cleaned.indexOf('$', i + 1);
+        if (nextDollar !== -1) {
+          const tag = cleaned.slice(i, nextDollar + 1);
+          if (/^\$[a-zA-Z0-9_]*\$$/.test(tag)) {
+            dollarTag = tag;
+            current += tag;
+            i = nextDollar + 1;
+            continue;
+          }
         }
       }
-      if (sql[i] === ';') {
-        const stmt = current.trim()
-        if (stmt) statements.push(stmt)
-        current = ''
-        i++
-        continue
+      if (cleaned[i] === ';') {
+        const stmt = current.trim();
+        if (stmt) statements.push(stmt);
+        current = '';
+        i++;
+        continue;
       }
     } else {
-      // Inside dollar-quoted string — look for matching closing tag
-      if (sql.startsWith(dollarTag, i)) {
-        current += dollarTag
-        i += dollarTag.length
-        dollarTag = null
-        continue
+      if (cleaned.startsWith(dollarTag, i)) {
+        current += dollarTag;
+        i += dollarTag.length;
+        dollarTag = null;
+        continue;
       }
     }
-    current += sql[i++]
+    current += cleaned[i++];
   }
 
-  const last = current.trim()
-  if (last) statements.push(last)
-  return statements
+  const last = current.trim();
+  if (last) statements.push(last);
+  return statements;
 }
 
 const migrationsDir = resolve(__dirname, '../supabase/migrations')
@@ -95,28 +105,28 @@ const client = new pg.Client({ connectionString: databaseUrl })
 await client.connect()
 
 console.log(`Running ${migrationFiles.length} migration(s)…`)
-for (const file of migrationFiles) {
+  for (const file of migrationFiles) {
   const sql = readFileSync(resolve(migrationsDir, file), 'utf-8')
   // Split into individual statements, respecting dollar-quoted strings ($$...$$)
   const statements = splitStatements(sql)
 
-  let fileOk = true
   for (const statement of statements) {
     try {
       await client.query(statement)
-    } catch (err: any) {
+    } catch (err: unknown) {
       // 42710 = duplicate_object (already exists) — safe to skip
-      if (err.code === '42710') {
+      if (typeof err === 'object' && err !== null && 'code' in err && err.code === '42710') {
         // silently skip
       } else {
-        console.error(`  ✗ ${file}: ${err.message}`)
+        const message = err instanceof Error ? err.message : String(err)
+        console.error(`  ✗ ${file}: ${message}`)
         console.error(`    ${statement.slice(0, 80)}…`)
         await client.end()
         process.exit(1)
       }
     }
   }
-  if (fileOk) console.log(`  ✓ ${file}`)
+  console.log(`  ✓ ${file}`)
 }
 
 await client.end()
