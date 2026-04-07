@@ -1,6 +1,22 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+
+function getRedirectTarget(searchParams: URLSearchParams): string {
+  const redirect = searchParams.get('redirect')
+  if (!redirect) return '/'
+  // Allow full URLs only for our own domain
+  try {
+    const url = new URL(redirect)
+    if (url.hostname.endsWith('.boopurno.es') || url.hostname === 'boopurno.es') {
+      return redirect
+    }
+  } catch {
+    // Relative path — allow as-is
+    if (redirect.startsWith('/')) return redirect
+  }
+  return '/'
+}
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -8,6 +24,23 @@ export default function Login() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const redirectTarget = getRedirectTarget(searchParams)
+
+  // Handle OAuth callback — when returning from GitHub, Supabase processes
+  // the hash fragment and fires SIGNED_IN. Redirect to the target.
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN' && redirectTarget !== '/') {
+        if (redirectTarget.startsWith('http')) {
+          window.location.href = redirectTarget
+        } else {
+          navigate(redirectTarget)
+        }
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [redirectTarget, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -23,16 +56,25 @@ export default function Login() {
       setError(error.message)
       setLoading(false)
     } else {
-      navigate('/')
+      // Use window.location for cross-origin redirects (e.g. pve.boopurno.es)
+      if (redirectTarget.startsWith('http')) {
+        window.location.href = redirectTarget
+      } else {
+        navigate(redirectTarget)
+      }
     }
   }
 
   const handleGitHubLogin = async () => {
     setError('')
+    // After OAuth, Supabase redirects back to this page — preserve the redirect param
+    const callbackUrl = new URL('/login', window.location.origin)
+    callbackUrl.searchParams.set('redirect', redirectTarget)
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
       options: {
-        redirectTo: window.location.origin,
+        redirectTo: callbackUrl.toString(),
       },
     })
 
