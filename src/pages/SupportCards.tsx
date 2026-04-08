@@ -20,6 +20,7 @@ import {
   type ReleaseMetadata,
   type RegionAvailabilityFilter,
 } from '../lib/releaseMetadata'
+import { isMissingTableError } from '../lib/supabaseErrors'
 
 interface SupportCard extends ReleaseMetadata {
   id: number
@@ -157,7 +158,12 @@ export default function SupportCards() {
     supabase
       .from('user_support_card_collection')
       .select('card_id, level, uncap')
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) {
+          if (!isMissingTableError(error)) console.warn('user_support_card_collection:', error.message)
+          setOwnedMap(new Map())
+          return
+        }
         const map = new Map<number, OwnedEntry>()
         for (const r of (data ?? []) as { card_id: number; level: number; uncap: number }[]) {
           map.set(r.card_id, { level: r.level, uncap: r.uncap })
@@ -167,17 +173,24 @@ export default function SupportCards() {
   }, [])
 
   async function addToCollection(cardId: number, level: number, uncap: number) {
-    await supabase
+    const { error } = await supabase
       .from('user_support_card_collection')
       .upsert({ card_id: cardId, level, uncap, user_id: user!.id }, { onConflict: 'user_id,card_id' })
+    if (error) {
+      if (isMissingTableError(error)) {
+        window.alert('Collection is unavailable: apply database migrations (user_support_card_collection) on the server.')
+      }
+      return
+    }
     await fetchCollection()
   }
 
   async function removeFromCollection(cardId: number) {
-    await supabase
+    const { error } = await supabase
       .from('user_support_card_collection')
       .delete()
       .eq('card_id', cardId)
+    if (error && !isMissingTableError(error)) console.warn('removeFromCollection:', error.message)
     await fetchCollection()
   }
 
@@ -437,28 +450,56 @@ function CardModal({ card, user, owned, onClose, onAdd, onRemove, onCardUpdated 
       .from('support_card_effects')
       .select('id, effect_name, symbol, unlock_level, values_by_level')
       .eq('card_id', card.id)
-      .then(({ data }) => setEffects((data ?? []) as SupportCardEffect[]))
+      .then(({ data, error }) => {
+        if (error) {
+          if (!isMissingTableError(error)) console.warn('support_card_effects:', error.message)
+          setEffects([])
+          return
+        }
+        setEffects((data ?? []) as SupportCardEffect[])
+      })
 
     supabase
       .from('support_card_hints')
       .select('id, sort_order, skills(name, description, icon_url, condition)')
       .eq('card_id', card.id)
       .order('sort_order')
-      .then(({ data }) => setHints((data ?? []) as unknown as HintSkill[]))
+      .then(({ data, error }) => {
+        if (error) {
+          if (!isMissingTableError(error)) console.warn('support_card_hints:', error.message)
+          setHints([])
+          return
+        }
+        setHints((data ?? []) as unknown as HintSkill[])
+      })
 
     supabase
       .from('support_card_event_skills')
       .select('id, sort_order, skills(name, description, icon_url, condition)')
       .eq('card_id', card.id)
       .order('sort_order')
-      .then(({ data }) => setEventSkills((data ?? []) as unknown as EventSkill[]))
+      .then(({ data, error }) => {
+        if (error) {
+          if (!isMissingTableError(error)) console.warn('support_card_event_skills:', error.message)
+          setEventSkills([])
+          return
+        }
+        setEventSkills((data ?? []) as unknown as EventSkill[])
+      })
 
     supabase
       .from('support_card_training_events')
       .select('id, name, event_type, chain_level, sort_order')
       .eq('card_id', card.id)
       .order('sort_order')
-      .then(({ data }) => setTrainingEvents((data ?? []) as TrainingEvent[]))
+      .then(({ data, error }) => {
+        if (error) {
+          if (!isMissingTableError(error)) console.warn('support_card_training_events:', error.message)
+          setTrainingEvents([])
+          return
+        }
+        setTrainingEvents((data ?? []) as TrainingEvent[])
+      })
   }, [card.id])
 
   useEffect(() => {

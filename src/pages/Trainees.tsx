@@ -20,6 +20,7 @@ import {
   type ReleaseMetadata,
   type RegionAvailabilityFilter,
 } from '../lib/releaseMetadata'
+import { isMissingTableError } from '../lib/supabaseErrors'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -417,17 +418,57 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
 
   useEffect(() => {
     const id = trainee.id
-    Promise.all([
-      supabase.from('trainee_awakening_skills').select('awakening_level, skills(id, name, description, icon_url, rarity, cost, upgrade_of)').eq('trainee_id', id).order('awakening_level'),
-      supabase.from('trainee_unique_skills').select('sort_order, min_star_rank, skills(id, name, description, icon_url, rarity, cost, upgrade_of)').eq('trainee_id', id).order('sort_order'),
-      supabase.from('trainee_hint_skills').select('skills(id, name, description, icon_url, rarity, cost, upgrade_of)').eq('trainee_id', id),
-      supabase.from('trainee_training_events').select('*').eq('trainee_id', id).order('sort_order'),
-    ]).then(([awk, uniq, ht, ev]) => {
-      setAwakening((awk.data ?? []) as unknown as AwakeningSkill[])
-      setUnique((uniq.data ?? []) as unknown as UniqueSkill[])
-      setHint((ht.data ?? []) as unknown as HintSkill[])
-      setEvents((ev.data ?? []) as TrainingEvent[])
-    })
+    supabase
+      .from('trainee_awakening_skills')
+      .select('awakening_level, skills(id, name, description, icon_url, rarity, cost, upgrade_of)')
+      .eq('trainee_id', id)
+      .order('awakening_level')
+      .then(({ data, error }) => {
+        if (error) {
+          if (!isMissingTableError(error)) console.warn('trainee_awakening_skills:', error.message)
+          setAwakening([])
+          return
+        }
+        setAwakening((data ?? []) as unknown as AwakeningSkill[])
+      })
+    supabase
+      .from('trainee_unique_skills')
+      .select('sort_order, min_star_rank, skills(id, name, description, icon_url, rarity, cost, upgrade_of)')
+      .eq('trainee_id', id)
+      .order('sort_order')
+      .then(({ data, error }) => {
+        if (error) {
+          if (!isMissingTableError(error)) console.warn('trainee_unique_skills:', error.message)
+          setUnique([])
+          return
+        }
+        setUnique((data ?? []) as unknown as UniqueSkill[])
+      })
+    supabase
+      .from('trainee_hint_skills')
+      .select('skills(id, name, description, icon_url, rarity, cost, upgrade_of)')
+      .eq('trainee_id', id)
+      .then(({ data, error }) => {
+        if (error) {
+          if (!isMissingTableError(error)) console.warn('trainee_hint_skills:', error.message)
+          setHint([])
+          return
+        }
+        setHint((data ?? []) as unknown as HintSkill[])
+      })
+    supabase
+      .from('trainee_training_events')
+      .select('*')
+      .eq('trainee_id', id)
+      .order('sort_order')
+      .then(({ data, error }) => {
+        if (error) {
+          if (!isMissingTableError(error)) console.warn('trainee_training_events:', error.message)
+          setEvents([])
+          return
+        }
+        setEvents((data ?? []) as TrainingEvent[])
+      })
   }, [trainee.id])
 
   // Load existing collection entry for this trainee
@@ -480,8 +521,9 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
       {/* ── Overlay ── */}
       <div
         ref={overlayRef}
-        onClick={e => {
+        onPointerDown={e => {
           if (e.target !== overlayRef.current) return
+          e.preventDefault()
           e.stopPropagation()
           onClose()
         }}
@@ -879,8 +921,8 @@ export default function Trainees() {
   }
 
   function closeModal() {
-    // Defer URL update so the same pointer/click that closed the modal cannot
-    // "fall through" to the grid tile underneath and immediately reopen (?trainee=).
+    // Defer clearing ?trainee= so the gesture that closed the modal cannot retarget
+    // the grid tile and reopen (pointerdown + next frame is more reliable than click).
     setTimeout(() => {
       setSearchParams(p => {
         const n = new URLSearchParams(p)
@@ -890,7 +932,7 @@ export default function Trainees() {
         n.delete('pot')
         return n
       }, { replace: true })
-    }, 0)
+    }, 50)
   }
 
   function handleSearchChange(value: string) {
