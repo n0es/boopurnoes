@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './lib/AuthContext'
+import { APP_VERSION } from './version'
 import Home from './pages/Home'
 import UmaHome from './pages/UmaHome'
 import Login from './pages/Login'
@@ -22,6 +23,9 @@ export default function App() {
           <Route path="/support-cards" element={<SupportCards />} />
           <Route path="/trainees" element={<Trainees />} />
         </Routes>
+        <div className="app-version" aria-hidden>
+          v{APP_VERSION}
+        </div>
       </BrowserRouter>
     </AuthProvider>
   )
