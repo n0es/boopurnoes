@@ -700,15 +700,12 @@ impl Optimizer for MonteCarloV2Optimizer {
         let initial_sp = INTRO_EVENT_SP;
 
         // 1f. Pre-compute legacy factor lists for spark rolls (used in simulation loop)
-        let blue_factors: Vec<(usize, u8, bool)> = config.legacy.as_ref()
-            .map(|l| l.all_blue_factors())
+        let blue_factors: Vec<(usize, u8, f64)> = config.legacy.as_ref()
+            .map(|l| l.all_blue_spark_rolls())
             .unwrap_or_default();
-        let skill_factors: Vec<(u32, u8)> = config.legacy.as_ref()
-            .map(|l| l.all_skill_factors())
+        let skill_factors: Vec<(u32, u8, f64)> = config.legacy.as_ref()
+            .map(|l| l.all_skill_spark_rolls())
             .unwrap_or_default();
-        let affinity_rate: f64 = config.legacy.as_ref()
-            .map(|l| l.affinity.activation_rate())
-            .unwrap_or(0.25);
 
         // ═══════════════════════════════════════════════════════════════════
         // PHASE 2: MONTE CARLO — 11+72-TURN CALENDAR SIMULATION
@@ -845,10 +842,9 @@ impl Optimizer for MonteCarloV2Optimizer {
                     if is_initial_spark || is_midrun_spark {
                         // Roll each blue factor for stat gains.
                         // Initial spark: all factors activate (100% rate).
-                        // Mid-run sparks: each factor activates with affinity-based probability.
-                        let activation_rate = if is_initial_spark { 1.0 } else { affinity_rate };
-
-                        for &(stat_idx, stars, _is_parent) in &blue_factors {
+                        // Mid-run sparks: each factor uses trainee–member succession affinity.
+                        for &(stat_idx, stars, member_rate) in &blue_factors {
+                            let activation_rate = if is_initial_spark { 1.0 } else { member_rate };
                             if rng.gen::<f64>() < activation_rate {
                                 let (min, max) = Factor::spark_stat_range(stars);
                                 let gain = min + rng.gen::<f64>() * (max - min);
@@ -857,7 +853,8 @@ impl Optimizer for MonteCarloV2Optimizer {
                         }
 
                         // Roll each skill factor for hint level gains.
-                        for &(skill_id, stars) in &skill_factors {
+                        for &(skill_id, stars, member_rate) in &skill_factors {
+                            let activation_rate = if is_initial_spark { 1.0 } else { member_rate };
                             if rng.gen::<f64>() < activation_rate {
                                 let (min_h, max_h) = Factor::spark_hint_range(stars);
                                 let gained: u8 = if max_h > min_h {

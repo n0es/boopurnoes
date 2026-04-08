@@ -62,7 +62,7 @@ for (let i = 0; i < cards.length; i += BATCH_SIZE) {
     gametora_slug: slug,
     icon_path: `supports/icons/${id}.png`,
     art_path: `supports/art/${id}.png`,
-    card_type: null,   // populated later via the importer
+    card_type: null,   // optional: fill when syncing full card metadata
     name_jp: null,
   }))
 

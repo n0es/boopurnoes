@@ -10,7 +10,11 @@ use super::deck::DeckScore;
 #[serde(tag = "type")]
 pub enum Factor {
     /// Blue factor: flat stat bonus. stat_index: 0=spd,1=sta,2=pow,3=gut,4=wit
-    BlueStat { stat_index: usize, stars: u8 },
+    BlueStat {
+        #[serde(alias = "statIndex")]
+        stat_index: usize,
+        stars: u8,
+    },
     /// Green factor: unique skill hint
     UniqueSkill { skill_id: u32, stars: u8 },
     /// White factor: normal skill hint
@@ -58,23 +62,6 @@ impl Factor {
     }
 }
 
-/// A single legacy member (parent or grandparent).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LegacyMember {
-    /// Name of the character used as legacy (for display purposes).
-    pub name: String,
-    /// All factors on this legacy member.
-    pub factors: Vec<Factor>,
-}
-
-/// One legacy slot: a parent plus their two grandparents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LegacySlot {
-    pub parent: LegacyMember,
-    pub grandparent_1: LegacyMember,
-    pub grandparent_2: LegacyMember,
-}
-
 /// Affinity level between trainee and their legacies.
 /// Affects probability of factor activation during mid-run inheritance.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
@@ -102,6 +89,37 @@ impl AffinityLevel {
     }
 }
 
+/// A single legacy member (parent or grandparent).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LegacyMember {
+    /// Name of the character used as legacy (for display purposes).
+    pub name: String,
+    /// All factors on this legacy member.
+    pub factors: Vec<Factor>,
+    /// Trainee–member succession compatibility (△ / ○ / ◎). Drives mid-run spark odds for
+    /// this member's factors; if omitted, [`LegacyConfig::affinity`] is used.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub spark_affinity: Option<AffinityLevel>,
+}
+
+impl LegacyMember {
+    /// Mid-run activation probability for factors on this member (not the initial spark).
+    #[inline]
+    pub fn midrun_spark_rate(&self, fallback: AffinityLevel) -> f64 {
+        self.spark_affinity
+            .unwrap_or(fallback)
+            .activation_rate()
+    }
+}
+
+/// One legacy slot: a parent plus their two grandparents.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LegacySlot {
+    pub parent: LegacyMember,
+    pub grandparent_1: LegacyMember,
+    pub grandparent_2: LegacyMember,
+}
+
 /// Full legacy configuration for a training run.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LegacyConfig {
@@ -113,6 +131,11 @@ pub struct LegacyConfig {
 }
 
 fn default_affinity() -> AffinityLevel { AffinityLevel::Circle }
+
+/// Normalize aptitude labels from the UI (e.g. "Turf", "芝") to stable map keys.
+pub fn normalize_apt_key(apt_name: &str) -> String {
+    apt_name.trim().to_lowercase().replace([' ', '-'], "_")
+}
 
 impl LegacyConfig {
     /// Collect all blue stat factors across the entire legacy tree.
@@ -153,6 +176,61 @@ impl LegacyConfig {
             }
         }
         factors
+    }
+
+    /// Blue factors for mid-run spark rolls with per-member activation probability.
+    pub fn all_blue_spark_rolls(&self) -> Vec<(usize, u8, f64)> {
+        let fb = self.affinity;
+        let mut out = Vec::new();
+        for slot in [&self.legacy_1, &self.legacy_2] {
+            for member in [&slot.parent, &slot.grandparent_1, &slot.grandparent_2] {
+                let rate = member.midrun_spark_rate(fb);
+                for factor in &member.factors {
+                    if let Factor::BlueStat { stat_index, stars } = factor {
+                        out.push((*stat_index, *stars, rate));
+                    }
+                }
+            }
+        }
+        out
+    }
+
+    /// Skill / unique factors for mid-run spark rolls with per-member activation probability.
+    pub fn all_skill_spark_rolls(&self) -> Vec<(u32, u8, f64)> {
+        let fb = self.affinity;
+        let mut out = Vec::new();
+        for slot in [&self.legacy_1, &self.legacy_2] {
+            for member in [&slot.parent, &slot.grandparent_1, &slot.grandparent_2] {
+                let rate = member.midrun_spark_rate(fb);
+                for factor in &member.factors {
+                    match factor {
+                        Factor::SkillHint { skill_id, stars }
+                        | Factor::UniqueSkill { skill_id, stars } => {
+                            out.push((*skill_id, *stars, rate));
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+        out
+    }
+
+    /// Red (aptitude) factors for mid-run Spark of Inspiration — activation rate per member.
+    pub fn all_aptitude_spark_rolls(&self) -> Vec<(String, u8, f64)> {
+        let fb = self.affinity;
+        let mut out = Vec::new();
+        for slot in [&self.legacy_1, &self.legacy_2] {
+            for member in [&slot.parent, &slot.grandparent_1, &slot.grandparent_2] {
+                let rate = member.midrun_spark_rate(fb);
+                for factor in &member.factors {
+                    if let Factor::Aptitude { apt_name, stars } = factor {
+                        out.push((normalize_apt_key(apt_name), (*stars).min(3), rate));
+                    }
+                }
+            }
+        }
+        out
     }
 
     /// Calculate the deterministic stat injection at career start.

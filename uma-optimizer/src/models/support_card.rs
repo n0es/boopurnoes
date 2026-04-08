@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Maps directly to the `support_card_effects.effect_type_id` column.
-/// These IDs match the EFFECT_META in your frontend importer.
+/// These IDs match the EFFECT_META used when parsing card effect payloads.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(i32)]
 pub enum EffectType {

@@ -8,6 +8,12 @@ export default defineConfig({
     host: true, // bind to 0.0.0.0 so Tailscale (and LAN) can reach it
     allowedHosts: ['ethan-pc-1.tail5ea3c.ts.net', 'localhost'],
     proxy: {
+      // GameTora static JSON (dev only): avoids browser CORS when caching / incremental fetch.
+      '/gametora-data': {
+        target: 'https://gametora.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/gametora-data/, '/data'),
+      },
       // Proxy optimizer API requests to the Rust service.
       // This avoids mixed-content issues (HTTPS page → HTTP optimizer).
       '/optimizer-api': {

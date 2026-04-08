@@ -31,3 +31,10 @@ supabase/.branches/
 *.njsproj
 *.sln
 *.sw?
+
+# Local scratch / fetch artifacts (not valid JS)
+.tmp-*.js
+.tmp-*.ts
+
+# Debug output from generate-trainee-icons script
+debug-icons/

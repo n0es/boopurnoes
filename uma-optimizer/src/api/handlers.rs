@@ -16,6 +16,13 @@ use crate::algorithms::{
 };
 use crate::models::*;
 use crate::models::config::*;
+use crate::models::career::{self, CareerConfig, CareerInitialState};
+use crate::models::session::{
+    CareerSession, GameEvent, TimelineEntry, TrainingDetail, TurnAction, TurnSnapshot,
+};
+use rand::SeedableRng;
+use crate::models::engine;
+use uuid::Uuid;
 
 /// Shared application state.
 pub struct AppState {
@@ -27,6 +34,8 @@ pub struct AppState {
     pub trainee_index: HashMap<i32, usize>,
     /// Current running optimization's pause flag (if any).
     pub current_run_pause: Mutex<Option<Arc<AtomicBool>>>,
+    /// In-memory career simulation sessions.
+    pub career_sessions: Mutex<HashMap<Uuid, crate::models::session::CareerSession>>,
 }
 
 impl AppState {
@@ -47,6 +56,7 @@ impl AppState {
             card_index,
             trainee_index,
             current_run_pause: Mutex::new(None),
+            career_sessions: Mutex::new(HashMap::new()),
         }
     }
 
@@ -525,7 +535,585 @@ pub struct ScoreDeckRequest {
 
 fn default_star_rank() -> u8 { 5 }
 
-/// GET /health
+/// POST /api/career/init — compute initial state for a career simulation.
+///
+/// Given a trainee, star rank, deck, and optional legacy config, computes the
+/// full starting state including stat breakdowns from each source.
+pub async fn career_init(
+    State(state): State<Arc<AppState>>,
+    Json(req): Json<CareerConfig>,
+) -> Result<Json<CareerInitialState>, (StatusCode, String)> {
+    // Look up trainee
+    let trainee_idx = state
+        .trainee_index
+        .get(&req.trainee_id)
+        .ok_or((StatusCode::NOT_FOUND, format!("Trainee {} not found", req.trainee_id)))?;
+    let trainee = &state.trainees[*trainee_idx];
+
+    // Resolve deck cards
+    let mut cards: Vec<&SupportCard> = Vec::new();
+    let mut levels: Vec<i32> = Vec::new();
+    for &(card_id, level) in &req.deck {
+        let idx = state
+            .card_index
+            .get(&card_id)
+            .ok_or((StatusCode::NOT_FOUND, format!("Card {} not found", card_id)))?;
+        cards.push(&state.cards[*idx]);
+        levels.push(level);
+    }
+
+    if cards.len() != 6 {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            format!("Deck must contain exactly 6 cards, got {}", cards.len()),
+        ));
+    }
+
+    tracing::info!(
+        "Computing career init for trainee {} (ID: {}, {}★) with {} cards",
+        trainee.name, trainee.id, req.star_rank, cards.len()
+    );
+
+    let initial_state = career::compute_initial_state(trainee, &cards, &levels, &req);
+
+    if let Some(ref leg) = req.legacy {
+        tracing::info!(
+            "Career init legacy: {} blue factor(s) on tree; inheritance stat sum = {:.0}",
+            leg.all_blue_factors().len(),
+            initial_state.inheritance_stats.total()
+        );
+    }
+
+    Ok(Json(initial_state))
+}
+
+// ─── Career Session API ─────────────────────────────────────────────────────
+
+/// POST /api/career/create — create a new career session.
+///
+/// Takes a CareerConfig, computes initial state, creates a session with a UUID,
+/// and stores it in the in-memory session map.
+pub async fn career_create(
+    State(state): State<Arc<AppState>>,
+    Json(req): Json<CareerConfig>,
+) -> Result<Json<CareerCreateResponse>, (StatusCode, String)> {
+    // Look up trainee
+    let trainee_idx = state
+        .trainee_index
+        .get(&req.trainee_id)
+        .ok_or((StatusCode::NOT_FOUND, format!("Trainee {} not found", req.trainee_id)))?;
+    let trainee = &state.trainees[*trainee_idx];
+
+    // Resolve deck cards
+    let mut cards: Vec<&SupportCard> = Vec::new();
+    let mut levels: Vec<i32> = Vec::new();
+    for &(card_id, level) in &req.deck {
+        let idx = state
+            .card_index
+            .get(&card_id)
+            .ok_or((StatusCode::NOT_FOUND, format!("Card {} not found", card_id)))?;
+        cards.push(&state.cards[*idx]);
+        levels.push(level);
+    }
+
+    if cards.len() != 6 {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            format!("Deck must contain exactly 6 cards, got {}", cards.len()),
+        ));
+    }
+
+    // Compute initial state
+    let initial_state = career::compute_initial_state(trainee, &cards, &levels, &req);
+
+    let mut session = CareerSession::new(req, initial_state.clone());
+    let session_id = session.id;
+
+    tracing::info!("Created career session {}", session_id);
+
+    let mut rng = rand::rngs::StdRng::seed_from_u64(engine::spark_seed(session_id, 0));
+    let spark = engine::build_career_start_spark_event(
+        session.config.legacy.as_ref(),
+        &initial_state.inheritance_stats,
+        &initial_state.aptitudes,
+        &mut rng,
+    );
+    let record = engine::apply_event(&session, spark);
+    session.push_event(record);
+
+    session.append_pending_turn_slots();
+
+    let timeline: Vec<TimelineEntrySummary> = session
+        .timeline
+        .iter()
+        .enumerate()
+        .map(|(idx, entry)| timeline_entry_summary(idx, entry))
+        .collect();
+
+    let current_snapshot = session.latest_snapshot().clone();
+
+    let turn_phases: Vec<TurnPhaseInfo> = session
+        .config
+        .scenario
+        .turn_phase_labels()
+        .into_iter()
+        .map(|(label, start, end)| TurnPhaseInfo {
+            label: label.to_string(),
+            start_turn: start,
+            end_turn: end,
+        })
+        .collect();
+
+    // Store session
+    let response = CareerCreateResponse {
+        session_id,
+        initial_snapshot: session.initial_snapshot.clone(),
+        initial_state: session.initial_state.clone(),
+        total_turns: session.total_turns(),
+        timeline,
+        turn_phases,
+        current_snapshot,
+    };
+
+    state.career_sessions.lock().await.insert(session_id, session);
+
+    Ok(Json(response))
+}
+
+#[derive(serde::Serialize)]
+pub struct CareerCreateResponse {
+    pub session_id: Uuid,
+    pub initial_snapshot: TurnSnapshot,
+    pub initial_state: CareerInitialState,
+    pub total_turns: u32,
+    /// Timeline includes the auto career-start Spark of Inspiration when the session is created.
+    pub timeline: Vec<TimelineEntrySummary>,
+    /// Scenario UI sections (Pre-debut / Regular / Climax for Trackblazer, etc.).
+    #[serde(default)]
+    pub turn_phases: Vec<TurnPhaseInfo>,
+    /// State after the last timeline entry (post–career-start spark).
+    pub current_snapshot: TurnSnapshot,
+}
+
+#[derive(serde::Serialize)]
+pub struct TurnPhaseInfo {
+    pub label: String,
+    pub start_turn: u32,
+    pub end_turn: u32,
+}
+
+/// POST /api/career/:id/preview — preview what would happen this turn.
+///
+/// Requires the current card placements (observed from the game).
+/// Returns training previews for all 5 facilities + pre-turn events.
+pub async fn career_preview(
+    State(state): State<Arc<AppState>>,
+    axum::extract::Path(session_id): axum::extract::Path<Uuid>,
+    Json(req): Json<CareerPreviewRequest>,
+) -> Result<Json<engine::TurnPreview>, (StatusCode, String)> {
+    let sessions = state.career_sessions.lock().await;
+    let session = sessions
+        .get(&session_id)
+        .ok_or((StatusCode::NOT_FOUND, "Session not found".to_string()))?;
+
+    if session.is_complete() {
+        return Err((StatusCode::BAD_REQUEST, "Career is already complete".to_string()));
+    }
+
+    // Resolve deck cards
+    let mut cards: Vec<&SupportCard> = Vec::new();
+    let mut levels: Vec<i32> = Vec::new();
+    for &(card_id, level) in &session.config.deck {
+        let idx = state
+            .card_index
+            .get(&card_id)
+            .ok_or((StatusCode::NOT_FOUND, format!("Card {} not found", card_id)))?;
+        cards.push(&state.cards[*idx]);
+        levels.push(level);
+    }
+
+    let trainee_idx = state
+        .trainee_index
+        .get(&session.config.trainee_id)
+        .ok_or((StatusCode::NOT_FOUND, "Trainee not found".to_string()))?;
+    let trainee = &state.trainees[*trainee_idx];
+
+    let preview = engine::preview_turn(session, &req.card_placements, &cards, &levels, trainee);
+
+    Ok(Json(preview))
+}
+
+#[derive(serde::Deserialize)]
+pub struct CareerPreviewRequest {
+    /// Where each of the 6 support cards is placed (facility 0–4, or 5=away).
+    pub card_placements: [usize; 6],
+}
+
+/// POST /api/career/:id/event — submit a game event (Spark of Inspiration, New Year, etc.)
+///
+/// Events are first-class timeline entries. The frontend should submit events
+/// that fire before a turn BEFORE submitting the turn action itself.
+pub async fn career_event(
+    State(state): State<Arc<AppState>>,
+    axum::extract::Path(session_id): axum::extract::Path<Uuid>,
+    Json(req): Json<CareerEventRequest>,
+) -> Result<Json<CareerEventResponse>, (StatusCode, String)> {
+    let mut sessions = state.career_sessions.lock().await;
+    let session = sessions
+        .get_mut(&session_id)
+        .ok_or((StatusCode::NOT_FOUND, "Session not found".to_string()))?;
+
+    let record = engine::apply_event(session, req.event);
+    let state_after = record.state_after.clone();
+    let event_label = record.event.label();
+    let timeline_index = session.insert_event_before_first_pending(record);
+
+    Ok(Json(CareerEventResponse {
+        timeline_index,
+        event_label,
+        state_after,
+    }))
+}
+
+#[derive(serde::Deserialize)]
+pub struct CareerEventRequest {
+    pub event: crate::models::session::GameEvent,
+}
+
+#[derive(serde::Serialize)]
+pub struct CareerEventResponse {
+    pub timeline_index: usize,
+    pub event_label: String,
+    pub state_after: TurnSnapshot,
+}
+
+/// POST /api/career/:id/advance — execute a turn action.
+///
+/// Events should be submitted separately via /event BEFORE calling this.
+/// This endpoint only handles the player's chosen action for the turn.
+pub async fn career_advance(
+    State(state): State<Arc<AppState>>,
+    axum::extract::Path(session_id): axum::extract::Path<Uuid>,
+    Json(req): Json<CareerAdvanceRequest>,
+) -> Result<Json<CareerAdvanceResponse>, (StatusCode, String)> {
+    let mut sessions = state.career_sessions.lock().await;
+    let session = sessions
+        .get_mut(&session_id)
+        .ok_or((StatusCode::NOT_FOUND, "Session not found".to_string()))?;
+
+    if session.is_complete() {
+        return Err((StatusCode::BAD_REQUEST, "Career is already complete".to_string()));
+    }
+
+    // Resolve deck cards
+    let mut cards: Vec<&SupportCard> = Vec::new();
+    let mut levels: Vec<i32> = Vec::new();
+    for &(card_id, level) in &session.config.deck {
+        let idx = state
+            .card_index
+            .get(&card_id)
+            .ok_or((StatusCode::NOT_FOUND, format!("Card {} not found", card_id)))?;
+        cards.push(&state.cards[*idx]);
+        levels.push(level);
+    }
+
+    let trainee_idx = state
+        .trainee_index
+        .get(&session.config.trainee_id)
+        .ok_or((StatusCode::NOT_FOUND, "Trainee not found".to_string()))?;
+    let trainee = &state.trainees[*trainee_idx];
+
+    if session.first_pending_index().is_none() {
+        return Err((StatusCode::BAD_REQUEST, "No pending turn to advance".to_string()));
+    }
+
+    let record = engine::execute_turn(
+        session,
+        req.action,
+        req.card_placements,
+        &cards,
+        &levels,
+        trainee,
+        req.training_failed.unwrap_or(false),
+        req.rest_energy,
+    );
+
+    let turn_number = record.turn_number;
+    let state_after = record.state_after.clone();
+    let timeline_index = session
+        .replace_first_pending_turn(record)
+        .ok_or((
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Failed to replace pending turn".to_string(),
+        ))?;
+
+    let is_complete = session.is_complete();
+    let next_turn = session.current_turn();
+
+    Ok(Json(CareerAdvanceResponse {
+        turn_number,
+        state_after,
+        is_complete,
+        next_turn,
+        timeline_index,
+    }))
+}
+
+#[derive(serde::Deserialize)]
+pub struct CareerAdvanceRequest {
+    pub action: crate::models::session::TurnAction,
+    pub card_placements: [usize; 6],
+    /// Did the training fail? (Player reports this from the game.)
+    #[serde(default)]
+    pub training_failed: Option<bool>,
+    /// How much energy was recovered from rest? (Player reports this.)
+    pub rest_energy: Option<f64>,
+}
+
+#[derive(serde::Serialize)]
+pub struct CareerAdvanceResponse {
+    pub turn_number: u32,
+    pub state_after: TurnSnapshot,
+    pub is_complete: bool,
+    pub next_turn: u32,
+    pub timeline_index: usize,
+}
+
+/// GET /api/career/:id/state — get the current state or state at a specific timeline index.
+///
+/// Query params: ?index=N (optional, defaults to latest)
+pub async fn career_state(
+    State(state): State<Arc<AppState>>,
+    axum::extract::Path(session_id): axum::extract::Path<Uuid>,
+    axum::extract::Query(params): axum::extract::Query<CareerStateQuery>,
+) -> Result<Json<CareerStateResponse>, (StatusCode, String)> {
+    let sessions = state.career_sessions.lock().await;
+    let session = sessions
+        .get(&session_id)
+        .ok_or((StatusCode::NOT_FOUND, "Session not found".to_string()))?;
+
+    let (snapshot, previous_snapshot) = if let Some(idx) = params.index {
+        let snap = session.snapshot_at(Some(idx as usize)).clone();
+        // Previous snapshot: one index back, or initial_snapshot for index 0
+        let prev = if idx == 0 {
+            Some(session.initial_snapshot.clone())
+        } else {
+            Some(session.snapshot_at(Some((idx - 1) as usize)).clone())
+        };
+        (snap, prev)
+    } else {
+        (session.latest_snapshot().clone(), None)
+    };
+
+    Ok(Json(CareerStateResponse {
+        session_id,
+        current_turn: session.current_turn(),
+        total_turns: session.total_turns(),
+        is_complete: session.is_complete(),
+        snapshot,
+        previous_snapshot,
+        timeline_length: session.timeline_len() as u32,
+    }))
+}
+
+#[derive(serde::Deserialize)]
+pub struct CareerStateQuery {
+    pub index: Option<u32>,
+}
+
+#[derive(serde::Serialize)]
+pub struct CareerStateResponse {
+    pub session_id: Uuid,
+    pub current_turn: u32,
+    pub total_turns: u32,
+    pub is_complete: bool,
+    pub snapshot: TurnSnapshot,
+    /// The snapshot immediately before this entry (for computing deltas).
+    /// Present when a specific index was requested; None for "latest" queries.
+    pub previous_snapshot: Option<TurnSnapshot>,
+    pub timeline_length: u32,
+}
+
+/// GET /api/career/:id/timeline — get the full timeline for the rollback bar.
+///
+/// Returns a summary of each entry (turns and events) for efficient rendering.
+pub async fn career_timeline(
+    State(state): State<Arc<AppState>>,
+    axum::extract::Path(session_id): axum::extract::Path<Uuid>,
+) -> Result<Json<Vec<TimelineEntrySummary>>, (StatusCode, String)> {
+    let sessions = state.career_sessions.lock().await;
+    let session = sessions
+        .get(&session_id)
+        .ok_or((StatusCode::NOT_FOUND, "Session not found".to_string()))?;
+
+    let summaries: Vec<TimelineEntrySummary> = session
+        .timeline
+        .iter()
+        .enumerate()
+        .map(|(idx, entry)| timeline_entry_summary(idx, entry))
+        .collect();
+
+    Ok(Json(summaries))
+}
+
+#[derive(serde::Serialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum TimelineEntryDetail {
+    Training {
+        detail: TrainingDetail,
+    },
+    SparkOfInspiration {
+        phase: crate::models::session::SparkPhase,
+        stat_gains: [f64; 5],
+        sp_gained: f64,
+        hint_deltas: Vec<crate::models::session::SparkHintDelta>,
+        aptitude_deltas: Vec<crate::models::session::AptitudeDelta>,
+    },
+    NewYear {
+        energy_gained: f64,
+        sp_gained: f64,
+    },
+    SummerCampStart,
+    BuySkill {
+        skill_id: u32,
+        name: String,
+        level: u8,
+        sp_cost: f64,
+    },
+    AcquireItem {
+        item_id: u32,
+        name: String,
+        quantity: u8,
+    },
+    CustomEvent {
+        description: String,
+        stat_gains: Option<[f64; 5]>,
+        sp_gained: Option<f64>,
+        energy_gained: Option<f64>,
+        mood_change: Option<i8>,
+    },
+}
+
+#[derive(serde::Serialize)]
+pub struct TimelineEntrySummary {
+    pub index: usize,
+    pub kind: String,        // "turn" or "event"
+    pub turn_number: Option<u32>,
+    pub calendar_label: String,
+    pub entry_type: String,  // e.g. "train_speed", "rest", "Spark of Inspiration", "New Year"
+    pub color: Option<String>,
+    pub stats_total: f64,
+    pub energy: f64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub detail: Option<TimelineEntryDetail>,
+}
+
+fn turn_entry_type(action: &TurnAction) -> String {
+    match action {
+        TurnAction::Pending => "pending".to_string(),
+        TurnAction::Train { facility } => {
+            format!("train_{}", ["speed", "stamina", "power", "guts", "wisdom"][*facility])
+        }
+        TurnAction::Rest => "rest".to_string(),
+        TurnAction::Race { .. } => "race".to_string(),
+        TurnAction::Infirmary => "infirmary".to_string(),
+        TurnAction::Recreation => "recreation".to_string(),
+    }
+}
+
+fn detail_for_game_event(ev: &GameEvent) -> TimelineEntryDetail {
+    match ev {
+        GameEvent::SparkOfInspiration {
+            phase,
+            stat_gains,
+            sp_gained,
+            hint_deltas,
+            aptitude_deltas,
+        } => TimelineEntryDetail::SparkOfInspiration {
+            phase: *phase,
+            stat_gains: *stat_gains,
+            sp_gained: *sp_gained,
+            hint_deltas: hint_deltas.clone(),
+            aptitude_deltas: aptitude_deltas.clone(),
+        },
+        GameEvent::NewYear {
+            energy_gained,
+            sp_gained,
+        } => TimelineEntryDetail::NewYear {
+            energy_gained: *energy_gained,
+            sp_gained: *sp_gained,
+        },
+        GameEvent::SummerCampStart => TimelineEntryDetail::SummerCampStart,
+        GameEvent::BuySkill { skill_id, name, level, sp_cost } => TimelineEntryDetail::BuySkill {
+            skill_id: *skill_id,
+            name: name.clone(),
+            level: *level,
+            sp_cost: *sp_cost,
+        },
+        GameEvent::AcquireItem { item_id, name, quantity } => TimelineEntryDetail::AcquireItem {
+            item_id: *item_id,
+            name: name.clone(),
+            quantity: *quantity,
+        },
+        GameEvent::CustomEvent {
+            description,
+            stat_gains,
+            sp_gained,
+            energy_gained,
+            mood_change,
+        } => TimelineEntryDetail::CustomEvent {
+            description: description.clone(),
+            stat_gains: *stat_gains,
+            sp_gained: *sp_gained,
+            energy_gained: *energy_gained,
+            mood_change: *mood_change,
+        },
+    }
+}
+
+fn detail_for_timeline_entry(entry: &TimelineEntry) -> Option<TimelineEntryDetail> {
+    match entry {
+        TimelineEntry::Turn(r) => r
+            .training_detail
+            .as_ref()
+            .map(|d| TimelineEntryDetail::Training { detail: d.clone() }),
+        TimelineEntry::Event(e) => Some(detail_for_game_event(&e.event)),
+    }
+}
+
+fn timeline_entry_summary(idx: usize, entry: &TimelineEntry) -> TimelineEntrySummary {
+    let detail = detail_for_timeline_entry(entry);
+    match entry {
+        TimelineEntry::Turn(r) => TimelineEntrySummary {
+            index: idx,
+            kind: "turn".to_string(),
+            turn_number: Some(r.turn_number),
+            calendar_label: r.calendar.label(),
+            entry_type: turn_entry_type(&r.action),
+            color: if matches!(r.action, TurnAction::Pending) {
+                Some("#3f3f46".to_string())
+            } else {
+                None
+            },
+            stats_total: r.state_after.stats.total(),
+            energy: r.state_after.energy,
+            detail,
+        },
+        TimelineEntry::Event(e) => TimelineEntrySummary {
+            index: idx,
+            kind: "event".to_string(),
+            turn_number: None,
+            calendar_label: e.calendar.label(),
+            entry_type: e.event.label(),
+            color: Some(e.event.color().to_string()),
+            stats_total: e.state_after.stats.total(),
+            energy: e.state_after.energy,
+            detail,
+        },
+    }
+}
+
+/// Health check
 pub async fn health() -> &'static str {
     "ok"
 }

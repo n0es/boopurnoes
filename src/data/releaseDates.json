@@ -1,0 +1,4676 @@
+{
+  "meta": {
+    "description": "JP and global release dates from GameTora umamusume JSON (support-cards / character-cards). Regenerate with npm run db:build-release-dates.",
+    "defaultSource": "https://gametora.com/data/manifests/umamusume.json",
+    "builtFrom": {
+      "supportCardsUrl": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json",
+      "characterCardsUrl": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    }
+  },
+  "supportCards": {
+    "10001": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10002": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10003": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10004": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10005": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10006": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10007": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10008": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10009": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10010": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10011": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10012": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10013": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10014": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10015": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10016": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10017": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10018": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10019": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10020": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10021": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10022": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10023": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10024": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10025": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10026": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10027": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10028": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10029": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10030": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10031": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10032": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10033": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10034": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10035": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10036": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10037": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10038": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10039": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10040": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10041": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10042": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10043": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10044": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10045": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10046": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10047": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10048": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10049": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10050": {
+      "released_jp": "2021-03-02",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10051": {
+      "released_jp": "2021-03-09",
+      "released_global": "2025-07-02",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10052": {
+      "released_jp": "2021-03-09",
+      "released_global": "2025-07-02",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10053": {
+      "released_jp": "2021-03-18",
+      "released_global": "2025-07-10",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10054": {
+      "released_jp": "2021-03-18",
+      "released_global": "2025-07-10",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10055": {
+      "released_jp": "2021-03-30",
+      "released_global": "2025-07-16",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10056": {
+      "released_jp": "2021-03-30",
+      "released_global": "2025-07-16",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10057": {
+      "released_jp": "2021-03-30",
+      "released_global": "2025-07-16",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10058": {
+      "released_jp": "2021-04-26",
+      "released_global": "2025-08-03",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10059": {
+      "released_jp": "2021-04-26",
+      "released_global": "2025-08-03",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10060": {
+      "released_jp": "2021-08-30",
+      "released_global": "2025-11-06",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10061": {
+      "released_jp": "2021-05-17",
+      "released_global": "2025-08-20",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10062": {
+      "released_jp": "2021-05-17",
+      "released_global": "2025-08-20",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10063": {
+      "released_jp": "2021-05-28",
+      "released_global": "2025-08-28",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10064": {
+      "released_jp": "2021-05-28",
+      "released_global": "2025-08-28",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10065": {
+      "released_jp": "2021-06-21",
+      "released_global": "2025-09-17",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10066": {
+      "released_jp": "2021-06-21",
+      "released_global": "2025-09-17",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10067": {
+      "released_jp": "2021-10-20",
+      "released_global": "2025-12-08",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10068": {
+      "released_jp": "2021-12-14",
+      "released_global": "2026-01-15",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10069": {
+      "released_jp": "2021-07-12",
+      "released_global": "2025-10-02",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10070": {
+      "released_jp": "2021-08-20",
+      "released_global": "2025-10-30",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10071": {
+      "released_jp": "2021-10-20",
+      "released_global": "2025-12-08",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10072": {
+      "released_jp": "2021-07-20",
+      "released_global": "2025-10-07",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10073": {
+      "released_jp": "2021-10-28",
+      "released_global": "2025-12-14",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10074": {
+      "released_jp": "2022-01-11",
+      "released_global": "2026-02-05",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10075": {
+      "released_jp": "2021-12-31",
+      "released_global": "2026-01-29",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10076": {
+      "released_jp": "2022-02-24",
+      "released_global": "2026-03-12",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10077": {
+      "released_jp": "2022-02-24",
+      "released_global": "2026-03-12",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10078": {
+      "released_jp": "2022-05-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10079": {
+      "released_jp": "2022-09-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10080": {
+      "released_jp": "2022-09-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10081": {
+      "released_jp": "2022-07-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10082": {
+      "released_jp": "2023-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10083": {
+      "released_jp": "2022-08-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10084": {
+      "released_jp": "2022-10-17",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10085": {
+      "released_jp": "2022-11-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10086": {
+      "released_jp": "2022-12-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10087": {
+      "released_jp": "2023-01-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10088": {
+      "released_jp": "2023-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10089": {
+      "released_jp": "2023-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10090": {
+      "released_jp": "2024-01-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10091": {
+      "released_jp": "2023-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10092": {
+      "released_jp": "2023-06-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10093": {
+      "released_jp": "2023-07-21",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10094": {
+      "released_jp": "2023-08-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10095": {
+      "released_jp": "2023-09-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10096": {
+      "released_jp": "2024-08-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10097": {
+      "released_jp": "2023-11-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10098": {
+      "released_jp": "2023-11-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10099": {
+      "released_jp": "2023-12-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10100": {
+      "released_jp": "2023-12-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10101": {
+      "released_jp": "2023-12-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10102": {
+      "released_jp": "2024-01-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10103": {
+      "released_jp": "2024-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10104": {
+      "released_jp": "2024-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10105": {
+      "released_jp": "2024-03-21",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10106": {
+      "released_jp": "2024-04-09",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10107": {
+      "released_jp": "2024-04-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10108": {
+      "released_jp": "2024-05-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10109": {
+      "released_jp": "2024-06-26",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10110": {
+      "released_jp": "2024-09-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10111": {
+      "released_jp": "2024-12-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10113": {
+      "released_jp": "2024-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10114": {
+      "released_jp": "2024-03-21",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10115": {
+      "released_jp": "2024-09-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10116": {
+      "released_jp": "2024-12-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10117": {
+      "released_jp": "2024-04-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10118": {
+      "released_jp": "2024-08-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10119": {
+      "released_jp": "2025-03-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10120": {
+      "released_jp": "2025-04-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10121": {
+      "released_jp": "2025-04-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10122": {
+      "released_jp": "2025-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10123": {
+      "released_jp": "2025-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10124": {
+      "released_jp": "2025-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10125": {
+      "released_jp": "2025-04-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10126": {
+      "released_jp": "2025-05-12",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10127": {
+      "released_jp": "2025-05-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10128": {
+      "released_jp": "2025-06-27",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10129": {
+      "released_jp": "2025-07-22",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10131": {
+      "released_jp": "2025-07-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10132": {
+      "released_jp": "2025-08-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10133": {
+      "released_jp": "2025-08-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10134": {
+      "released_jp": "2025-08-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10135": {
+      "released_jp": "2025-08-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10136": {
+      "released_jp": "2025-08-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10137": {
+      "released_jp": "2025-10-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10138": {
+      "released_jp": "2025-10-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10139": {
+      "released_jp": "2025-11-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10140": {
+      "released_jp": "2026-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10141": {
+      "released_jp": "2026-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10142": {
+      "released_jp": "2026-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10143": {
+      "released_jp": "2026-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "10144": {
+      "released_jp": "2026-03-11",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20001": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20002": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20003": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20004": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20005": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20006": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20007": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20008": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20009": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20010": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20011": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20012": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20013": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20014": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20015": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20016": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20017": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20018": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20019": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20020": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20021": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20022": {
+      "released_jp": "2022-01-11",
+      "released_global": "2026-02-05",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20023": {
+      "released_jp": "2021-03-02",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20024": {
+      "released_jp": "2021-03-09",
+      "released_global": "2025-07-02",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20025": {
+      "released_jp": "2021-03-18",
+      "released_global": "2025-07-10",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20026": {
+      "released_jp": "2021-03-30",
+      "released_global": "2025-07-16",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20027": {
+      "released_jp": "2021-04-15",
+      "released_global": "2025-07-27",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20028": {
+      "released_jp": "2021-04-26",
+      "released_global": "2025-08-03",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20029": {
+      "released_jp": "2021-05-17",
+      "released_global": "2025-08-20",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20030": {
+      "released_jp": "2022-02-08",
+      "released_global": "2026-02-25",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20031": {
+      "released_jp": "2021-06-21",
+      "released_global": "2025-09-17",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20032": {
+      "released_jp": "2021-12-14",
+      "released_global": "2026-01-15",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20033": {
+      "released_jp": "2022-07-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20034": {
+      "released_jp": "2021-07-12",
+      "released_global": "2025-10-02",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20035": {
+      "released_jp": "2021-08-20",
+      "released_global": "2025-10-30",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20036": {
+      "released_jp": "2024-08-14",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20037": {
+      "released_jp": "2021-09-20",
+      "released_global": "2025-11-19",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20038": {
+      "released_jp": "2021-10-20",
+      "released_global": "2025-12-08",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20039": {
+      "released_jp": "2021-11-19",
+      "released_global": "2025-12-28",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20040": {
+      "released_jp": "2022-02-24",
+      "released_global": "2026-03-12",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20041": {
+      "released_jp": "2022-02-24",
+      "released_global": "2026-03-12",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20042": {
+      "released_jp": "2022-02-24",
+      "released_global": "2026-03-12",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20043": {
+      "released_jp": "2022-02-24",
+      "released_global": "2026-03-12",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20044": {
+      "released_jp": "2022-03-07",
+      "released_global": "2026-03-22",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20045": {
+      "released_jp": "2022-04-01",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20046": {
+      "released_jp": "2022-04-11",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20047": {
+      "released_jp": "2022-05-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20048": {
+      "released_jp": "2022-06-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20049": {
+      "released_jp": "2022-07-11",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20050": {
+      "released_jp": "2022-08-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20051": {
+      "released_jp": "2022-09-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20052": {
+      "released_jp": "2022-10-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20053": {
+      "released_jp": "2022-11-17",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20054": {
+      "released_jp": "2022-12-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20055": {
+      "released_jp": "2023-01-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20056": {
+      "released_jp": "2023-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20057": {
+      "released_jp": "2023-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20058": {
+      "released_jp": "2023-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20059": {
+      "released_jp": "2023-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20060": {
+      "released_jp": "2023-03-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20061": {
+      "released_jp": "2023-04-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20062": {
+      "released_jp": "2023-05-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20063": {
+      "released_jp": "2023-06-09",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20064": {
+      "released_jp": "2023-06-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20065": {
+      "released_jp": "2023-07-21",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20066": {
+      "released_jp": "2023-08-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20067": {
+      "released_jp": "2023-09-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20068": {
+      "released_jp": "2023-10-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20069": {
+      "released_jp": "2023-11-09",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20070": {
+      "released_jp": "2023-11-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20071": {
+      "released_jp": "2023-12-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20072": {
+      "released_jp": "2024-01-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20073": {
+      "released_jp": "2024-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20074": {
+      "released_jp": "2024-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20075": {
+      "released_jp": "2024-03-21",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20076": {
+      "released_jp": "2024-04-09",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20077": {
+      "released_jp": "2024-05-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20078": {
+      "released_jp": "2024-07-09",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20079": {
+      "released_jp": "2024-08-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20080": {
+      "released_jp": "2024-09-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20081": {
+      "released_jp": "2024-11-08",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20082": {
+      "released_jp": "2024-12-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20083": {
+      "released_jp": "2025-01-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20084": {
+      "released_jp": "2025-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20085": {
+      "released_jp": "2025-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20086": {
+      "released_jp": "2025-03-11",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20087": {
+      "released_jp": "2025-04-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20088": {
+      "released_jp": "2025-05-12",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20089": {
+      "released_jp": "2025-07-11",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20090": {
+      "released_jp": "2025-09-09",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20091": {
+      "released_jp": "2025-10-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20092": {
+      "released_jp": "2025-11-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20093": {
+      "released_jp": "2025-12-11",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20094": {
+      "released_jp": "2026-01-08",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20095": {
+      "released_jp": "2026-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20096": {
+      "released_jp": "2026-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "20097": {
+      "released_jp": "2026-03-11",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30001": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30002": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30003": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30004": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30005": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30006": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30007": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30008": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30009": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30010": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30011": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30012": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30013": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30014": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30015": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30016": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30017": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30018": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30019": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30020": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30021": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30022": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30023": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30024": {
+      "released_jp": "2021-03-02",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30025": {
+      "released_jp": "2021-03-02",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30026": {
+      "released_jp": "2021-03-09",
+      "released_global": "2025-07-02",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30027": {
+      "released_jp": "2021-03-18",
+      "released_global": "2025-07-10",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30028": {
+      "released_jp": "2021-03-30",
+      "released_global": "2025-07-16",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30029": {
+      "released_jp": "2021-03-30",
+      "released_global": "2025-07-16",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30030": {
+      "released_jp": "2021-03-30",
+      "released_global": "2025-07-16",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30031": {
+      "released_jp": "2021-04-15",
+      "released_global": "2025-07-27",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30032": {
+      "released_jp": "2021-04-26",
+      "released_global": "2025-08-03",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30033": {
+      "released_jp": "2021-04-26",
+      "released_global": "2025-08-03",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30034": {
+      "released_jp": "2021-08-30",
+      "released_global": "2025-11-06",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30036": {
+      "released_jp": "2021-08-30",
+      "released_global": "2025-11-06",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30037": {
+      "released_jp": "2023-04-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30038": {
+      "released_jp": "2021-05-17",
+      "released_global": "2025-08-20",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30039": {
+      "released_jp": "2021-05-28",
+      "released_global": "2025-08-28",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30040": {
+      "released_jp": "2021-05-28",
+      "released_global": "2025-08-28",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30041": {
+      "released_jp": "2021-05-28",
+      "released_global": "2025-08-28",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30042": {
+      "released_jp": "2021-06-21",
+      "released_global": "2025-09-17",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30043": {
+      "released_jp": "2021-10-20",
+      "released_global": "2025-12-08",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30044": {
+      "released_jp": "2021-07-20",
+      "released_global": "2025-10-07",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30045": {
+      "released_jp": "2021-07-29",
+      "released_global": "2025-10-14",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30046": {
+      "released_jp": "2021-07-29",
+      "released_global": "2025-10-14",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30047": {
+      "released_jp": "2021-07-29",
+      "released_global": "2025-10-14",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30048": {
+      "released_jp": "2021-07-12",
+      "released_global": "2025-10-02",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30052": {
+      "released_jp": "2022-08-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30053": {
+      "released_jp": "2022-06-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30054": {
+      "released_jp": "2021-08-20",
+      "released_global": "2025-10-30",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30055": {
+      "released_jp": "2021-06-29",
+      "released_global": "2025-09-21",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30056": {
+      "released_jp": "2021-06-29",
+      "released_global": "2025-09-21",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30057": {
+      "released_jp": "2021-06-29",
+      "released_global": "2025-09-21",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30058": {
+      "released_jp": "2021-05-26",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30059": {
+      "released_jp": "2021-06-23",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30060": {
+      "released_jp": "2021-07-21",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30061": {
+      "released_jp": "2021-08-18",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30062": {
+      "released_jp": "2021-08-24",
+      "released_global": "2025-11-03",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30063": {
+      "released_jp": "2021-09-20",
+      "released_global": "2025-11-19",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30064": {
+      "released_jp": "2021-09-29",
+      "released_global": "2025-11-24",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30065": {
+      "released_jp": "2021-09-29",
+      "released_global": "2025-11-24",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30066": {
+      "released_jp": "2021-09-29",
+      "released_global": "2025-11-24",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30067": {
+      "released_jp": "2022-07-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30068": {
+      "released_jp": "2021-10-28",
+      "released_global": "2025-12-14",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30069": {
+      "released_jp": "2021-10-28",
+      "released_global": "2025-12-14",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30070": {
+      "released_jp": "2021-10-28",
+      "released_global": "2025-12-14",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30071": {
+      "released_jp": "2021-11-19",
+      "released_global": "2025-12-28",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30072": {
+      "released_jp": "2021-11-29",
+      "released_global": "2026-01-05",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30073": {
+      "released_jp": "2021-11-29",
+      "released_global": "2026-01-05",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30074": {
+      "released_jp": "2021-11-29",
+      "released_global": "2026-01-05",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30075": {
+      "released_jp": "2021-12-14",
+      "released_global": "2026-01-15",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30076": {
+      "released_jp": "2021-12-22",
+      "released_global": "2026-01-22",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30077": {
+      "released_jp": "2021-12-31",
+      "released_global": "2026-01-29",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30078": {
+      "released_jp": "2021-12-31",
+      "released_global": "2026-01-29",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30079": {
+      "released_jp": "2021-12-31",
+      "released_global": "2026-01-29",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30080": {
+      "released_jp": "2022-01-11",
+      "released_global": "2026-02-05",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30081": {
+      "released_jp": "2022-03-18",
+      "released_global": "2026-03-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30082": {
+      "released_jp": "2022-01-28",
+      "released_global": "2026-02-18",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30083": {
+      "released_jp": "2022-01-28",
+      "released_global": "2026-02-18",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30084": {
+      "released_jp": "2022-01-28",
+      "released_global": "2026-02-18",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30085": {
+      "released_jp": "2022-02-08",
+      "released_global": "2026-02-25",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30086": {
+      "released_jp": "2022-02-24",
+      "released_global": "2026-03-12",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30087": {
+      "released_jp": "2022-02-24",
+      "released_global": "2026-03-12",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30088": {
+      "released_jp": "2022-02-24",
+      "released_global": "2026-03-12",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30089": {
+      "released_jp": "2022-03-07",
+      "released_global": "2026-03-22",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30090": {
+      "released_jp": "2022-03-29",
+      "released_global": "2026-04-05",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30091": {
+      "released_jp": "2022-03-29",
+      "released_global": "2026-04-05",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30092": {
+      "released_jp": "2022-03-29",
+      "released_global": "2026-04-05",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30093": {
+      "released_jp": "2022-04-11",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30094": {
+      "released_jp": "2022-04-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30095": {
+      "released_jp": "2022-04-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30096": {
+      "released_jp": "2022-04-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30097": {
+      "released_jp": "2022-05-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30098": {
+      "released_jp": "2022-05-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30099": {
+      "released_jp": "2022-05-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30100": {
+      "released_jp": "2022-05-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30101": {
+      "released_jp": "2022-08-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30102": {
+      "released_jp": "2022-06-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30103": {
+      "released_jp": "2022-06-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30104": {
+      "released_jp": "2022-06-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30105": {
+      "released_jp": "2022-07-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30106": {
+      "released_jp": "2022-07-11",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30107": {
+      "released_jp": "2022-07-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30108": {
+      "released_jp": "2022-07-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30109": {
+      "released_jp": "2022-07-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30110": {
+      "released_jp": "2022-08-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30111": {
+      "released_jp": "2022-08-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30112": {
+      "released_jp": "2022-08-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30113": {
+      "released_jp": "2022-08-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30114": {
+      "released_jp": "2022-09-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30115": {
+      "released_jp": "2022-09-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30116": {
+      "released_jp": "2022-09-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30117": {
+      "released_jp": "2022-09-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30118": {
+      "released_jp": "2022-10-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30119": {
+      "released_jp": "2022-10-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30120": {
+      "released_jp": "2022-10-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30121": {
+      "released_jp": "2022-08-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30122": {
+      "released_jp": "2022-11-17",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30123": {
+      "released_jp": "2022-11-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30124": {
+      "released_jp": "2022-11-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30125": {
+      "released_jp": "2022-11-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30126": {
+      "released_jp": "2022-12-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30127": {
+      "released_jp": "2022-12-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30128": {
+      "released_jp": "2022-12-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30129": {
+      "released_jp": "2022-12-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30130": {
+      "released_jp": "2023-01-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30131": {
+      "released_jp": "2023-01-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30132": {
+      "released_jp": "2023-01-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30133": {
+      "released_jp": "2023-01-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30134": {
+      "released_jp": "2023-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30135": {
+      "released_jp": "2023-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30136": {
+      "released_jp": "2023-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30137": {
+      "released_jp": "2023-03-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30138": {
+      "released_jp": "2023-03-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30139": {
+      "released_jp": "2023-03-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30140": {
+      "released_jp": "2023-03-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30141": {
+      "released_jp": "2023-04-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30142": {
+      "released_jp": "2023-04-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30143": {
+      "released_jp": "2023-04-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30145": {
+      "released_jp": "2022-10-17",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30146": {
+      "released_jp": "2022-10-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30147": {
+      "released_jp": "2023-05-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30148": {
+      "released_jp": "2023-05-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30149": {
+      "released_jp": "2023-05-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30150": {
+      "released_jp": "2023-05-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30151": {
+      "released_jp": "2023-06-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30152": {
+      "released_jp": "2023-06-09",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30153": {
+      "released_jp": "2023-06-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30154": {
+      "released_jp": "2023-06-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30155": {
+      "released_jp": "2023-06-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30156": {
+      "released_jp": "2023-07-21",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30157": {
+      "released_jp": "2023-07-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30158": {
+      "released_jp": "2023-07-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30159": {
+      "released_jp": "2023-07-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30160": {
+      "released_jp": "2023-08-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30161": {
+      "released_jp": "2023-08-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30162": {
+      "released_jp": "2023-08-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30163": {
+      "released_jp": "2023-08-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30164": {
+      "released_jp": "2023-09-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30165": {
+      "released_jp": "2023-09-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30166": {
+      "released_jp": "2023-09-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30167": {
+      "released_jp": "2023-09-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30168": {
+      "released_jp": "2023-10-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30169": {
+      "released_jp": "2023-10-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30170": {
+      "released_jp": "2023-10-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30171": {
+      "released_jp": "2023-10-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30172": {
+      "released_jp": "2023-11-09",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30173": {
+      "released_jp": "2023-11-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30174": {
+      "released_jp": "2023-11-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30175": {
+      "released_jp": "2023-11-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30176": {
+      "released_jp": "2023-11-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30177": {
+      "released_jp": "2023-12-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30178": {
+      "released_jp": "2023-12-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30179": {
+      "released_jp": "2023-12-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30180": {
+      "released_jp": "2023-12-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30181": {
+      "released_jp": "2023-12-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30182": {
+      "released_jp": "2024-01-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30183": {
+      "released_jp": "2024-01-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30184": {
+      "released_jp": "2024-01-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30185": {
+      "released_jp": "2024-01-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30186": {
+      "released_jp": "2024-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30187": {
+      "released_jp": "2024-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30188": {
+      "released_jp": "2024-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30189": {
+      "released_jp": "2024-01-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30190": {
+      "released_jp": "2024-02-14",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30191": {
+      "released_jp": "2024-03-12",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30192": {
+      "released_jp": "2024-04-09",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30193": {
+      "released_jp": "2024-03-21",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30194": {
+      "released_jp": "2024-03-21",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30195": {
+      "released_jp": "2024-03-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30196": {
+      "released_jp": "2024-03-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30197": {
+      "released_jp": "2024-03-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30198": {
+      "released_jp": "2024-04-09",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30199": {
+      "released_jp": "2024-04-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30200": {
+      "released_jp": "2024-04-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30201": {
+      "released_jp": "2024-04-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30202": {
+      "released_jp": "2024-05-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30203": {
+      "released_jp": "2024-05-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30204": {
+      "released_jp": "2024-05-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30205": {
+      "released_jp": "2024-05-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30206": {
+      "released_jp": "2024-05-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30207": {
+      "released_jp": "2024-06-26",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30208": {
+      "released_jp": "2024-06-26",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30209": {
+      "released_jp": "2024-07-09",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30210": {
+      "released_jp": "2024-07-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30211": {
+      "released_jp": "2024-07-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30212": {
+      "released_jp": "2024-07-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30213": {
+      "released_jp": "2024-08-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30214": {
+      "released_jp": "2024-08-14",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30215": {
+      "released_jp": "2024-08-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30216": {
+      "released_jp": "2024-08-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30217": {
+      "released_jp": "2024-09-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30218": {
+      "released_jp": "2024-08-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30219": {
+      "released_jp": "2024-08-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30220": {
+      "released_jp": "2024-08-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30221": {
+      "released_jp": "2024-08-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30222": {
+      "released_jp": "2024-09-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30223": {
+      "released_jp": "2024-09-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30224": {
+      "released_jp": "2024-09-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30225": {
+      "released_jp": "2024-09-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30226": {
+      "released_jp": "2024-10-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30227": {
+      "released_jp": "2024-10-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30228": {
+      "released_jp": "2024-11-08",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30229": {
+      "released_jp": "2024-11-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30230": {
+      "released_jp": "2024-11-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30231": {
+      "released_jp": "2024-11-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30232": {
+      "released_jp": "2024-12-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30233": {
+      "released_jp": "2024-12-27",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30234": {
+      "released_jp": "2024-12-27",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30235": {
+      "released_jp": "2024-12-27",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30236": {
+      "released_jp": "2025-01-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30237": {
+      "released_jp": "2025-01-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30238": {
+      "released_jp": "2025-01-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30239": {
+      "released_jp": "2025-01-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30240": {
+      "released_jp": "2025-02-14",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30241": {
+      "released_jp": "2025-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30242": {
+      "released_jp": "2025-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30243": {
+      "released_jp": "2025-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30244": {
+      "released_jp": "2025-03-11",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30245": {
+      "released_jp": "2025-03-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30246": {
+      "released_jp": "2025-03-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30247": {
+      "released_jp": "2025-03-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30248": {
+      "released_jp": "2025-04-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30249": {
+      "released_jp": "2025-04-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30250": {
+      "released_jp": "2025-04-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30251": {
+      "released_jp": "2025-04-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30252": {
+      "released_jp": "2025-05-12",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30253": {
+      "released_jp": "2025-05-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30254": {
+      "released_jp": "2025-05-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30255": {
+      "released_jp": "2025-05-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30256": {
+      "released_jp": "2025-06-27",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30257": {
+      "released_jp": "2025-06-27",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30258": {
+      "released_jp": "2025-07-11",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30259": {
+      "released_jp": "2025-07-22",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30260": {
+      "released_jp": "2025-04-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30261": {
+      "released_jp": "2025-07-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30262": {
+      "released_jp": "2025-07-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30263": {
+      "released_jp": "2025-07-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30264": {
+      "released_jp": "2025-08-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30265": {
+      "released_jp": "2025-08-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30266": {
+      "released_jp": "2025-08-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30267": {
+      "released_jp": "2025-08-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30268": {
+      "released_jp": "2025-08-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30269": {
+      "released_jp": "2025-08-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30270": {
+      "released_jp": "2025-09-09",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30271": {
+      "released_jp": "2025-09-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30272": {
+      "released_jp": "2025-09-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30273": {
+      "released_jp": "2025-09-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30274": {
+      "released_jp": "2025-10-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30275": {
+      "released_jp": "2025-10-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30276": {
+      "released_jp": "2025-10-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30277": {
+      "released_jp": "2025-11-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30278": {
+      "released_jp": "2025-11-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30279": {
+      "released_jp": "2025-11-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30280": {
+      "released_jp": "2025-11-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30281": {
+      "released_jp": "2025-12-11",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30282": {
+      "released_jp": "2025-12-26",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30283": {
+      "released_jp": "2025-12-26",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30284": {
+      "released_jp": "2025-12-26",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30285": {
+      "released_jp": "2026-01-08",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30286": {
+      "released_jp": "2026-01-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30287": {
+      "released_jp": "2026-01-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30288": {
+      "released_jp": "2026-01-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30289": {
+      "released_jp": "2026-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30290": {
+      "released_jp": "2026-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30291": {
+      "released_jp": "2026-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30292": {
+      "released_jp": "2026-03-11",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30293": {
+      "released_jp": "2026-03-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30294": {
+      "released_jp": "2026-03-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    },
+    "30295": {
+      "released_jp": "2026-03-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/support-cards.03b08bbd.json"
+    }
+  },
+  "trainees": {
+    "100101": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "100102": {
+      "released_jp": "2021-07-29",
+      "released_global": "2025-10-14",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "100103": {
+      "released_jp": "2022-07-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "100201": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "100202": {
+      "released_jp": "2023-07-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "100301": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "100302": {
+      "released_jp": "2021-03-30",
+      "released_global": "2025-07-16",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "100303": {
+      "released_jp": "2023-10-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "100401": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "100402": {
+      "released_jp": "2021-07-29",
+      "released_global": "2025-10-14",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "100403": {
+      "released_jp": "2025-01-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "100501": {
+      "released_jp": "2021-07-12",
+      "released_global": "2025-10-02",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "100502": {
+      "released_jp": "2022-03-29",
+      "released_global": "2026-04-05",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "100601": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "100602": {
+      "released_jp": "2021-11-29",
+      "released_global": "2026-01-05",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "100603": {
+      "released_jp": "2025-12-11",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "100701": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "100702": {
+      "released_jp": "2022-07-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "100703": {
+      "released_jp": "2023-08-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "100801": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "100802": {
+      "released_jp": "2022-11-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "100901": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "100902": {
+      "released_jp": "2022-11-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "101001": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "101002": {
+      "released_jp": "2022-06-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "101003": {
+      "released_jp": "2026-01-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "101101": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "101102": {
+      "released_jp": "2021-06-29",
+      "released_global": "2025-09-21",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "101103": {
+      "released_jp": "2024-12-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "101201": {
+      "released_jp": "2021-06-21",
+      "released_global": "2025-09-17",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "101202": {
+      "released_jp": "2023-05-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "101301": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "101302": {
+      "released_jp": "2021-03-30",
+      "released_global": "2025-07-16",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "101303": {
+      "released_jp": "2022-07-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "101401": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "101402": {
+      "released_jp": "2021-06-29",
+      "released_global": "2025-09-21",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "101501": {
+      "released_jp": "2021-03-02",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "101502": {
+      "released_jp": "2021-12-31",
+      "released_global": "2026-01-29",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "101601": {
+      "released_jp": "2021-05-17",
+      "released_global": "2025-08-20",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "101602": {
+      "released_jp": "2022-12-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "101701": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "101702": {
+      "released_jp": "2021-10-28",
+      "released_global": "2025-12-14",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "101801": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "101802": {
+      "released_jp": "2021-05-28",
+      "released_global": "2025-08-28",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "101901": {
+      "released_jp": "2021-09-20",
+      "released_global": "2025-11-19",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "101902": {
+      "released_jp": "2022-09-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "102001": {
+      "released_jp": "2021-06-10",
+      "released_global": "2025-09-07",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "102002": {
+      "released_jp": "2022-03-29",
+      "released_global": "2026-04-05",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "102101": {
+      "released_jp": "2021-12-22",
+      "released_global": "2026-01-22",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "102102": {
+      "released_jp": "2022-10-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "102201": {
+      "released_jp": "2021-12-14",
+      "released_global": "2026-01-15",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "102202": {
+      "released_jp": "2022-05-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "102301": {
+      "released_jp": "2021-03-18",
+      "released_global": "2025-07-10",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "102302": {
+      "released_jp": "2021-11-29",
+      "released_global": "2026-01-05",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "102303": {
+      "released_jp": "2024-10-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "102401": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "102402": {
+      "released_jp": "2021-05-28",
+      "released_global": "2025-08-28",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "102403": {
+      "released_jp": "2024-09-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "102501": {
+      "released_jp": "2021-10-20",
+      "released_global": "2025-12-08",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "102502": {
+      "released_jp": "2024-01-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "102601": {
+      "released_jp": "2021-03-09",
+      "released_global": "2025-07-02",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "102602": {
+      "released_jp": "2022-01-28",
+      "released_global": "2026-02-18",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "102701": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "102702": {
+      "released_jp": "2023-01-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "102801": {
+      "released_jp": "2021-09-10",
+      "released_global": "2025-11-11",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "102802": {
+      "released_jp": "2025-09-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "102901": {
+      "released_jp": "2022-09-12",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "102902": {
+      "released_jp": "2024-01-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "103001": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "103002": {
+      "released_jp": "2021-09-29",
+      "released_global": "2025-11-24",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "103003": {
+      "released_jp": "2024-07-09",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "103101": {
+      "released_jp": "2022-05-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "103102": {
+      "released_jp": "2023-01-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "103103": {
+      "released_jp": "2025-07-11",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "103201": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "103202": {
+      "released_jp": "2023-07-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "103203": {
+      "released_jp": "2024-05-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "103301": {
+      "released_jp": "2022-02-16",
+      "released_global": "2026-03-05",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "103302": {
+      "released_jp": "2024-11-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "103401": {
+      "released_jp": "2022-06-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "103402": {
+      "released_jp": "2022-10-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "103501": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "103502": {
+      "released_jp": "2022-08-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "103503": {
+      "released_jp": "2024-04-09",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "103601": {
+      "released_jp": "2022-07-11",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "103602": {
+      "released_jp": "2023-09-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "103701": {
+      "released_jp": "2021-08-20",
+      "released_global": "2025-10-30",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "103702": {
+      "released_jp": "2022-01-28",
+      "released_global": "2026-02-18",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "103703": {
+      "released_jp": "2024-07-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "103801": {
+      "released_jp": "2021-04-15",
+      "released_global": "2025-07-27",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "103802": {
+      "released_jp": "2022-05-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "103901": {
+      "released_jp": "2021-10-11",
+      "released_global": "2025-12-01",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "103902": {
+      "released_jp": "2023-10-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "104001": {
+      "released_jp": "2021-07-20",
+      "released_global": "2025-10-07",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "104002": {
+      "released_jp": "2021-10-28",
+      "released_global": "2025-12-14",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "104003": {
+      "released_jp": "2025-06-27",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "104101": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "104102": {
+      "released_jp": "2023-04-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "104103": {
+      "released_jp": "2026-03-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "104201": {
+      "released_jp": "2022-09-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "104202": {
+      "released_jp": "2024-09-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "104301": {
+      "released_jp": "2023-02-13",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "104401": {
+      "released_jp": "2022-06-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "104402": {
+      "released_jp": "2024-05-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "104501": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "104502": {
+      "released_jp": "2021-09-29",
+      "released_global": "2025-11-24",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "104503": {
+      "released_jp": "2024-04-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "104601": {
+      "released_jp": "2021-05-06",
+      "released_global": "2025-08-11",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "104602": {
+      "released_jp": "2022-08-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "104603": {
+      "released_jp": "2025-04-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "104701": {
+      "released_jp": "2022-12-12",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "104702": {
+      "released_jp": "2024-08-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "104801": {
+      "released_jp": "2021-11-08",
+      "released_global": "2025-12-18",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "104802": {
+      "released_jp": "2023-06-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "104803": {
+      "released_jp": "2025-10-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "104901": {
+      "released_jp": "2022-11-09",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "104902": {
+      "released_jp": "2025-11-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "105001": {
+      "released_jp": "2021-04-26",
+      "released_global": "2025-08-03",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "105002": {
+      "released_jp": "2022-08-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "105003": {
+      "released_jp": "2024-11-08",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "105101": {
+      "released_jp": "2022-04-11",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "105102": {
+      "released_jp": "2023-05-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "105201": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "105202": {
+      "released_jp": "2021-12-31",
+      "released_global": "2026-01-29",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "105301": {
+      "released_jp": "2022-08-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "105302": {
+      "released_jp": "2023-06-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "105401": {
+      "released_jp": "2024-02-14",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "105501": {
+      "released_jp": "2023-06-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "105502": {
+      "released_jp": "2025-09-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "105601": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "105602": {
+      "released_jp": "2021-08-30",
+      "released_global": "2025-11-06",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "105701": {
+      "released_jp": "2023-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "105702": {
+      "released_jp": "2024-12-27",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "105801": {
+      "released_jp": "2021-08-11",
+      "released_global": "2025-10-21",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "105802": {
+      "released_jp": "2022-09-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "105901": {
+      "released_jp": "2021-11-19",
+      "released_global": "2025-12-28",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "105902": {
+      "released_jp": "2022-06-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "106001": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "106002": {
+      "released_jp": "2022-04-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "106003": {
+      "released_jp": "2024-01-09",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "106101": {
+      "released_jp": "2021-02-24",
+      "released_global": "2025-06-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "106102": {
+      "released_jp": "2022-04-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "106103": {
+      "released_jp": "2024-05-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "106201": {
+      "released_jp": "2022-02-24",
+      "released_global": "2026-03-12",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "106202": {
+      "released_jp": "2023-04-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "106301": {
+      "released_jp": "2024-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "106302": {
+      "released_jp": "2025-12-26",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "106401": {
+      "released_jp": "2022-05-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "106402": {
+      "released_jp": "2023-11-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "106501": {
+      "released_jp": "2023-01-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "106502": {
+      "released_jp": "2024-03-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "106601": {
+      "released_jp": "2023-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "106701": {
+      "released_jp": "2022-03-07",
+      "released_global": "2026-03-22",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "106702": {
+      "released_jp": "2022-12-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "106703": {
+      "released_jp": "2023-09-11",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "106801": {
+      "released_jp": "2022-02-24",
+      "released_global": "2026-03-12",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "106802": {
+      "released_jp": "2022-12-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "106803": {
+      "released_jp": "2023-12-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "106901": {
+      "released_jp": "2022-01-20",
+      "released_global": "2026-02-11",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "106902": {
+      "released_jp": "2023-03-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "107001": {
+      "released_jp": "2023-07-21",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "107002": {
+      "released_jp": "2025-04-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "107101": {
+      "released_jp": "2022-02-08",
+      "released_global": "2026-02-25",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "107102": {
+      "released_jp": "2023-03-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "107201": {
+      "released_jp": "2022-04-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "107202": {
+      "released_jp": "2024-04-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "107301": {
+      "released_jp": "2025-02-14",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "107401": {
+      "released_jp": "2022-03-18",
+      "released_global": "2026-03-26",
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "107402": {
+      "released_jp": "2023-11-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "107601": {
+      "released_jp": "2023-04-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "107602": {
+      "released_jp": "2025-12-26",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "107701": {
+      "released_jp": "2023-08-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "107702": {
+      "released_jp": "2024-11-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "107801": {
+      "released_jp": "2022-10-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "107802": {
+      "released_jp": "2025-01-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "107901": {
+      "released_jp": "2025-01-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "108001": {
+      "released_jp": "2024-03-12",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "108002": {
+      "released_jp": "2025-10-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "108101": {
+      "released_jp": "2025-09-09",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "108201": {
+      "released_jp": "2024-05-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "108202": {
+      "released_jp": "2026-03-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "108301": {
+      "released_jp": "2023-03-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "108302": {
+      "released_jp": "2023-09-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "108401": {
+      "released_jp": "2023-05-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "108402": {
+      "released_jp": "2025-03-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "108501": {
+      "released_jp": "2023-03-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "108502": {
+      "released_jp": "2024-03-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "108601": {
+      "released_jp": "2023-10-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "108602": {
+      "released_jp": "2025-05-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "108701": {
+      "released_jp": "2022-10-11",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "108702": {
+      "released_jp": "2025-01-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "108801": {
+      "released_jp": "2023-12-11",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "108802": {
+      "released_jp": "2025-07-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "108901": {
+      "released_jp": "2023-12-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "108902": {
+      "released_jp": "2025-07-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "109001": {
+      "released_jp": "2025-05-12",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "109101": {
+      "released_jp": "2024-01-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "109102": {
+      "released_jp": "2025-08-14",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "109201": {
+      "released_jp": "2025-10-18",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "109301": {
+      "released_jp": "2023-09-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "109302": {
+      "released_jp": "2025-08-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "109401": {
+      "released_jp": "2024-06-13",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "109501": {
+      "released_jp": "2025-09-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "109601": {
+      "released_jp": "2025-03-21",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "109701": {
+      "released_jp": "2025-08-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "109801": {
+      "released_jp": "2022-08-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "109802": {
+      "released_jp": "2025-04-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "109901": {
+      "released_jp": "2023-01-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "109902": {
+      "released_jp": "2024-07-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "110001": {
+      "released_jp": "2022-11-17",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "110002": {
+      "released_jp": "2025-11-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "110201": {
+      "released_jp": "2024-04-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "110202": {
+      "released_jp": "2026-01-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "110301": {
+      "released_jp": "2026-02-14",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "110401": {
+      "released_jp": "2023-07-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "110402": {
+      "released_jp": "2024-12-27",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "110501": {
+      "released_jp": "2023-04-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "110502": {
+      "released_jp": "2024-08-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "110601": {
+      "released_jp": "2023-05-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "110602": {
+      "released_jp": "2025-08-29",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "110701": {
+      "released_jp": "2023-11-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "110702": {
+      "released_jp": "2025-03-31",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "110801": {
+      "released_jp": "2024-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "110901": {
+      "released_jp": "2024-03-21",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "110902": {
+      "released_jp": "2025-07-22",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "111001": {
+      "released_jp": "2024-09-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "111002": {
+      "released_jp": "2025-05-30",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "111101": {
+      "released_jp": "2024-11-18",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "111301": {
+      "released_jp": "2025-07-22",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "111401": {
+      "released_jp": "2025-11-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "111501": {
+      "released_jp": "2025-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "111601": {
+      "released_jp": "2024-08-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "111701": {
+      "released_jp": "2024-12-10",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "111901": {
+      "released_jp": "2024-06-26",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "111902": {
+      "released_jp": "2025-11-28",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "112001": {
+      "released_jp": "2024-07-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "112101": {
+      "released_jp": "2024-09-20",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "112401": {
+      "released_jp": "2024-10-11",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "112402": {
+      "released_jp": "2026-01-08",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "112701": {
+      "released_jp": "2025-04-21",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "112901": {
+      "released_jp": "2026-02-24",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "113101": {
+      "released_jp": "2025-03-11",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "113201": {
+      "released_jp": "2025-05-21",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "113202": {
+      "released_jp": "2026-03-11",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "113301": {
+      "released_jp": "2025-06-13",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "113501": {
+      "released_jp": "2025-12-21",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "113701": {
+      "released_jp": "2026-01-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    },
+    "114301": {
+      "released_jp": "2026-03-19",
+      "released_global": null,
+      "release_global_is_approximate": false,
+      "release_source": "https://gametora.com/data/umamusume/character-cards.04f3c02a.json"
+    }
+  }
+}

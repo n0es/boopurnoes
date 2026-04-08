@@ -63,6 +63,13 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/optimize/resume", post(handlers::optimize_resume))
         .route("/api/score", post(handlers::score_deck))
         .route("/api/simulate-turn", post(handlers::simulate_turn))
+        .route("/api/career/init", post(handlers::career_init))
+        .route("/api/career/create", post(handlers::career_create))
+        .route("/api/career/{id}/preview", post(handlers::career_preview))
+        .route("/api/career/{id}/event", post(handlers::career_event))
+        .route("/api/career/{id}/advance", post(handlers::career_advance))
+        .route("/api/career/{id}/state", get(handlers::career_state))
+        .route("/api/career/{id}/timeline", get(handlers::career_timeline))
         .layer(cors)
         .with_state(state);
 

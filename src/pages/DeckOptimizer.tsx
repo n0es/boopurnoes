@@ -2,10 +2,11 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { Link } from 'react-router-dom'
+import type { ReleaseMetadata } from '../lib/releaseMetadata'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-interface Trainee {
+interface Trainee extends ReleaseMetadata {
   id: number
   name: string
   name_jp: string | null
@@ -69,7 +70,7 @@ interface OptimizeResponse {
 }
 
 interface OwnedCardEntry { level: number; uncap: number }
-interface CardBasic { id: number; name: string; rarity: string; card_type: string }
+interface CardBasic extends ReleaseMetadata { id: number; name: string; rarity: string; card_type: string }
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -213,7 +214,7 @@ export default function DeckOptimizer() {
   useEffect(() => {
     supabase
       .from('trainees')
-      .select('id, name, name_jp, title, rarity, stat_growth, icon_path')
+      .select('id, name, name_jp, title, rarity, stat_growth, icon_path, released_jp, released_global, release_global_is_approximate, release_source')
       .order('name')
       .then(({ data }) => { if (data) setTrainees(data) })
 
@@ -226,7 +227,7 @@ export default function DeckOptimizer() {
 
     supabase
       .from('support_cards')
-      .select('id, name, rarity, card_type')
+      .select('id, name, rarity, card_type, released_jp, released_global, release_global_is_approximate, release_source')
       .order('id')
       .then(({ data }) => { if (data) setCards(data) })
   }, [])

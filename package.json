@@ -13,6 +13,8 @@
     "preview": "vite preview",
     "db:setup": "tsx scripts/setup.ts",
     "db:seed": "tsx scripts/seed.ts",
+    "db:import-release-dates": "tsx scripts/import-release-dates.ts",
+    "db:build-release-dates": "tsx scripts/build-release-dates-from-gametora.ts",
     "db:images": "tsx scripts/download-images.ts",
     "db:reset": "npm run db:setup && npm run db:seed && npm run db:images && npm run db:scrape-trainees && npm run db:trainee-images",
     "db:sync": "tsx scripts/sync-prod.ts",
@@ -20,7 +22,8 @@
     "db:import-trainees": "tsx scripts/import-trainees.ts",
     "db:scrape-trainees": "tsx scripts/scrape-trainees.ts",
     "db:trainee-images": "tsx scripts/download-trainee-images.ts",
-    "db:skill-icons": "tsx scripts/download-skill-icons.ts"
+    "db:skill-icons": "tsx scripts/download-skill-icons.ts",
+    "db:generate-icons": "tsx scripts/generate-trainee-icons.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.99.2",
@@ -39,12 +42,14 @@
     "@types/pg": "^8.18.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@types/sharp": "^0.31.1",
     "@vitejs/plugin-react": "^6.0.0",
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
     "pg": "^8.20.0",
+    "sharp": "^0.34.5",
     "tsx": "^4.21.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.56.1",
