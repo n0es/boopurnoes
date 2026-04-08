@@ -17,7 +17,7 @@ export default function Home() {
           )
         )}
       </header>
-      <main>
+      <main className="home">
         <section className="hero">
           <h1>boop</h1>
           <p className="tagline">developer & creator</p>
@@ -41,6 +41,11 @@ export default function Home() {
             <li>web development</li>
             <li>software engineering</li>
             <li>consulting</li>
+            <li>
+              <Link to="/umamusume" className="services-link">
+                uma musume tools
+              </Link>
+            </li>
           </ul>
         </section>
       </main>

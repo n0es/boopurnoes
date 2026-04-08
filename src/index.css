@@ -30,6 +30,8 @@ body {
 
 #root {
   width: 100%;
+  padding-left: clamp(2rem, 8vw, 6rem);
+  padding-right: clamp(2rem, 8vw, 6rem);
 }
 
 header {
@@ -68,6 +70,34 @@ main {
   display: flex;
   flex-direction: column;
   gap: 3rem;
+}
+
+main.home {
+  padding-top: clamp(5rem, 16vh, 12rem);
+  padding-bottom: clamp(3rem, 8vh, 6rem);
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+  gap: clamp(3rem, 6vh, 5rem);
+}
+
+main.home .services {
+  text-align: center;
+}
+
+main.home .services ul {
+  align-items: center;
+}
+
+main.home .services-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 300;
+  transition: color 0.2s ease;
+}
+
+main.home .services-link:hover {
+  color: var(--text);
 }
 
 .hero {
@@ -368,6 +398,14 @@ button:disabled {
 .menu-item:hover .menu-item-name {
   opacity: .7;
   transform: translateY(-50%) translateX(0);
+}
+
+/* Native <select> lists (esp. Windows/Chrome) often paint a light background but still inherit
+   :root's light text, so options look invisible. Force readable option rows. */
+select option,
+select optgroup {
+  color: #18181b;
+  background-color: #f4f4f5;
 }
 
 @media (max-width: 480px) {
