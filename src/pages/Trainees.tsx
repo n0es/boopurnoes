@@ -480,7 +480,11 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
       {/* ── Overlay ── */}
       <div
         ref={overlayRef}
-        onClick={e => { if (e.target === overlayRef.current) onClose() }}
+        onClick={e => {
+          if (e.target !== overlayRef.current) return
+          e.stopPropagation()
+          onClose()
+        }}
         style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)',
           display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
@@ -875,14 +879,18 @@ export default function Trainees() {
   }
 
   function closeModal() {
-    setSearchParams(p => {
-      const n = new URLSearchParams(p)
-      n.delete('trainee')
-      n.delete('tab')
-      n.delete('rank')
-      n.delete('pot')
-      return n
-    }, { replace: true })
+    // Defer URL update so the same pointer/click that closed the modal cannot
+    // "fall through" to the grid tile underneath and immediately reopen (?trainee=).
+    setTimeout(() => {
+      setSearchParams(p => {
+        const n = new URLSearchParams(p)
+        n.delete('trainee')
+        n.delete('tab')
+        n.delete('rank')
+        n.delete('pot')
+        return n
+      }, { replace: true })
+    }, 0)
   }
 
   function handleSearchChange(value: string) {
