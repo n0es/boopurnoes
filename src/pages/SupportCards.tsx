@@ -1,8 +1,26 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
+import {
+  CatalogShell,
+  CatalogHeader,
+  CatalogGrid,
+  RegionFilter,
+  FilterPill,
+  CardSizeSlider,
+} from '../components/catalog'
+import {
+  hasReleaseInfo,
+  releaseSummaryLines,
+  passesRegionAvailabilityFilter,
+  parseRegionParam,
+  todayIsoDateLocal,
+  type ReleaseMetadata,
+  type RegionAvailabilityFilter,
+} from '../lib/releaseMetadata'
 
-interface SupportCard {
+interface SupportCard extends ReleaseMetadata {
   id: number
   name: string
   title: string | null
@@ -18,13 +36,40 @@ interface SupportCardEffect {
   values_by_level: number[]
 }
 
+interface Skill {
+  name: string
+  description: string | null
+  icon_url: string | null
+  condition: string | null
+}
+
+interface HintSkill {
+  id: number
+  sort_order: number
+  skills: Skill
+}
+
+interface EventSkill {
+  id: number
+  sort_order: number
+  skills: Skill
+}
+
+interface TrainingEvent {
+  id: number
+  name: string
+  event_type: 'chain' | 'random'
+  chain_level: number | null
+  sort_order: number
+}
+
 interface OwnedEntry {
   level: number
   uncap: number
 }
 
 const CARD_TYPES = ['speed', 'stamina', 'power', 'guts', 'intelligence', 'friend', 'group']
-const SUPABASE_STORAGE = 'https://supabase.boopurno.es/storage/v1/object/public/umamusume'
+const SUPABASE_STORAGE = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/umamusume`
 
 function getArtUrl(id: number)      { return `${SUPABASE_STORAGE}/supports/art/${id}.png` }
 function getIconUrl(id: number)     { return `${SUPABASE_STORAGE}/supports/icons/${id}.png` }
@@ -60,23 +105,45 @@ export default function SupportCards() {
   const [sortDir, setSortDir]           = useState<SortDir>('asc')
   const [collectionMode, setCollectionMode] = useState(false)
   const [ownedMap, setOwnedMap]         = useState<Map<number, OwnedEntry> | null>(null)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const unownedMode = searchParams.get('unowned') === '1'
+  function toggleUnownedMode() {
+    if (!collectionMode) return
+    setSearchParams(p => {
+      const n = new URLSearchParams(p)
+      if (unownedMode) n.delete('unowned')
+      else n.set('unowned', '1')
+      return n
+    }, { replace: true })
+  }
   const [modalCard, setModalCard]       = useState<SupportCard | null>(null)
   const [cardSize, setCardSize]         = useState(100) // min card width in px
 
-  useEffect(() => {
-    const root = document.getElementById('root')
-    if (root) { root.style.maxWidth = 'none'; root.style.padding = '0' }
-    return () => {
-      if (root) { root.style.maxWidth = ''; root.style.padding = '' }
+  const regionFilter = parseRegionParam(searchParams.get('region'))
+  const todayIso = todayIsoDateLocal()
+
+  function setRegionFilter(r: RegionAvailabilityFilter) {
+    setSearchParams(p => {
+      const n = new URLSearchParams(p)
+      if (r === 'jp') n.delete('region')
+      else n.set('region', 'global')
+      return n
+    }, { replace: true })
+  }
+
+  function toggleCollectionMode() {
+    if (collectionMode) {
+      setSearchParams(p => { const n = new URLSearchParams(p); n.delete('unowned'); return n }, { replace: true })
     }
-  }, [])
+    setCollectionMode(m => !m)
+  }
 
   useEffect(() => {
     async function fetchCards() {
       setLoading(true); setError(null)
       const { data, error } = await supabase
         .from('support_cards')
-        .select('id, name, title, rarity, card_type')
+        .select('id, name, title, rarity, card_type, released_jp, released_global, release_global_is_approximate, release_source')
         .order('id', { ascending: true })
       if (error) setError(error.message)
       else setCards(data ?? [])
@@ -85,21 +152,18 @@ export default function SupportCards() {
     fetchCards()
   }, [])
 
-  useEffect(() => {
-    if (!collectionMode || !user) { setOwnedMap(null); return }
-    fetchCollection()
-  }, [collectionMode, user])
-
-  async function fetchCollection() {
-    const { data } = await supabase
+  const fetchCollection = useCallback(() => {
+    supabase
       .from('user_support_card_collection')
       .select('card_id, level, uncap')
-    const map = new Map<number, OwnedEntry>()
-    for (const r of (data ?? []) as { card_id: number; level: number; uncap: number }[]) {
-      map.set(r.card_id, { level: r.level, uncap: r.uncap })
-    }
-    setOwnedMap(map)
-  }
+      .then(({ data }) => {
+        const map = new Map<number, OwnedEntry>()
+        for (const r of (data ?? []) as { card_id: number; level: number; uncap: number }[]) {
+          map.set(r.card_id, { level: r.level, uncap: r.uncap })
+        }
+        setOwnedMap(map)
+      })
+  }, [])
 
   async function addToCollection(cardId: number, level: number, uncap: number) {
     await supabase
@@ -116,11 +180,19 @@ export default function SupportCards() {
     await fetchCollection()
   }
 
+  useEffect(() => {
+    if (collectionMode && user) {
+      fetchCollection()
+    }
+  }, [collectionMode, user, fetchCollection])
+
   const filtered = cards
     .filter(c => {
       if (selectedType   && c.card_type !== selectedType)                           return false
       if (selectedRarity && c.rarity    !== selectedRarity)                         return false
       if (search         && !c.name.toLowerCase().includes(search.toLowerCase()))   return false
+      if (collectionMode && !unownedMode && user && ownedMap !== null && !ownedMap.has(c.id)) return false
+      if (!passesRegionAvailabilityFilter(regionFilter, c.released_jp, c.released_global, todayIso)) return false
       return true
     })
     .sort((a, b) => {
@@ -133,78 +205,60 @@ export default function SupportCards() {
     })
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0f0f13', color: '#fff', fontFamily: 'sans-serif' }}>
-      {/* Header */}
-      <div style={{ padding: '10px 16px', borderBottom: '1px solid #222', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <a href="/" style={{ color: '#aaa', textDecoration: 'none', fontSize: 13 }}>← Home</a>
-        <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Support Cards</h1>
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
-          {collectionMode && !user && (
-            <span style={{ fontSize: 12, color: '#f87171' }}>Sign in to use collection mode</span>
-          )}
-          <button
-            onClick={() => setCollectionMode(m => !m)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              padding: '7px 14px', borderRadius: 8, border: '1px solid',
-              borderColor: collectionMode ? '#7dd3fc' : '#333',
-              background: collectionMode ? '#0c2a3f' : 'transparent',
-              color: collectionMode ? '#7dd3fc' : '#666',
-              cursor: 'pointer', fontSize: 13, fontWeight: 500, transition: 'all 0.15s',
-            }}
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill={collectionMode ? '#7dd3fc' : 'none'} stroke="currentColor" strokeWidth="2">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-            </svg>
-            My Collection
-          </button>
-        </div>
-      </div>
+    <CatalogShell>
+      <CatalogHeader
+        title="Support Cards"
+        collectionMode={collectionMode}
+        onToggleCollection={toggleCollectionMode}
+        unownedMode={unownedMode}
+        onToggleUnowned={toggleUnownedMode}
+        collectionDisabled={!user}
+        warningMessage={collectionMode && !user ? 'Sign in to use collection mode' : undefined}
+      />
 
       {/* Filters */}
-      <div style={{ padding: '10px 16px', display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{ padding: '8px 16px 10px', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', borderTop: '1px solid #1a1a1a' }}>
         <input
           type="search" placeholder="Search cards…" value={search}
           onChange={e => setSearch(e.target.value)}
-          style={{ background: '#1a1a22', border: '1px solid #333', borderRadius: 8, padding: '6px 12px', color: '#fff', fontSize: 13, width: 180, outline: 'none' }}
+          style={{
+            background: '#1a1a22', border: '1px solid #2a2a38', borderRadius: 8,
+            padding: '5px 10px', color: '#fff', fontSize: 12, outline: 'none', width: 160,
+          }}
         />
-        <div style={{ width: 1, height: 28, background: '#333' }} />
-        <div style={{ display: 'flex', gap: 6 }}>
+        <RegionFilter value={regionFilter} onChange={setRegionFilter} />
+        <div style={{ display: 'flex', gap: 4 }}>
           {(['id', 'name', 'rarity', 'card_type'] as SortField[]).map(field => (
-            <button key={field}
+            <FilterPill
+              key={field}
+              active={sortField === field}
               onClick={() => {
                 if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
                 else { setSortField(field); setSortDir('asc') }
               }}
-              style={{
-                padding: '6px 12px', borderRadius: 8, border: '1px solid',
-                borderColor: sortField === field ? '#888' : '#333',
-                background: sortField === field ? '#2a2a36' : 'transparent',
-                color: sortField === field ? '#fff' : '#666',
-                cursor: 'pointer', fontSize: 12, fontWeight: 500,
-              }}
             >
               {field === 'id' ? 'Default' : field === 'card_type' ? 'Type' : field.charAt(0).toUpperCase() + field.slice(1)}
               {sortField === field && (sortDir === 'asc' ? ' ↑' : ' ↓')}
-            </button>
+            </FilterPill>
           ))}
         </div>
-        <div style={{ width: 1, height: 28, background: '#333' }} />
-        <div style={{ display: 'flex', gap: 8 }}>
-          {['SSR', 'SR', 'R'].map(r => (
-            <button key={r}
-              onClick={() => setSelectedRarity(selectedRarity === r ? null : r)}
-              style={{
-                padding: '6px 14px', borderRadius: 20, border: '1px solid',
-                borderColor: selectedRarity === r ? '#e8b4f8' : '#444',
-                background: selectedRarity === r ? '#3a1f4a' : 'transparent',
-                color: selectedRarity === r ? '#e8b4f8' : '#aaa',
-                cursor: 'pointer', fontSize: 13, fontWeight: 600,
-              }}
-            >{r}</button>
-          ))}
+        <div style={{ display: 'flex', gap: 4 }}>
+          {['SSR', 'SR', 'R'].map(r => {
+            const rs = RARITY_STYLE[r]
+            return (
+              <FilterPill
+                key={r}
+                active={selectedRarity === r}
+                activeColor={rs?.color}
+                activeBg={rs?.bg}
+                activeBorder={rs?.color}
+                onClick={() => setSelectedRarity(selectedRarity === r ? null : r)}
+              >
+                {r}
+              </FilterPill>
+            )
+          })}
         </div>
-        <div style={{ width: 1, height: 28, background: '#333' }} />
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {CARD_TYPES.map(type => (
             <button key={type}
@@ -222,45 +276,26 @@ export default function SupportCards() {
             </button>
           ))}
         </div>
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ color: '#666', fontSize: 12 }}>
-            {filtered.length}{collectionMode && user && ownedMap !== null && (
-              <span style={{ color: '#7dd3fc' }}> · {ownedMap.size} owned</span>
-            )}
-          </span>
-          {/* Card size slider */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }} title="Card size">
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#555" strokeWidth="1.5">
-              <rect x="1" y="1" width="6" height="8" rx="1"/><rect x="9" y="1" width="6" height="8" rx="1"/>
-              <rect x="1" y="11" width="6" height="4" rx="1"/><rect x="9" y="11" width="6" height="4" rx="1"/>
-            </svg>
-            <input
-              type="range" min={60} max={180} step={10} value={cardSize}
-              onChange={e => setCardSize(Number(e.target.value))}
-              style={{ width: 64, accentColor: '#a78bfa', cursor: 'pointer', margin: 0, padding: 0, display: 'block' }}
-            />
-          </div>
-        </div>
+        <CardSizeSlider
+          value={cardSize}
+          onChange={setCardSize}
+          min={60} max={180}
+          count={filtered.length}
+          ownedCount={collectionMode && user && ownedMap !== null ? ownedMap.size : undefined}
+        />
       </div>
 
-      {/* Grid */}
-      <div style={{ padding: '8px 16px 32px' }}>
-        {loading && <div style={{ textAlign: 'center', color: '#666', paddingTop: 80 }}>Loading cards…</div>}
-        {error   && <div style={{ color: '#f87171', background: '#2a1a1a', borderRadius: 8, padding: '12px 16px', maxWidth: 400 }}>Error: {error}</div>}
-        {!loading && !error && (
-          <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fill, minmax(min(${cardSize}px, 100%), 1fr))`, gap: 8 }}>
-            {filtered.map(card => (
-              <CardTile
-                key={card.id}
-                card={card}
-                owned={collectionMode && !!user && ownedMap !== null && ownedMap.has(card.id)}
-                dimmed={collectionMode && !!user && ownedMap !== null && !ownedMap.has(card.id)}
-                onClick={() => { if (user) setModalCard(card) }}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+      <CatalogGrid loading={loading} error={error} emptyMessage="No cards found." cardSize={cardSize}>
+        {filtered.map(card => (
+          <CardTile
+            key={card.id}
+            card={card}
+            owned={collectionMode && !!user && ownedMap !== null && ownedMap.has(card.id)}
+            dimmed={collectionMode && unownedMode && !!user && ownedMap !== null && !ownedMap.has(card.id)}
+            onClick={() => { if (user) setModalCard(card) }}
+          />
+        ))}
+      </CatalogGrid>
 
       {modalCard && (
         <CardModal
@@ -275,7 +310,7 @@ export default function SupportCards() {
           }}
         />
       )}
-    </div>
+    </CatalogShell>
   )
 }
 
@@ -298,7 +333,7 @@ function CardTile({ card, owned, dimmed, onClick }: {
         position: 'relative', borderRadius: 12, overflow: 'hidden',
         background: '#1a1a22', aspectRatio: '3 / 4',
         boxShadow: owned ? ownedShadow : defaultShadow,
-        transition: 'transform 0.15s, box-shadow 0.15s',
+        transition: 'transform 0.15s, box-shadow 0.15s, filter 0.2s ease',
         cursor: 'pointer',
         filter: dimmed ? 'grayscale(1) brightness(0.4)' : 'none',
       }}
@@ -306,11 +341,13 @@ function CardTile({ card, owned, dimmed, onClick }: {
         const d = e.currentTarget as HTMLDivElement
         d.style.transform = 'scale(1.03)'
         d.style.boxShadow = owned ? hoverOwned : hoverDefault
+        if (dimmed) d.style.filter = 'grayscale(0.2) brightness(0.85)'
       }}
       onMouseLeave={e => {
         const d = e.currentTarget as HTMLDivElement
         d.style.transform = 'scale(1)'
         d.style.boxShadow = owned ? ownedShadow : defaultShadow
+        if (dimmed) d.style.filter = 'grayscale(1) brightness(0.4)'
       }}
     >
       <img src={getArtUrl(card.id)} alt={card.name} onLoad={() => setArtLoaded(true)}
@@ -383,16 +420,14 @@ function CardModal({ card, owned, onClose, onAdd, onRemove, onCardUpdated }: {
   const [uncap, setUncap]   = useState(owned?.uncap ?? 0)
   const [level, setLevel]   = useState(owned?.level ?? 1)
   const [effects, setEffects] = useState<SupportCardEffect[]>([])
+  const [hints, setHints]   = useState<HintSkill[]>([])
+  const [eventSkills, setEventSkills] = useState<EventSkill[]>([])
+  const [trainingEvents, setTrainingEvents] = useState<TrainingEvent[]>([])
   const [busy, setBusy]     = useState(false)
   const [editing, setEditing] = useState(false)
   const overlayRef          = useRef<HTMLDivElement>(null)
 
   const maxLevel = maxLevelForUncap(uncap, card.rarity)
-
-  // Clamp level when uncap is reduced
-  useEffect(() => {
-    if (level > maxLevel) setLevel(maxLevel)
-  }, [uncap])
 
   useEffect(() => {
     supabase
@@ -400,6 +435,27 @@ function CardModal({ card, owned, onClose, onAdd, onRemove, onCardUpdated }: {
       .select('id, effect_name, symbol, unlock_level, values_by_level')
       .eq('card_id', card.id)
       .then(({ data }) => setEffects((data ?? []) as SupportCardEffect[]))
+
+    supabase
+      .from('support_card_hints')
+      .select('id, sort_order, skills(name, description, icon_url, condition)')
+      .eq('card_id', card.id)
+      .order('sort_order')
+      .then(({ data }) => setHints((data ?? []) as unknown as HintSkill[]))
+
+    supabase
+      .from('support_card_event_skills')
+      .select('id, sort_order, skills(name, description, icon_url, condition)')
+      .eq('card_id', card.id)
+      .order('sort_order')
+      .then(({ data }) => setEventSkills((data ?? []) as unknown as EventSkill[]))
+
+    supabase
+      .from('support_card_training_events')
+      .select('id, name, event_type, chain_level, sort_order')
+      .eq('card_id', card.id)
+      .order('sort_order')
+      .then(({ data }) => setTrainingEvents((data ?? []) as TrainingEvent[]))
   }, [card.id])
 
   useEffect(() => {
@@ -438,6 +494,13 @@ function CardModal({ card, owned, onClose, onAdd, onRemove, onCardUpdated }: {
           <div>
             <div style={{ fontWeight: 700, fontSize: 15 }}>{card.name}</div>
             <div style={{ fontSize: 11, color: '#666', marginTop: 1 }}>{card.title || card.card_type}</div>
+            {hasReleaseInfo(card) && (
+              <div style={{ fontSize: 10, color: '#888', marginTop: 6, lineHeight: 1.45 }}>
+                {releaseSummaryLines(card).map(line => (
+                  <div key={line}>{line}</div>
+                ))}
+              </div>
+            )}
           </div>
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
             <button
@@ -491,7 +554,11 @@ function CardModal({ card, owned, onClose, onAdd, onRemove, onCardUpdated }: {
                 <span style={{ fontSize: 13, fontWeight: 700, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
                   Lv. {level}
                 </span>
-                <UncapDiamonds value={uncap} interactive={!isOwned} onChange={v => setUncap(v)} />
+                <UncapDiamonds value={uncap} interactive={!isOwned} onChange={v => {
+                  setUncap(v)
+                  const newMax = maxLevelForUncap(v, card.rarity)
+                  if (level > newMax) setLevel(newMax)
+                }} />
               </div>
             </div>
 
@@ -549,13 +616,75 @@ function CardModal({ card, owned, onClose, onAdd, onRemove, onCardUpdated }: {
             </div>
           </div>
 
-          {/* ── Right: skills (placeholder) ── */}
+          {/* ── Right: skills & events ── */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
             <div style={{ padding: '12px 14px 8px', fontSize: 12, fontWeight: 600, color: '#888', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}>
-              Skills
+              Skills &amp; Events
             </div>
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontSize: 12, color: '#333' }}>Coming soon</span>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '0 4px 12px' }}>
+              {hints.length === 0 && eventSkills.length === 0 && trainingEvents.length === 0 ? (
+                <div style={{ padding: '8px 10px', color: '#444', fontSize: 13 }}>No skills data.</div>
+              ) : (
+                <>
+                  {/* Hints */}
+                  {hints.length > 0 && (
+                    <div style={{ marginBottom: 10 }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: '#60a5fa', padding: '4px 10px', letterSpacing: '0.04em' }}>Hints</div>
+                      {hints.map(h => (
+                        <div key={h.id} style={{
+                          display: 'flex', alignItems: 'center', gap: 8,
+                          padding: '5px 10px', borderRadius: 7, margin: '2px 4px',
+                          background: '#1a1a26',
+                        }}>
+                          {h.skills?.icon_url && <img src={h.skills.icon_url} alt="" style={{ width: 20, height: 20, borderRadius: 3, flexShrink: 0 }} />}
+                          <span style={{ fontSize: 12, color: '#ccc' }}>{h.skills?.name}</span>
+                          {h.skills?.condition && <span style={{ fontSize: 10, color: '#888', marginLeft: 'auto', flexShrink: 0 }}>{h.skills.condition}</span>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Event skills */}
+                  {eventSkills.length > 0 && (
+                    <div style={{ marginBottom: 10 }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: '#a78bfa', padding: '4px 10px', letterSpacing: '0.04em' }}>Event Skills</div>
+                      {eventSkills.map(s => (
+                        <div key={s.id} style={{
+                          display: 'flex', alignItems: 'center', gap: 8,
+                          padding: '5px 10px', borderRadius: 7, margin: '2px 4px',
+                          background: '#1a1a26',
+                        }}>
+                          {s.skills?.icon_url && <img src={s.skills.icon_url} alt="" style={{ width: 20, height: 20, borderRadius: 3, flexShrink: 0 }} />}
+                          <span style={{ fontSize: 12, color: '#ccc' }}>{s.skills?.name}</span>
+                          {s.skills?.condition && <span style={{ fontSize: 10, color: '#888', marginLeft: 'auto', flexShrink: 0 }}>{s.skills.condition}</span>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Training events */}
+                  {trainingEvents.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: '#fbbf24', padding: '4px 10px', letterSpacing: '0.04em' }}>Training Events</div>
+                      {trainingEvents.map(ev => (
+                        <div key={ev.id} style={{
+                          display: 'flex', alignItems: 'center', gap: 6,
+                          padding: '5px 10px', borderRadius: 7, margin: '2px 4px',
+                          background: '#1a1a26',
+                        }}>
+                          {ev.event_type === 'chain' && (
+                            <span style={{ fontSize: 11, color: '#fbbf24', flexShrink: 0 }}>{'❯'.repeat(ev.chain_level ?? 1)}</span>
+                          )}
+                          {ev.event_type === 'random' && (
+                            <span style={{ fontSize: 10, color: '#888', flexShrink: 0 }}>⟡</span>
+                          )}
+                          <span style={{ fontSize: 12, color: '#ccc' }}>{ev.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -723,8 +852,8 @@ function EditCardModal({ card, effects, onClose, onSaved }: {
 
       const updatedCard: SupportCard = { ...card, name, title: title || null, rarity, card_type: cardType }
       onSaved(updatedCard, (freshEffects ?? []) as SupportCardEffect[])
-    } catch (err: any) {
-      setError(err.message ?? 'Save failed')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Save failed')
     } finally {
       setBusy(false)
     }

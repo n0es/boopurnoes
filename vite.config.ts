@@ -6,5 +6,6 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: true, // bind to 0.0.0.0 so Tailscale (and LAN) can reach it
+    allowedHosts: ['ethan-pc-1.tail5ea3c.ts.net'],
   },
 })
