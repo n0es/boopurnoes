@@ -471,9 +471,11 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
       })
   }, [trainee.id])
 
-  // Load existing collection entry for this trainee
+  // Load existing collection entry for this trainee (deps: trainee + user only — URL sync
+  // callbacks must stay stable from the parent or this re-runs every render and fights closeModal.)
   useEffect(() => {
     if (!user) { return }
+    let cancelled = false
     supabase
       .from('user_trainee_collection')
       .select('star_rank, awakening_level')
@@ -481,6 +483,7 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
       .eq('trainee_id', trainee.id)
       .maybeSingle()
       .then(({ data }) => {
+        if (cancelled) return
         if (data) {
           setCollectionEntry(data as CollectionEntry)
           changeStarRank(data.star_rank)
@@ -489,6 +492,7 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
           setCollectionEntry(null)
         }
       })
+    return () => { cancelled = true }
   }, [trainee.id, user, changeStarRank, changePotentialLevel])
 
   async function handleSave() {
@@ -848,6 +852,30 @@ export default function Trainees() {
     return trainees.find(t => String(t.id) === paramId) ?? null
   }, [paramId, trainees])
 
+  const syncTraineeTabToUrl = useCallback((tab: 'skills' | 'events') => {
+    setSearchParams(p => {
+      const n = new URLSearchParams(p)
+      n.set('tab', tab)
+      return n
+    }, { replace: true })
+  }, [setSearchParams])
+
+  const syncTraineeRankToUrl = useCallback((rank: number) => {
+    setSearchParams(p => {
+      const n = new URLSearchParams(p)
+      n.set('rank', String(rank))
+      return n
+    }, { replace: true })
+  }, [setSearchParams])
+
+  const syncTraineePotToUrl = useCallback((pot: number) => {
+    setSearchParams(p => {
+      const n = new URLSearchParams(p)
+      n.set('pot', String(pot))
+      return n
+    }, { replace: true })
+  }, [setSearchParams])
+
   function toggleCollectionMode() {
     setSearchParams(p => {
       const n = new URLSearchParams(p)
@@ -909,7 +937,7 @@ export default function Trainees() {
     }
   }, [collectionMode, user, refreshCollection])
 
-  function openModal(t: Trainee) {
+  const openModal = useCallback((t: Trainee) => {
     setSearchParams(p => {
       const n = new URLSearchParams(p)
       n.set('trainee', String(t.id))
@@ -918,9 +946,9 @@ export default function Trainees() {
       if (!n.has('pot')) n.set('pot', '1')
       return n
     }, { replace: true })
-  }
+  }, [setSearchParams])
 
-  function closeModal() {
+  const closeModal = useCallback(() => {
     // Defer clearing ?trainee= so the gesture that closed the modal cannot retarget
     // the grid tile and reopen (pointerdown + next frame is more reliable than click).
     setTimeout(() => {
@@ -933,7 +961,7 @@ export default function Trainees() {
         return n
       }, { replace: true })
     }, 50)
-  }
+  }, [setSearchParams])
 
   function handleSearchChange(value: string) {
     setSearch(value)
@@ -1025,16 +1053,19 @@ export default function Trainees() {
         />
       </div>
 
-      <CatalogGrid loading={loading} error={error} emptyMessage="No trainees found." cardSize={cardSize}>
-        {filtered.map(t => (
-          <TraineeTile
-            key={t.id}
-            trainee={t}
-            dimmed={collectionMode && unownedMode && !!user && collectionIds !== null && !collectionIds.has(t.id)}
-            onClick={() => openModal(t)}
-          />
-        ))}
-      </CatalogGrid>
+      {/* Block pointer events to grid while modal open so nothing underneath steals the closing gesture. */}
+      <div style={{ pointerEvents: modalTrainee ? 'none' : 'auto' }}>
+        <CatalogGrid loading={loading} error={error} emptyMessage="No trainees found." cardSize={cardSize}>
+          {filtered.map(t => (
+            <TraineeTile
+              key={t.id}
+              trainee={t}
+              dimmed={collectionMode && unownedMode && !!user && collectionIds !== null && !collectionIds.has(t.id)}
+              onClick={() => openModal(t)}
+            />
+          ))}
+        </CatalogGrid>
+      </div>
 
       {modalTrainee && (
         <TraineeModal
@@ -1044,9 +1075,9 @@ export default function Trainees() {
           initialTab={(searchParams.get('tab') as 'skills' | 'events') ?? 'skills'}
           initialRank={Number(searchParams.get('rank')) || modalTrainee.rarity}
           initialPot={Number(searchParams.get('pot')) || 1}
-          onTabChange={tab => setSearchParams(p => { const n = new URLSearchParams(p); n.set('tab', tab); return n }, { replace: true })}
-          onRankChange={rank => setSearchParams(p => { const n = new URLSearchParams(p); n.set('rank', String(rank)); return n }, { replace: true })}
-          onPotChange={pot => setSearchParams(p => { const n = new URLSearchParams(p); n.set('pot', String(pot)); return n }, { replace: true })}
+          onTabChange={syncTraineeTabToUrl}
+          onRankChange={syncTraineeRankToUrl}
+          onPotChange={syncTraineePotToUrl}
         />
       )}
     </CatalogShell>
