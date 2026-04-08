@@ -1,0 +1,29 @@
+---
+description: Bump semver PATCH in package.json on every commit; agents may edit the version field.
+alwaysApply: true
+---
+
+# Semantic version — patch per commit
+
+Agents **may and should** change `package.json` **`version`** so it stays aligned with commit cadence. The UI reads this at build time via `vite.config.ts` (`__APP_VERSION__`); do not duplicate the number elsewhere.
+
+## Every commit = +1 patch
+
+For **each commit** the agent creates (including the commit that finishes a task), **increment the PATCH** segment (`major.minor.patch` → same major, same minor, `patch + 1`).
+
+**Preferred** (from repo root, updates `package.json` correctly):
+
+```bash
+npm version patch --no-git-tag-version
+```
+
+Alternatively, edit `"version"` manually (e.g. `1.0.3` → `1.0.4`). Never leave the version unchanged when adding a new commit.
+
+## When to skip bumping
+
+- **Amending** the latest commit without changing the tree meaningfully (rare): keep the existing version.
+- **MAJOR / MINOR** bumps: only when the user explicitly asks for a release-style bump; routine work uses **patch** only.
+
+## Before pushing
+
+Ensure `package.json` reflects the new patch **in the same commit** as the rest of the change (stage `package.json` with the other files).
