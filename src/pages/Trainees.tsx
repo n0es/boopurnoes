@@ -1,11 +1,29 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
+import { AptitudeGrid } from '../components/AptitudeGrid'
+import {
+  CatalogShell,
+  CatalogHeader,
+  CatalogGrid,
+  RegionFilter,
+  FilterPill,
+  CardSizeSlider,
+} from '../components/catalog'
+import {
+  hasReleaseInfo,
+  releaseSummaryLines,
+  passesRegionAvailabilityFilter,
+  parseRegionParam,
+  todayIsoDateLocal,
+  type ReleaseMetadata,
+  type RegionAvailabilityFilter,
+} from '../lib/releaseMetadata'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export interface Trainee {
+export interface Trainee extends ReleaseMetadata {
   id: number
   name: string
   name_jp: string | null
@@ -90,17 +108,21 @@ function getIconUrl(trainee: Trainee) {
 }
 
 const STAT_COLORS = ['#60a5fa', '#fb923c', '#f87171', '#fbbf24', '#34d399']
-const STAT_MAX    = 1200  // approx bar ceiling
+const STAT_MAX = 1200  // approx bar ceiling
 
-const GRADE_STYLE: Record<string, { color: string; bg: string }> = {
-  S: { color: '#fbbf24', bg: 'rgba(251,191,36,0.18)' },
-  A: { color: '#f87171', bg: 'rgba(248,113,113,0.18)' },
-  B: { color: '#fb923c', bg: 'rgba(251,146,60,0.18)' },
-  C: { color: '#a3e635', bg: 'rgba(163,230,53,0.18)' },
-  D: { color: '#60a5fa', bg: 'rgba(96,165,250,0.18)' },
-  E: { color: '#9ca3af', bg: 'rgba(156,163,175,0.18)' },
-  F: { color: '#6b7280', bg: 'rgba(107,114,128,0.15)' },
-  G: { color: '#4b5563', bg: 'rgba(75,85,99,0.15)' },
+function traineeAptitudeMap(t: Trainee): Record<string, string> {
+  const m: Record<string, string> = {}
+  if (t.apt_turf) m.turf = t.apt_turf
+  if (t.apt_dirt) m.dirt = t.apt_dirt
+  if (t.apt_short) m.sprint = t.apt_short
+  if (t.apt_mile) m.mile = t.apt_mile
+  if (t.apt_mid) m.medium = t.apt_mid
+  if (t.apt_long) m.long = t.apt_long
+  if (t.apt_leading) m.front_runner = t.apt_leading
+  if (t.apt_stalking) m.pace_chaser = t.apt_stalking
+  if (t.apt_mid_pack) m.late_surger = t.apt_mid_pack
+  if (t.apt_chasing) m.end_closer = t.apt_chasing
+  return m
 }
 
 const RARITY_STYLE: Record<number, { color: string; bg: string }> = {
@@ -130,7 +152,7 @@ function getStatsForRank(trainee: Trainee, rank: number): number[] {
 
 function TraineeTile({ trainee, dimmed, onClick }: { trainee: Trainee; dimmed?: boolean; onClick: () => void }) {
   const [artLoaded, setArtLoaded] = useState(false)
-  const shadow      = '0 2px 12px rgba(0,0,0,0.5)'
+  const shadow = '0 2px 12px rgba(0,0,0,0.5)'
   const hoverShadow = '0 6px 24px rgba(0,0,0,0.7)'
   const rs = RARITY_STYLE[trainee.rarity] ?? RARITY_STYLE[1]
 
@@ -184,9 +206,9 @@ function TraineeTile({ trainee, dimmed, onClick }: { trainee: Trainee; dimmed?: 
         <div style={{ fontSize: 11, fontWeight: 600, color: '#fff', lineHeight: 1.3, textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
           {trainee.name}
         </div>
-        {trainee.name_jp && (
+        {trainee.title && (
           <div style={{ fontSize: 9, color: '#bbb', marginTop: 1, textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
-            {trainee.name_jp}
+            {trainee.title}
           </div>
         )}
       </div>
@@ -365,22 +387,23 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
   onRankChange?: (rank: number) => void
   onPotChange?: (pot: number) => void
 }) {
-  const { user }                          = useAuth()
-  const [starRank, setStarRank]           = useState(initialRank ?? trainee.rarity)
+  const { user } = useAuth()
+  const [starRank, setStarRank] = useState(initialRank ?? trainee.rarity)
   const [potentialLevel, setPotentialLevel] = useState(initialPot ?? 1)
-  const [activeTab, setActiveTab]         = useState<'skills' | 'events'>(initialTab ?? 'skills')
+  const [activeTab, setActiveTab] = useState<'skills' | 'events'>(initialTab ?? 'skills')
 
-  function changeStarRank(r: number) { setStarRank(r); onRankChange?.(r) }
-  function changePotentialLevel(l: number) { setPotentialLevel(l); onPotChange?.(l) }
-  function changeActiveTab(t: 'skills' | 'events') { setActiveTab(t); onTabChange?.(t) }
-  const [awakening, setAwakening]         = useState<AwakeningSkill[]>([])
-  const [unique, setUnique]               = useState<UniqueSkill[]>([])
-  const [hint, setHint]                   = useState<HintSkill[]>([])
-  const [events, setEvents]               = useState<TrainingEvent[]>([])
+  const changeStarRank = useCallback((r: number) => { setStarRank(r); onRankChange?.(r) }, [onRankChange])
+  const changePotentialLevel = useCallback((l: number) => { setPotentialLevel(l); onPotChange?.(l) }, [onPotChange])
+  const changeActiveTab = useCallback((t: 'skills' | 'events') => { setActiveTab(t); onTabChange?.(t) }, [onTabChange])
+
+  const [awakening, setAwakening] = useState<AwakeningSkill[]>([])
+  const [unique, setUnique] = useState<UniqueSkill[]>([])
+  const [hint, setHint] = useState<HintSkill[]>([])
+  const [events, setEvents] = useState<TrainingEvent[]>([])
   const [collectionEntry, setCollectionEntry] = useState<CollectionEntry | null>(null)
-  const [saving, setSaving]               = useState(false)
-  const [editOpen, setEditOpen]           = useState(false)
-  const overlayRef  = useRef<HTMLDivElement>(null)
+  const [saving, setSaving] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
+  const overlayRef = useRef<HTMLDivElement>(null)
 
   const stats = getStatsForRank(trainee, starRank)
 
@@ -409,7 +432,7 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
 
   // Load existing collection entry for this trainee
   useEffect(() => {
-    if (!user) { setCollectionEntry(null); return }
+    if (!user) { return }
     supabase
       .from('user_trainee_collection')
       .select('star_rank, awakening_level')
@@ -425,7 +448,7 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
           setCollectionEntry(null)
         }
       })
-  }, [trainee.id, user])
+  }, [trainee.id, user, changeStarRank, changePotentialLevel])
 
   async function handleSave() {
     if (!user) return
@@ -510,11 +533,18 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
                   <div style={{ fontSize: 22, fontWeight: 800, color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,0.9)', lineHeight: 1.15, letterSpacing: '-0.01em' }}>
                     {trainee.name}
                   </div>
+                  {hasReleaseInfo(trainee) && (
+                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)', marginTop: 6, textAlign: 'right', lineHeight: 1.45 }}>
+                      {releaseSummaryLines(trainee).map(line => (
+                        <div key={line}>{line}</div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <img src={getIconUrl(trainee)} alt="" style={{ width: 48, height: 48, objectFit: 'contain' }} />
               </div>
               <div style={{ display: 'flex', gap: 2 }}>
-                {[1,2,3,4,5].map(r => (
+                {[1, 2, 3, 4, 5].map(r => (
                   <span key={r} style={{ fontSize: 28, lineHeight: 1, color: r <= starRank ? '#fbbf24' : 'rgba(255,255,255,0.2)', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>★</span>
                 ))}
               </div>
@@ -599,7 +629,7 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
                         −
                       </button>
                       <div style={{ display: 'flex', gap: 3, width: 112, justifyContent: 'center' }}>
-                        {[1,2,3,4,5].map(r => (
+                        {[1, 2, 3, 4, 5].map(r => (
                           <svg key={r} width="20" height="20" viewBox="0 0 24 24" fill={r <= starRank ? '#fbbf24' : 'none'} stroke={r <= starRank ? '#fbbf24' : '#2a2a38'} strokeWidth="2" strokeLinejoin="round">
                             <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
                           </svg>
@@ -703,27 +733,8 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
             </div>
 
             {/* ── 3. Aptitudes ── */}
-            <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid #1a1a22', display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {([
-                ['Track',    [['Turf', trainee.apt_turf], ['Dirt', trainee.apt_dirt]]],
-                ['Distance', [['Sprint', trainee.apt_short], ['Mile', trainee.apt_mile], ['Medium', trainee.apt_mid], ['Long', trainee.apt_long]]],
-                ['Style',    [['Front', trainee.apt_leading], ['Pace', trainee.apt_stalking], ['Late', trainee.apt_mid_pack], ['End', trainee.apt_chasing]]],
-              ] as [string, [string, string | null][]][]).map(([rowLabel, items]) => (
-                <div key={rowLabel} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 10, color: '#555', width: 54, flexShrink: 0, textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>{rowLabel}</span>
-                  <div style={{ display: 'flex', gap: 4, flex: 1 }}>
-                    {items.map(([label, grade]) => {
-                      const gs = grade ? (GRADE_STYLE[grade.toUpperCase()] ?? GRADE_STYLE['G']) : null
-                      return (
-                        <div key={label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, padding: '5px 4px', background: gs?.bg ?? 'rgba(255,255,255,0.04)', border: `1px solid ${gs?.color ?? '#333'}`, borderRadius: 6, boxSizing: 'border-box' }}>
-                          <span style={{ fontSize: 9, color: gs?.color ?? '#555', textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1, textAlign: 'center' }}>{label}</span>
-                          <span style={{ fontSize: 13, fontWeight: 700, color: gs?.color ?? '#444', lineHeight: 1, textAlign: 'center' }}>{grade?.toUpperCase() ?? '—'}</span>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              ))}
+            <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid #1a1a22' }}>
+              <AptitudeGrid aptitudes={traineeAptitudeMap(trainee)} />
             </div>
 
             {/* ── 4. Skills + Career Events tabs ── */}
@@ -765,12 +776,12 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function Trainees() {
-  const { user }                          = useAuth()
-  const [searchParams, setSearchParams]   = useSearchParams()
-  const [trainees, setTrainees]           = useState<Trainee[]>([])
-  const [loading, setLoading]             = useState(true)
-  const [error, setError]                 = useState<string | null>(null)
-  const [search, setSearch]               = useState(() => searchParams.get('q') ?? '')
+  const { user } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [trainees, setTrainees] = useState<Trainee[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [search, setSearch] = useState(() => searchParams.get('q') ?? '')
   const sort = (searchParams.get('sort') ?? 'name-asc') as 'name-asc' | 'name-desc' | 'rarity'
 
   function setSort(value: 'name-asc' | 'name-desc' | 'rarity') {
@@ -782,9 +793,15 @@ export default function Trainees() {
     }, { replace: true })
   }
   const [selectedRarity, setSelectedRarity] = useState<number | null>(null)
-  const [modalTrainee, setModalTrainee]   = useState<Trainee | null>(null)
-  const [cardSize, setCardSize]           = useState(110)
+  const [cardSize, setCardSize] = useState(110)
   const collectionMode = searchParams.get('collection') === '1'
+
+  const paramId = searchParams.get('trainee')
+  const modalTrainee = useMemo(() => {
+    if (!paramId || trainees.length === 0) return null
+    return trainees.find(t => String(t.id) === paramId) ?? null
+  }, [paramId, trainees])
+
   function toggleCollectionMode() {
     setSearchParams(p => {
       const n = new URLSearchParams(p)
@@ -793,6 +810,18 @@ export default function Trainees() {
       return n
     }, { replace: true })
   }
+  const regionFilter = parseRegionParam(searchParams.get('region'))
+  const todayIso = todayIsoDateLocal()
+
+  function setRegionFilter(r: RegionAvailabilityFilter) {
+    setSearchParams(p => {
+      const n = new URLSearchParams(p)
+      if (r === 'jp') n.delete('region')
+      else n.set('region', 'global')
+      return n
+    }, { replace: true })
+  }
+
   const unownedMode = searchParams.get('unowned') === '1'
   function toggleUnownedMode() {
     if (!collectionMode) return
@@ -804,19 +833,9 @@ export default function Trainees() {
     }, { replace: true })
   }
   const [collectionIds, setCollectionIds] = useState<Set<number> | null>(null)
-  const searchTimerRef                    = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  // Expand root to full width (same pattern as SupportCards)
-  useEffect(() => {
-    const root = document.getElementById('root')
-    if (root) { root.style.maxWidth = 'none'; root.style.padding = '0' }
-    return () => {
-      if (root) { root.style.maxWidth = ''; root.style.padding = '' }
-    }
-  }, [])
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    setLoading(true)
     supabase
       .from('trainees')
       .select('*')
@@ -828,7 +847,7 @@ export default function Trainees() {
       })
   }, [])
 
-  function refreshCollection() {
+  const refreshCollection = useCallback(() => {
     if (!user) return
     supabase
       .from('user_trainee_collection')
@@ -836,25 +855,15 @@ export default function Trainees() {
       .then(({ data }) => {
         setCollectionIds(new Set((data ?? []).map((r: { trainee_id: number }) => r.trainee_id)))
       })
-  }
+  }, [user])
 
   useEffect(() => {
-    if (!collectionMode || !user) { setCollectionIds(null); return }
-    refreshCollection()
-  }, [collectionMode, user])
-
-  // Open modal for trainee param present on load / navigation back
-  useEffect(() => {
-    const paramId = searchParams.get('trainee')
-    if (!paramId || trainees.length === 0) return
-    setModalTrainee(prev => {
-      if (prev && String(prev.id) === paramId) return prev
-      return trainees.find(t => String(t.id) === paramId) ?? prev
-    })
-  }, [searchParams, trainees])
+    if (collectionMode && user) {
+      refreshCollection()
+    }
+  }, [collectionMode, user, refreshCollection])
 
   function openModal(t: Trainee) {
-    setModalTrainee(t)
     setSearchParams(p => {
       const n = new URLSearchParams(p)
       n.set('trainee', String(t.id))
@@ -866,7 +875,6 @@ export default function Trainees() {
   }
 
   function closeModal() {
-    setModalTrainee(null)
     setSearchParams(p => {
       const n = new URLSearchParams(p)
       n.delete('trainee')
@@ -898,6 +906,7 @@ export default function Trainees() {
         if (!t.name.toLowerCase().includes(q) && !(t.name_jp ?? '').toLowerCase().includes(q)) return false
       }
       if (collectionMode && !unownedMode && user && collectionIds !== null && !collectionIds.has(t.id)) return false
+      if (!passesRegionAvailabilityFilter(regionFilter, t.released_jp, t.released_global, todayIso)) return false
       return true
     })
     .sort((a, b) => {
@@ -907,154 +916,76 @@ export default function Trainees() {
     })
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0a' }}>
+    <CatalogShell>
+      <CatalogHeader
+        title="Trainees"
+        collectionMode={collectionMode}
+        onToggleCollection={toggleCollectionMode}
+        unownedMode={unownedMode}
+        onToggleUnowned={toggleUnownedMode}
+        collectionDisabled={!user}
+        warningMessage={collectionMode && !user ? 'Sign in to use collection mode' : undefined}
+      />
 
-      {/* Header */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 10,
-        background: 'rgba(10,10,10,0.95)', backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid #1a1a1a',
-      }}>
-        <div style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <a href="/" style={{ color: '#aaa', textDecoration: 'none', fontSize: 13 }}>← Home</a>
-          <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Trainees</h1>
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
-            {collectionMode && !user && (
-              <span style={{ fontSize: 12, color: '#f87171' }}>Sign in to use collection mode</span>
-            )}
-            <button
-              onClick={toggleUnownedMode}
-              disabled={!collectionMode}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                padding: '7px 14px', borderRadius: 8, border: '1px solid',
-                borderColor: unownedMode ? '#7dd3fc' : '#333',
-                background: unownedMode ? '#0c2a3f' : 'transparent',
-                color: (collectionMode && unownedMode) ? '#7dd3fc' : '#444',
-                cursor: collectionMode ? 'pointer' : 'default',
-                fontSize: 13, fontWeight: 500, transition: 'all 0.15s',
-                opacity: collectionMode ? 1 : 0.35,
-              }}
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
-              </svg>
-              Show Unowned
-            </button>
-            <button
-              onClick={toggleCollectionMode}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                padding: '7px 14px', borderRadius: 8, border: '1px solid',
-                borderColor: collectionMode ? '#7dd3fc' : '#333',
-                background: collectionMode ? '#0c2a3f' : 'transparent',
-                color: collectionMode ? '#7dd3fc' : '#666',
-                cursor: 'pointer', fontSize: 13, fontWeight: 500, transition: 'all 0.15s',
-              }}
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill={collectionMode ? '#7dd3fc' : 'none'} stroke="currentColor" strokeWidth="2">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-              </svg>
-              My Collection
-            </button>
-          </div>
+      {/* Filters */}
+      <div style={{ padding: '8px 16px 10px', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', borderTop: '1px solid #1a1a1a' }}>
+        <input
+          type="text" placeholder="Search…" value={search}
+          onChange={e => handleSearchChange(e.target.value)}
+          style={{
+            background: '#1a1a22', border: '1px solid #2a2a38', borderRadius: 8,
+            padding: '5px 10px', color: '#fff', fontSize: 12, outline: 'none', width: 160,
+          }}
+        />
+        <RegionFilter value={regionFilter} onChange={setRegionFilter} />
+        <div style={{ display: 'flex', gap: 4 }}>
+          {([null, 1, 2, 3] as const).map(r => {
+            const rs = r !== null ? RARITY_STYLE[r] : null
+            return (
+              <FilterPill
+                key={r ?? 'all'}
+                active={selectedRarity === r}
+                activeColor={rs?.color ?? '#ccc'}
+                activeBg={rs?.bg ?? 'rgba(255,255,255,0.05)'}
+                activeBorder={rs?.color ?? '#888'}
+                onClick={() => setSelectedRarity(r)}
+              >
+                {r === null ? 'All' : '★'.repeat(r)}
+              </FilterPill>
+            )
+          })}
         </div>
+        <div style={{ display: 'flex', gap: 4 }}>
+          {([['name-asc', 'A→Z'], ['name-desc', 'Z→A'], ['rarity', '★ Rarity']] as const).map(([val, label]) => (
+            <FilterPill
+              key={val}
+              active={sort === val}
+              onClick={() => setSort(val)}
+            >
+              {label}
+            </FilterPill>
+          ))}
+        </div>
+        <CardSizeSlider
+          value={cardSize}
+          onChange={setCardSize}
+          min={70} max={200}
+          count={filtered.length}
+          ownedCount={collectionMode && user && collectionIds !== null ? collectionIds.size : undefined}
+        />
+      </div>
 
-        {/* Filters */}
-        <div style={{ padding: '8px 16px 10px', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', borderTop: '1px solid #1a1a1a' }}>
-          <input
-            type="text" placeholder="Search…" value={search}
-            onChange={e => handleSearchChange(e.target.value)}
-            style={{
-              background: '#1a1a22', border: '1px solid #2a2a38', borderRadius: 8,
-              padding: '5px 10px', color: '#fff', fontSize: 12, outline: 'none', width: 160,
-            }}
+      <CatalogGrid loading={loading} error={error} emptyMessage="No trainees found." cardSize={cardSize}>
+        {filtered.map(t => (
+          <TraineeTile
+            key={t.id}
+            trainee={t}
+            dimmed={collectionMode && unownedMode && !!user && collectionIds !== null && !collectionIds.has(t.id)}
+            onClick={() => openModal(t)}
           />
-          <div style={{ display: 'flex', gap: 4 }}>
-            {([null, 1, 2, 3] as const).map(r => {
-              const rs = r !== null ? RARITY_STYLE[r] : null
-              const active = selectedRarity === r
-              return (
-                <button
-                  key={r ?? 'all'}
-                  onClick={() => setSelectedRarity(r)}
-                  style={{
-                    borderRadius: 20, padding: '4px 10px',
-                    border: active ? `1px solid ${rs?.color ?? '#888'}` : '1px solid #2a2a38',
-                    background: active ? (rs?.bg ?? 'rgba(255,255,255,0.05)') : 'transparent',
-                    color: active ? (rs?.color ?? '#ccc') : '#555',
-                    cursor: 'pointer', fontSize: 11, fontWeight: 600, transition: 'all 0.15s',
-                  }}
-                >
-                  {r === null ? 'All' : '★'.repeat(r)}
-                </button>
-              )
-            })}
-          </div>
-          <div style={{ display: 'flex', gap: 4 }}>
-            {([['name-asc', 'A→Z'], ['name-desc', 'Z→A'], ['rarity', '★ Rarity']] as const).map(([val, label]) => (
-              <button
-                key={val}
-                onClick={() => setSort(val)}
-                style={{
-                  borderRadius: 20, padding: '4px 10px',
-                  border: sort === val ? '1px solid #a78bfa' : '1px solid #2a2a38',
-                  background: sort === val ? 'rgba(167,139,250,0.15)' : 'transparent',
-                  color: sort === val ? '#a78bfa' : '#555',
-                  cursor: 'pointer', fontSize: 11, fontWeight: 600, transition: 'all 0.15s',
-                }}
-              >{label}</button>
-            ))}
-          </div>
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 10, color: '#444' }}>Size</span>
-              <input
-                type="range" min={70} max={200} value={cardSize}
-                onChange={e => setCardSize(Number(e.target.value))}
-                style={{ width: 70, accentColor: '#a78bfa' }}
-              />
-            </div>
-            <div style={{ fontSize: 11, color: '#444' }}>
-              {filtered.length}{collectionMode && user && collectionIds !== null && (
-                <span style={{ color: '#7dd3fc' }}> · {collectionIds.size} owned</span>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+        ))}
+      </CatalogGrid>
 
-      {/* Grid */}
-      <div style={{ padding: 16 }}>
-        {loading && (
-          <div style={{ color: '#444', fontSize: 13, padding: 40, textAlign: 'center' }}>Loading…</div>
-        )}
-        {error && (
-          <div style={{ color: '#ef4444', fontSize: 13, padding: 40, textAlign: 'center' }}>{error}</div>
-        )}
-        {!loading && !error && filtered.length === 0 && (
-          <div style={{ color: '#444', fontSize: 13, padding: 40, textAlign: 'center' }}>No trainees found.</div>
-        )}
-        {!loading && !error && filtered.length > 0 && (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: `repeat(auto-fill, minmax(min(${cardSize}px, 100%), 1fr))`,
-            gap: 8,
-          }}>
-            {filtered.map(t => (
-              <TraineeTile
-                key={t.id}
-                trainee={t}
-                dimmed={collectionMode && unownedMode && !!user && collectionIds !== null && !collectionIds.has(t.id)}
-                onClick={() => openModal(t)}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Modal */}
       {modalTrainee && (
         <TraineeModal
           trainee={modalTrainee}
@@ -1068,6 +999,6 @@ export default function Trainees() {
           onPotChange={pot => setSearchParams(p => { const n = new URLSearchParams(p); n.set('pot', String(pot)); return n }, { replace: true })}
         />
       )}
-    </div>
+    </CatalogShell>
   )
 }
