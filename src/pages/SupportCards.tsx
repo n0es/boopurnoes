@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
+import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import {
@@ -292,7 +293,7 @@ export default function SupportCards() {
             card={card}
             owned={collectionMode && !!user && ownedMap !== null && ownedMap.has(card.id)}
             dimmed={collectionMode && unownedMode && !!user && ownedMap !== null && !ownedMap.has(card.id)}
-            onClick={() => { if (user) setModalCard(card) }}
+            onClick={() => setModalCard(card)}
           />
         ))}
       </CatalogGrid>
@@ -300,6 +301,7 @@ export default function SupportCards() {
       {modalCard && (
         <CardModal
           card={modalCard}
+          user={user}
           owned={ownedMap?.get(modalCard.id) ?? null}
           onClose={() => setModalCard(null)}
           onAdd={async (level, uncap) => { await addToCollection(modalCard.id, level, uncap); setModalCard(null) }}
@@ -408,8 +410,9 @@ function UncapDiamonds({ value, max = 4, interactive, onChange }: {
 // ---------------------------------------------------------------------------
 // Card modal
 // ---------------------------------------------------------------------------
-function CardModal({ card, owned, onClose, onAdd, onRemove, onCardUpdated }: {
+function CardModal({ card, user, owned, onClose, onAdd, onRemove, onCardUpdated }: {
   card: SupportCard
+  user: User | null
   owned: OwnedEntry | null
   onClose: () => void
   onAdd: (level: number, uncap: number) => Promise<void>
@@ -503,6 +506,7 @@ function CardModal({ card, owned, onClose, onAdd, onRemove, onCardUpdated }: {
             )}
           </div>
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+            {user && (
             <button
               onClick={() => setEditing(true)}
               title="Edit card data"
@@ -510,6 +514,7 @@ function CardModal({ card, owned, onClose, onAdd, onRemove, onCardUpdated }: {
               onMouseEnter={e => { e.currentTarget.style.borderColor = '#a78bfa'; e.currentTarget.style.color = '#a78bfa' }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = '#333'; e.currentTarget.style.color = '#888' }}
             >Edit</button>
+            )}
             <button
               onClick={onClose}
               style={{ background: 'none', border: 'none', color: '#555', cursor: 'pointer', fontSize: 20, lineHeight: 1, padding: '4px 6px' }}
@@ -690,23 +695,30 @@ function CardModal({ card, owned, onClose, onAdd, onRemove, onCardUpdated }: {
         </div>
 
         {/* Footer */}
-        <div style={{ display: 'flex', gap: 8, padding: '12px 16px', borderTop: '1px solid #222', flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: 8, padding: '12px 16px', borderTop: '1px solid #222', flexShrink: 0, alignItems: 'center' }}>
           <button
             onClick={onClose}
             style={{ flex: 1, padding: '9px 0', borderRadius: 8, border: '1px solid #2a2a38', background: 'transparent', color: '#888', cursor: 'pointer', fontSize: 14, fontWeight: 500 }}
-          >Cancel</button>
-          {isOwned ? (
+          >Close</button>
+          {user && isOwned && (
             <button
               onClick={async () => { setBusy(true); await onRemove(); setBusy(false) }}
               disabled={busy}
               style={{ flex: 1, padding: '9px 0', borderRadius: 8, border: '1px solid #f87171', background: '#1f1010', color: busy ? '#666' : '#f87171', cursor: busy ? 'default' : 'pointer', fontSize: 14, fontWeight: 600 }}
             >{busy ? 'Removing…' : 'Remove'}</button>
-          ) : (
+          )}
+          {user && !isOwned && (
             <button
               onClick={async () => { setBusy(true); await onAdd(level, uncap); setBusy(false) }}
               disabled={busy}
               style={{ flex: 1, padding: '9px 0', borderRadius: 8, border: 'none', background: busy ? '#2a2050' : '#4c3bc0', color: busy ? '#aaa' : '#fff', cursor: busy ? 'default' : 'pointer', fontSize: 14, fontWeight: 600 }}
             >{busy ? 'Adding…' : 'Add to Collection'}</button>
+          )}
+          {!user && !isOwned && (
+            <span style={{ flex: 1, textAlign: 'center', fontSize: 13, color: '#666' }}>
+              <Link to="/login" style={{ color: '#a78bfa' }}>Sign in</Link>
+              {' '}to track this card in your collection.
+            </span>
           )}
         </div>
       </div>
