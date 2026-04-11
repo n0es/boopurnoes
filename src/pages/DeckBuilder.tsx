@@ -28,7 +28,7 @@ import {
 } from '../lib/deckBuilderSolver'
 import { maxLevelForUncap } from '../lib/supportCardLevel'
 import { binomialChoose5 } from '../../shared/deckSolverCore'
-import { runDeckSolveInWorker, runDeckSolveOnServer } from '../lib/deckSolverRun'
+import { runDeckSolveInWorker } from '../lib/deckSolverRun'
 import { UmaTrainerLookup } from '../components/UmaTrainerLookup'
 import { DeckBuilderForcedSlots, type DeckBuilderForcedSlot } from '../components/DeckBuilderForcedSlots'
 import { clampFriendTrainLevel, clampOwnedTrainLevel } from '../lib/deckBuilderStats'
@@ -172,11 +172,9 @@ export default function DeckBuilder() {
   }, [])
   const [searching, setSearching] = useState(false)
   const [searchProgress, setSearchProgress] = useState<
-    | null
-    | { source: 'server' }
-    | { source: 'worker'; comboIdx: number; totalCombos: number; iterations: number }
+    null | { source: 'worker'; comboIdx: number; totalCombos: number; iterations: number }
   >(null)
-  /** Set when the browser worker starts (excludes server-only phase). Used for ETA. */
+  /** Wall time when the browser worker started; used for ETA. */
   const [workerSearchStartedAt, setWorkerSearchStartedAt] = useState<number | null>(null)
   const [etaTick, setEtaTick] = useState(0)
   const [searchMessage, setSearchMessage] = useState<string | null>(null)
@@ -457,16 +455,12 @@ export default function DeckBuilder() {
 
     setSearching(true)
     setWorkerSearchStartedAt(null)
-    setSearchProgress(
-      import.meta.env.PROD
-        ? { source: 'server' }
-        : {
-            source: 'worker',
-            comboIdx: 0,
-            totalCombos: binomialChoose5(ownedEntriesWithForced.length),
-            iterations: 0,
-          },
-    )
+    setSearchProgress({
+      source: 'worker',
+      comboIdx: 0,
+      totalCombos: binomialChoose5(ownedEntriesWithForced.length),
+      iterations: 0,
+    })
     void (async () => {
       try {
         const args = {
@@ -477,14 +471,11 @@ export default function DeckBuilder() {
           ...(forcedOwnedIds.length > 0 ? { forcedOwnedCardIds: forcedOwnedIds } : {}),
           ...(friendForcedId != null ? { forcedWildcardCardId: friendForcedId } : {}),
         }
-        let res = import.meta.env.PROD ? await runDeckSolveOnServer(args) : null
-        if (!res) {
-          const t0 = Date.now()
-          setWorkerSearchStartedAt(t0)
-          res = await runDeckSolveInWorker(args, {
-            onProgress: p => setSearchProgress({ source: 'worker', ...p }),
-          })
-        }
+        const t0 = Date.now()
+        setWorkerSearchStartedAt(t0)
+        const res = await runDeckSolveInWorker(args, {
+          onProgress: p => setSearchProgress({ source: 'worker', ...p }),
+        })
         setSolveResult(res)
         if (res.capped) {
           setSearchMessage(
@@ -604,9 +595,8 @@ export default function DeckBuilder() {
               Bonuses use each card&apos;s stat curve at the{' '}
               <strong style={{ color: '#7dd3fc' }}>maximum level allowed by its unlock tier</strong> (collection uncap on your
               cards; max uncap for the wildcard). If your card is still low level in-game, level it to that cap to match the
-              plan. Search runs in a <strong style={{ color: '#a3a3a3' }}>background worker</strong> so the page stays
-              responsive; production builds can also solve on the server via{' '}
-              <code style={{ fontSize: 12 }}>/api/deck-solve</code>. You can list several valid decks at once; they&apos;re
+              plan. Search runs in a <strong style={{ color: '#a3a3a3' }}>background worker</strong> in your browser so
+              the page stays responsive. You can list several valid decks at once; they&apos;re
               ranked by <strong style={{ color: '#a3a3a3' }}>total bonus strength</strong> (sum of all support effects at
               max unlock levels).
             </p>
@@ -857,9 +847,7 @@ export default function DeckBuilder() {
 
         {searching && (
           <div style={{ marginBottom: 10, maxWidth: 480 }}>
-            {searchProgress?.source === 'server' ? (
-              <p style={{ margin: 0, fontSize: 12, color: '#9ca3af' }}>Searching on server…</p>
-            ) : searchProgress?.source === 'worker' ? (
+            {searchProgress?.source === 'worker' ? (
               <>
                 <div
                   style={{

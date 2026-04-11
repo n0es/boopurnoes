@@ -44,8 +44,8 @@ export function runDeckSolveInWorker(
 }
 
 /**
- * When the app is served by Node (npm start), the solver can run on the server
- * so the browser does almost no work. Falls back is not automatic — use worker from UI.
+ * Optional server-side solve (e.g. scripts or future use). The Deck Builder UI uses
+ * {@link runDeckSolveInWorker} only so searches do not load the app server.
  */
 export async function runDeckSolveOnServer(args: SolveDeckArgs): Promise<SolveDeckResult | null> {
   const payload = buildDeckSolvePayload(args)
