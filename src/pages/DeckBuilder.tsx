@@ -129,6 +129,44 @@ const USE_COLLECTION_KEY = 'boopurnoes:deckBuilderUseCollection:v1'
 /** @deprecated migrated to USE_COLLECTION_KEY */
 const LEGACY_DECK_MODE_KEY = 'boopurnoes:deckBuilderMode:v1'
 
+const RARITY_FILTER_KEY = 'boopurnoes:deckBuilderRarityFilter:v1'
+
+type DeckBuilderRarityFilter = { SSR: boolean; SR: boolean; R: boolean }
+
+const DEFAULT_RARITY_FILTER: DeckBuilderRarityFilter = { SSR: true, SR: true, R: false }
+
+function loadRarityFilter(): DeckBuilderRarityFilter {
+  if (typeof localStorage === 'undefined') return DEFAULT_RARITY_FILTER
+  try {
+    const raw = localStorage.getItem(RARITY_FILTER_KEY)
+    if (!raw) return DEFAULT_RARITY_FILTER
+    const o = JSON.parse(raw) as Partial<DeckBuilderRarityFilter>
+    return {
+      SSR: o.SSR !== false,
+      SR: o.SR !== false,
+      /** Off unless explicitly saved true (default is R excluded). */
+      R: o.R === true,
+    }
+  } catch {
+    return DEFAULT_RARITY_FILTER
+  }
+}
+
+function saveRarityFilter(f: DeckBuilderRarityFilter): void {
+  if (typeof localStorage === 'undefined') return
+  try {
+    localStorage.setItem(RARITY_FILTER_KEY, JSON.stringify(f))
+  } catch {
+    /* ignore */
+  }
+}
+
+/** True if the card is included given SSR/SR/R toggles; unknown rarities stay included. */
+function passesDeckRarityFilter(rarity: string, f: DeckBuilderRarityFilter): boolean {
+  if (rarity === 'SSR' || rarity === 'SR' || rarity === 'R') return f[rarity]
+  return true
+}
+
 function loadUseCollection(): boolean {
   if (typeof localStorage === 'undefined') return true
   const v = localStorage.getItem(USE_COLLECTION_KEY)
@@ -187,6 +225,12 @@ export default function DeckBuilder() {
   useEffect(() => {
     saveUseCollection(useCollection)
   }, [useCollection])
+
+  const [rarityFilter, setRarityFilter] = useState<DeckBuilderRarityFilter>(loadRarityFilter)
+
+  useEffect(() => {
+    saveRarityFilter(rarityFilter)
+  }, [rarityFilter])
 
   const searchFromCollection = Boolean(user) && useCollection
 
@@ -257,17 +301,22 @@ export default function DeckBuilder() {
     )
   }, [cards, region, todayIso])
 
+  const deckPoolCards = useMemo(
+    () => eligibleCards.filter(c => passesDeckRarityFilter(c.rarity, rarityFilter)),
+    [eligibleCards, rarityFilter],
+  )
+
   const ownedInRegion = useMemo(() => {
-    const eligibleId = new Set(eligibleCards.map(c => c.id))
+    const eligibleId = new Set(deckPoolCards.map(c => c.id))
     const out: { card: CatalogCard; level: number; uncap: number }[] = []
     for (const [cardId, lv] of collectionMap) {
       if (!eligibleId.has(cardId)) continue
-      const card = eligibleCards.find(c => c.id === cardId)
+      const card = deckPoolCards.find(c => c.id === cardId)
       if (!card) continue
       out.push({ card, level: lv.level, uncap: lv.uncap })
     }
     return out.sort((a, b) => a.card.name.localeCompare(b.card.name))
-  }, [collectionMap, eligibleCards])
+  }, [collectionMap, deckPoolCards])
 
   const [forcedSlots, setForcedSlots] = useState<DeckBuilderForcedSlot[]>([
     null,
@@ -286,7 +335,7 @@ export default function DeckBuilder() {
 
   const pickableForSlot = useCallback(
     (slotIndex: number) => {
-      const pool: CatalogCard[] = user ? ownedInRegion.map(o => o.card) : eligibleCards
+      const pool: CatalogCard[] = user ? ownedInRegion.map(o => o.card) : deckPoolCards
       return pool.map(c => {
         const owned = cardIdToOwned.get(c.id)
         if (owned && user) {
@@ -309,7 +358,7 @@ export default function DeckBuilder() {
         }
       })
     },
-    [user, eligibleCards, ownedInRegion, cardIdToOwned],
+    [user, deckPoolCards, ownedInRegion, cardIdToOwned],
   )
 
   /** Fixed slots plan at full limit break (4) so level can go up to the game max for that rarity. */
@@ -317,7 +366,7 @@ export default function DeckBuilder() {
     (slotIndex: number) => {
       const slot = forcedSlots[slotIndex]
       if (!slot) return undefined
-      const c = eligibleCards.find(x => x.id === slot.cardId)
+      const c = deckPoolCards.find(x => x.id === slot.cardId)
       if (!c) return undefined
       const maxLv = maxLevelForUncap(CATALOG_POOL_UNCAP, c.rarity)
       const lv = Math.max(1, Math.min(slot.level, maxLv))
@@ -330,27 +379,27 @@ export default function DeckBuilder() {
         wildcardPreview: slotIndex === 5,
       }
     },
-    [forcedSlots, eligibleCards],
+    [forcedSlots, deckPoolCards],
   )
 
   const defaultTrainLevel = useCallback(
     (cardId: number, _slotIndex: number) => {
-      const c = eligibleCards.find(x => x.id === cardId)
+      const c = deckPoolCards.find(x => x.id === cardId)
       if (!c) return 1
       return maxLevelForUncap(CATALOG_POOL_UNCAP, c.rarity)
     },
-    [eligibleCards],
+    [deckPoolCards],
   )
 
   const maxTrainLevelForSlot = useCallback(
     (slotIndex: number) => {
       const slot = forcedSlots[slotIndex]
       if (!slot) return 50
-      const c = eligibleCards.find(x => x.id === slot.cardId)
+      const c = deckPoolCards.find(x => x.id === slot.cardId)
       if (!c) return 50
       return maxLevelForUncap(CATALOG_POOL_UNCAP, c.rarity)
     },
-    [forcedSlots, eligibleCards],
+    [forcedSlots, deckPoolCards],
   )
 
   const runSearch = useCallback(() => {
@@ -371,8 +420,10 @@ export default function DeckBuilder() {
     }
 
     if (!searchFromCollection) {
-      if (eligibleCards.length < 5) {
-        setSearchMessage('Need at least five support cards legal on this server (check the region in the header).')
+      if (deckPoolCards.length < 5) {
+        setSearchMessage(
+          'Need at least five support cards in the current pool (check region, SSR/SR/R filters, and header).',
+        )
         return
       }
     } else if (ownedInRegion.length < 5) {
@@ -390,7 +441,7 @@ export default function DeckBuilder() {
           uncap: o.uncap,
           effects: effectsByCard.get(o.card.id) ?? [],
         }))
-      : eligibleCards.map(c => ({
+      : deckPoolCards.map(c => ({
           cardId: c.id,
           name: c.name,
           rarity: c.rarity,
@@ -400,7 +451,7 @@ export default function DeckBuilder() {
           effects: effectsByCard.get(c.id) ?? [],
         }))
 
-    const wildcardPool = eligibleCards.map(c => ({
+    const wildcardPool = deckPoolCards.map(c => ({
       cardId: c.id,
       name: c.name,
       rarity: c.rarity,
@@ -509,7 +560,7 @@ export default function DeckBuilder() {
     searchFromCollection,
     constraints,
     ownedInRegion,
-    eligibleCards,
+    deckPoolCards,
     effectsByCard,
     maxSuggestions,
     forcedSlots,
@@ -634,10 +685,10 @@ export default function DeckBuilder() {
           <div style={{ color: '#f87171', fontSize: 13 }}>{dataError}</div>
         ) : !searchFromCollection ? (
           <div style={{ fontSize: 12, color: '#6b7280', marginTop: 10 }}>
-            <span style={{ color: '#a3a3a3' }}>{eligibleCards.length}</span>{' '}
-            {eligibleCards.length === 1 ? 'card' : 'cards'} eligible for{' '}
+            <span style={{ color: '#a3a3a3' }}>{deckPoolCards.length}</span>{' '}
+            {deckPoolCards.length === 1 ? 'card' : 'cards'} in the search pool for{' '}
             <span style={{ color: '#d4d4d8' }}>{region === 'jp' ? 'Japan' : 'Global'}</span>
-            <span style={{ color: '#78716c', marginLeft: 8 }}>— full eligible pool is searched</span>
+            <span style={{ color: '#78716c', marginLeft: 8 }}>— full pool is searched</span>
             {!user && (
               <span style={{ marginLeft: 10 }}>
                 <Link to="/login" style={{ color: '#7dd3fc' }}>
@@ -673,6 +724,60 @@ export default function DeckBuilder() {
           maxTrainLevel={maxTrainLevelForSlot}
           disabled={authLoading || dataLoading}
         />
+
+        <div
+          style={{
+            marginBottom: 12,
+            paddingBottom: 12,
+            borderBottom: '1px solid #1f1f28',
+          }}
+        >
+          <div style={{ fontSize: 11, color: '#71717a', fontWeight: 600, marginBottom: 8 }}>Include rarities</div>
+          <div
+            role="group"
+            aria-label="Include card rarities in search pool"
+            style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}
+          >
+            {(['SSR', 'SR', 'R'] as const).map(r => {
+              const on = rarityFilter[r]
+              const colors =
+                r === 'SSR'
+                  ? { border: '#fbbf24', fg: '#fef3c7', bg: 'rgba(251,191,36,0.18)' }
+                  : r === 'SR'
+                    ? { border: '#a78bfa', fg: '#ede9fe', bg: 'rgba(167,139,250,0.18)' }
+                    : { border: '#78716c', fg: '#e7e5e4', bg: 'rgba(120,113,108,0.2)' }
+              return (
+                <button
+                  key={r}
+                  type="button"
+                  disabled={authLoading || dataLoading || searching}
+                  title={on ? `Include ${r}` : `${r} excluded from pool`}
+                  onClick={() => {
+                    setRarityFilter(prev => {
+                      const next = { ...prev, [r]: !prev[r] }
+                      if (!next.SSR && !next.SR && !next.R) return prev
+                      return next
+                    })
+                  }}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: 6,
+                    border: `1px solid ${on ? colors.border : '#3f3f46'}`,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: r === 'SSR' ? '-0.03em' : undefined,
+                    cursor: authLoading || dataLoading || searching ? 'default' : 'pointer',
+                    opacity: authLoading || dataLoading || searching ? 0.45 : 1,
+                    color: on ? colors.fg : '#52525b',
+                    background: on ? colors.bg : 'transparent',
+                  }}
+                >
+                  {r}
+                </button>
+              )
+            })}
+          </div>
+        </div>
 
         <div
           style={{
@@ -798,7 +903,7 @@ export default function DeckBuilder() {
             Large collection: search time grows with combinations; very tight targets may take up to a few minutes.
           </p>
         )}
-        {!searchFromCollection && eligibleCards.length >= 30 && (
+        {!searchFromCollection && deckPoolCards.length >= 30 && (
           <p style={{ margin: '0 0 8px', fontSize: 11, color: '#888' }}>
             Full-pool search tries many five-card combinations; very tight targets may take a few minutes.
           </p>
@@ -834,7 +939,7 @@ export default function DeckBuilder() {
               authLoading ||
               dataLoading ||
               searching ||
-              (searchFromCollection ? ownedInRegion.length < 5 : eligibleCards.length < 5)
+              (searchFromCollection ? ownedInRegion.length < 5 : deckPoolCards.length < 5)
             }
             onClick={() => runSearch()}
             style={{
@@ -847,13 +952,13 @@ export default function DeckBuilder() {
               fontSize: 13,
               cursor:
                 searching ||
-                (searchFromCollection ? ownedInRegion.length < 5 : eligibleCards.length < 5)
+                (searchFromCollection ? ownedInRegion.length < 5 : deckPoolCards.length < 5)
                   ? 'default'
                   : 'pointer',
               opacity:
                 authLoading ||
                 dataLoading ||
-                (searchFromCollection ? ownedInRegion.length < 5 : eligibleCards.length < 5)
+                (searchFromCollection ? ownedInRegion.length < 5 : deckPoolCards.length < 5)
                   ? 0.45
                   : 1,
             }}
