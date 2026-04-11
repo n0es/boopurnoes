@@ -1,0 +1,28 @@
+---
+description: Dev vs production — Docker layout, server paths, and how to verify deploys
+globs: Dockerfile,docker-compose*.yml,server/**/*.ts,package.json
+alwaysApply: false
+---
+
+# Dev vs production
+
+## Layout (production Docker)
+
+- **WORKDIR** is `/app`. The image copies **`dist/`** (Vite client build) and **`dist-server/`** (compiled Node server) as **siblings** — not `dist` inside `dist-server`.
+- **Entry**: `package.json` → `"start": "node dist-server/server/index.js"` (compiled output is under `dist-server/server/` because `server/tsconfig.json` uses `rootDir: ".."`).
+- **Production compose** (`docker-compose.yml`) uses the **prebuilt** image `ghcr.io/n0es/boopurnoes:latest` (Watchtower can refresh it). Do not assume the server reads static files from `dist-server/dist/` — that path does not exist.
+
+## Dev (local)
+
+- **Frontend**: `npm run dev` → Vite (not the Express app).
+- **Full stack locally**: run client + server as you prefer; paths are often resolved from the **`server/`** source tree (`__dirname` ≈ repo `server/`), which differs from the **compiled** layout.
+
+## Server code that touches filesystem paths
+
+- **`import.meta.url` / `__dirname`** from **`dist-server/server/index.js`** is not the same as from **`server/index.ts`**. Any path like `path.join(__dirname, '../dist/...')` points at **`dist-server/dist`** when compiled — wrong.
+- Resolve **Vite output** by checking where `index.html` actually lives (e.g. try `../dist`, `../../dist`, then `cwd/dist`), or use a documented env var — **never** assume a single `../dist` works in both dev and production.
+
+## Changing Docker behavior
+
+- After **Dockerfile** or **server static/path** changes: **rebuild and push** the image (e.g. GitHub Actions on `main`) and **pull/redeploy** on the host — cached `latest` or stale layers can mask fixes.
+- For edits that affect the dev stack defined in compose, follow the project’s **Docker dev restart** rule when the change is ready.
