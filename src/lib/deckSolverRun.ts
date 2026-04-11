@@ -15,27 +15,49 @@ export type { DeckSolveProgress }
 /** Run search off the main thread (same numeric core as the server). */
 export function runDeckSolveInWorker(
   args: SolveDeckArgs,
-  options?: { onProgress?: (p: DeckSolveProgress) => void },
+  options?: { onProgress?: (p: DeckSolveProgress) => void; signal?: AbortSignal },
 ): Promise<SolveDeckResult> {
   const payload = buildDeckSolvePayload(args)
   if (!payload) {
     return Promise.resolve({ solutions: [], iterations: 0, capped: false })
   }
 
+  const signal = options?.signal
+
   return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new DOMException('Aborted', 'AbortError'))
+      return
+    }
+
     const worker = new Worker(new URL('../workers/deckSolver.worker.ts', import.meta.url), {
       type: 'module',
     })
+
+    const cleanup = () => {
+      signal?.removeEventListener('abort', onAbort)
+    }
+
+    const onAbort = () => {
+      cleanup()
+      worker.terminate()
+      reject(new DOMException('Aborted', 'AbortError'))
+    }
+
+    signal?.addEventListener('abort', onAbort, { once: true })
+
     worker.onmessage = (ev: MessageEvent<WorkerToMain>) => {
       const data = ev.data
       if (data.type === 'progress') {
         options?.onProgress?.(data)
         return
       }
+      cleanup()
       worker.terminate()
       resolve(reconstructDeckSolutions(args, data.result))
     }
     worker.onerror = err => {
+      cleanup()
       worker.terminate()
       reject(err)
     }

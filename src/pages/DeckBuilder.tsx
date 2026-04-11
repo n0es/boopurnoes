@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
@@ -177,6 +177,7 @@ export default function DeckBuilder() {
   /** Wall time when the browser worker started; used for ETA. */
   const [workerSearchStartedAt, setWorkerSearchStartedAt] = useState<number | null>(null)
   const [etaTick, setEtaTick] = useState(0)
+  const searchAbortRef = useRef<AbortController | null>(null)
   const [searchMessage, setSearchMessage] = useState<string | null>(null)
   const [solveResult, setSolveResult] = useState<SolveDeckResult | null>(null)
   const [maxSuggestions, setMaxSuggestions] = useState(DEFAULT_MAX_DECK_SUGGESTIONS)
@@ -461,6 +462,8 @@ export default function DeckBuilder() {
       totalCombos: binomialChoose5(ownedEntriesWithForced.length),
       iterations: 0,
     })
+    const abort = new AbortController()
+    searchAbortRef.current = abort
     void (async () => {
       try {
         const args = {
@@ -474,6 +477,7 @@ export default function DeckBuilder() {
         const t0 = Date.now()
         setWorkerSearchStartedAt(t0)
         const res = await runDeckSolveInWorker(args, {
+          signal: abort.signal,
           onProgress: p => setSearchProgress({ source: 'worker', ...p }),
         })
         setSolveResult(res)
@@ -485,8 +489,17 @@ export default function DeckBuilder() {
           setSearchMessage('No deck found. Loosen your target ranges or change server filter.')
         }
       } catch (e) {
-        setSearchMessage(e instanceof Error ? e.message : 'Search failed.')
+        const aborted =
+          (e instanceof DOMException && e.name === 'AbortError') ||
+          (e instanceof Error && e.name === 'AbortError')
+        if (aborted) {
+          setSolveResult(null)
+          setSearchMessage('Search cancelled.')
+        } else {
+          setSearchMessage(e instanceof Error ? e.message : 'Search failed.')
+        }
       } finally {
+        searchAbortRef.current = null
         setSearching(false)
         setSearchProgress(null)
         setWorkerSearchStartedAt(null)
@@ -501,6 +514,10 @@ export default function DeckBuilder() {
     maxSuggestions,
     forcedSlots,
   ])
+
+  const cancelSearch = useCallback(() => {
+    searchAbortRef.current?.abort()
+  }, [])
 
   /** Must encode which card is the wildcard; sorting all six ids collides when the same six cards swap owned vs borrowed. */
   function deckSuggestionKey(s: DeckSolution) {
@@ -843,6 +860,24 @@ export default function DeckBuilder() {
           >
             {searching ? 'Searching…' : 'Find decks'}
           </button>
+          {searching && (
+            <button
+              type="button"
+              onClick={cancelSearch}
+              style={{
+                padding: '7px 16px',
+                borderRadius: 8,
+                border: '1px solid #57534e',
+                background: '#1c1917',
+                color: '#d6d3d1',
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: 'pointer',
+              }}
+            >
+              Cancel
+            </button>
+          )}
         </div>
 
         {searching && (
