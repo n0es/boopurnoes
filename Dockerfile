@@ -15,5 +15,7 @@ COPY --from=build /app/dist ./dist
 COPY --from=build /app/dist-server ./dist-server
 COPY --from=build /app/package*.json ./
 RUN npm ci --omit=dev
+# Old deployments still invoke node dist-server/index.js; tsc emits dist-server/server/index.js
+RUN ln -sf server/index.js dist-server/index.js
 EXPOSE 3000
-CMD ["node", "dist-server/server/index.js"]
+CMD ["npm", "start"]
