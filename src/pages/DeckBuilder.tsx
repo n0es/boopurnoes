@@ -27,12 +27,44 @@ import {
   type DeckSolution,
 } from '../lib/deckBuilderSolver'
 import { maxLevelForUncap } from '../lib/supportCardLevel'
+import { binomialChoose5 } from '../../shared/deckSolverCore'
 import { runDeckSolveInWorker, runDeckSolveOnServer } from '../lib/deckSolverRun'
 import { UmaTrainerLookup } from '../components/UmaTrainerLookup'
 import { DeckBuilderForcedSlots, type DeckBuilderForcedSlot } from '../components/DeckBuilderForcedSlots'
 import { clampFriendTrainLevel, clampOwnedTrainLevel } from '../lib/deckBuilderStats'
 
 const SUPABASE_STORAGE = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/umamusume`
+
+/** Linear extrapolation from five-card combo throughput; inner-loop cost varies per combo. */
+function estimateRemainingMsFromComboProgress(
+  comboIdx: number,
+  totalCombos: number,
+  elapsedMs: number,
+): number | null {
+  if (totalCombos <= 0 || !Number.isFinite(totalCombos)) return null
+  if (comboIdx <= 0 || elapsedMs < 250) return null
+  const minCombos = Math.min(128, Math.max(12, Math.floor(totalCombos * 0.003)))
+  if (comboIdx < minCombos && elapsedMs < 5000) return null
+  const remaining = totalCombos - comboIdx
+  if (remaining <= 0) return 0
+  const rate = comboIdx / elapsedMs
+  if (rate <= 0) return null
+  const ms = remaining / rate
+  if (!Number.isFinite(ms)) return null
+  return Math.min(ms, 48 * 60 * 60 * 1000)
+}
+
+function formatRemainingShort(ms: number): string {
+  if (ms < 15_000) return `~${Math.max(1, Math.round(ms / 1000))} s`
+  if (ms < 3600_000) {
+    const m = Math.floor(ms / 60_000)
+    const s = Math.round((ms % 60_000) / 1000)
+    return `~${m}m ${s}s`
+  }
+  const h = Math.floor(ms / 3600_000)
+  const m = Math.round((ms % 3600_000) / 60_000)
+  return `~${h}h ${m}m`
+}
 
 function artUrl(id: number) {
   return `${SUPABASE_STORAGE}/supports/art/${id}.png`
@@ -93,12 +125,6 @@ const CONSTRAINT_MAX_TOTAL = 999_999
 /** When not using the user’s collection, all six slots assume max uncap like the borrowed card. */
 const CATALOG_POOL_UNCAP = 4
 
-/**
- * Solver cost is O(C(n,5)·pool); a full regional catalog is too large to enumerate in-browser.
- * When there are more eligible cards than this, we search the newest-by-id slice only.
- */
-const CATALOG_POOL_CAP = 52
-
 const USE_COLLECTION_KEY = 'boopurnoes:deckBuilderUseCollection:v1'
 /** @deprecated migrated to USE_COLLECTION_KEY */
 const LEGACY_DECK_MODE_KEY = 'boopurnoes:deckBuilderMode:v1'
@@ -120,12 +146,6 @@ function saveUseCollection(on: boolean): void {
   } catch {
     /* ignore */
   }
-}
-
-function catalogPoolForSearch(cards: CatalogCard[]): { pool: CatalogCard[]; capped: boolean } {
-  if (cards.length <= CATALOG_POOL_CAP) return { pool: cards, capped: false }
-  const sorted = [...cards].sort((a, b) => b.id - a.id)
-  return { pool: sorted.slice(0, CATALOG_POOL_CAP), capped: true }
 }
 
 export default function DeckBuilder() {
@@ -151,6 +171,14 @@ export default function DeckBuilder() {
     saveDeckBuilderConstraints(fresh)
   }, [])
   const [searching, setSearching] = useState(false)
+  const [searchProgress, setSearchProgress] = useState<
+    | null
+    | { source: 'server' }
+    | { source: 'worker'; comboIdx: number; totalCombos: number; iterations: number }
+  >(null)
+  /** Set when the browser worker starts (excludes server-only phase). Used for ETA. */
+  const [workerSearchStartedAt, setWorkerSearchStartedAt] = useState<number | null>(null)
+  const [etaTick, setEtaTick] = useState(0)
   const [searchMessage, setSearchMessage] = useState<string | null>(null)
   const [solveResult, setSolveResult] = useState<SolveDeckResult | null>(null)
   const [maxSuggestions, setMaxSuggestions] = useState(DEFAULT_MAX_DECK_SUGGESTIONS)
@@ -167,6 +195,12 @@ export default function DeckBuilder() {
     setSolveResult(null)
     setSearchMessage(null)
   }, [searchFromCollection])
+
+  useEffect(() => {
+    if (!searching || searchProgress?.source !== 'worker' || workerSearchStartedAt == null) return
+    const id = window.setInterval(() => setEtaTick(t => t + 1), 1000)
+    return () => clearInterval(id)
+  }, [searching, searchProgress?.source, workerSearchStartedAt])
 
   useEffect(() => {
     let cancelled = false
@@ -236,8 +270,6 @@ export default function DeckBuilder() {
     return out.sort((a, b) => a.card.name.localeCompare(b.card.name))
   }, [collectionMap, eligibleCards])
 
-  const catalogPoolInfo = useMemo(() => catalogPoolForSearch(eligibleCards), [eligibleCards])
-
   const [forcedSlots, setForcedSlots] = useState<DeckBuilderForcedSlot[]>([
     null,
     null,
@@ -255,7 +287,7 @@ export default function DeckBuilder() {
 
   const pickableForSlot = useCallback(
     (slotIndex: number) => {
-      const pool: CatalogCard[] = user ? ownedInRegion.map(o => o.card) : catalogPoolInfo.pool
+      const pool: CatalogCard[] = user ? ownedInRegion.map(o => o.card) : eligibleCards
       return pool.map(c => {
         const owned = cardIdToOwned.get(c.id)
         if (owned && user) {
@@ -278,7 +310,7 @@ export default function DeckBuilder() {
         }
       })
     },
-    [user, catalogPoolInfo.pool, ownedInRegion, cardIdToOwned],
+    [user, eligibleCards, ownedInRegion, cardIdToOwned],
   )
 
   /** Fixed slots plan at full limit break (4) so level can go up to the game max for that rarity. */
@@ -340,7 +372,7 @@ export default function DeckBuilder() {
     }
 
     if (!searchFromCollection) {
-      if (catalogPoolInfo.pool.length < 5) {
+      if (eligibleCards.length < 5) {
         setSearchMessage('Need at least five support cards legal on this server (check the region in the header).')
         return
       }
@@ -359,7 +391,7 @@ export default function DeckBuilder() {
           uncap: o.uncap,
           effects: effectsByCard.get(o.card.id) ?? [],
         }))
-      : catalogPoolInfo.pool.map(c => ({
+      : eligibleCards.map(c => ({
           cardId: c.id,
           name: c.name,
           rarity: c.rarity,
@@ -369,21 +401,13 @@ export default function DeckBuilder() {
           effects: effectsByCard.get(c.id) ?? [],
         }))
 
-    const wildcardPool = searchFromCollection
-      ? eligibleCards.map(c => ({
-          cardId: c.id,
-          name: c.name,
-          rarity: c.rarity,
-          card_type: c.card_type,
-          effects: effectsByCard.get(c.id) ?? [],
-        }))
-      : catalogPoolInfo.pool.map(c => ({
-          cardId: c.id,
-          name: c.name,
-          rarity: c.rarity,
-          card_type: c.card_type,
-          effects: effectsByCard.get(c.id) ?? [],
-        }))
+    const wildcardPool = eligibleCards.map(c => ({
+      cardId: c.id,
+      name: c.name,
+      rarity: c.rarity,
+      card_type: c.card_type,
+      effects: effectsByCard.get(c.id) ?? [],
+    }))
 
     const forcedAllIds = forcedSlots.map(s => s?.cardId).filter((x): x is number => x != null)
     if (new Set(forcedAllIds).size !== forcedAllIds.length) {
@@ -432,6 +456,17 @@ export default function DeckBuilder() {
     })
 
     setSearching(true)
+    setWorkerSearchStartedAt(null)
+    setSearchProgress(
+      import.meta.env.PROD
+        ? { source: 'server' }
+        : {
+            source: 'worker',
+            comboIdx: 0,
+            totalCombos: binomialChoose5(ownedEntriesWithForced.length),
+            iterations: 0,
+          },
+    )
     void (async () => {
       try {
         const args = {
@@ -443,7 +478,13 @@ export default function DeckBuilder() {
           ...(friendForcedId != null ? { forcedWildcardCardId: friendForcedId } : {}),
         }
         let res = import.meta.env.PROD ? await runDeckSolveOnServer(args) : null
-        if (!res) res = await runDeckSolveInWorker(args)
+        if (!res) {
+          const t0 = Date.now()
+          setWorkerSearchStartedAt(t0)
+          res = await runDeckSolveInWorker(args, {
+            onProgress: p => setSearchProgress({ source: 'worker', ...p }),
+          })
+        }
         setSolveResult(res)
         if (res.capped) {
           setSearchMessage(
@@ -456,6 +497,8 @@ export default function DeckBuilder() {
         setSearchMessage(e instanceof Error ? e.message : 'Search failed.')
       } finally {
         setSearching(false)
+        setSearchProgress(null)
+        setWorkerSearchStartedAt(null)
       }
     })()
   }, [
@@ -465,7 +508,6 @@ export default function DeckBuilder() {
     eligibleCards,
     effectsByCard,
     maxSuggestions,
-    catalogPoolInfo,
     forcedSlots,
   ])
 
@@ -489,6 +531,17 @@ export default function DeckBuilder() {
     }
     return copy
   }, [solveResult, sortMode])
+
+  const deckSearchEta = useMemo(() => {
+    if (searchProgress?.source !== 'worker' || workerSearchStartedAt == null) return null
+    const elapsed = Date.now() - workerSearchStartedAt
+    const remaining = estimateRemainingMsFromComboProgress(
+      searchProgress.comboIdx,
+      searchProgress.totalCombos,
+      elapsed,
+    )
+    return { remaining }
+  }, [searchProgress, workerSearchStartedAt, etaTick])
 
   return (
     <CatalogShell>
@@ -562,9 +615,8 @@ export default function DeckBuilder() {
               With <strong style={{ color: '#e5e5e5' }}>My collection</strong> off, your account is not used. Any legal card
               on this server can fill the five personal slots or the one <strong style={{ color: '#e5e5e5' }}>friend</strong>{' '}
               slot; stats assume <strong style={{ color: '#7dd3fc' }}>maximum unlock (uncap 4)</strong> on every card, like a
-              fully raised borrowed card. The search space is huge, so when there are many regional cards we only{' '}
-              <strong style={{ color: '#e5e5e5' }}>search the newest {CATALOG_POOL_CAP} by card id</strong> (see note below).
-              Same ranking and worker behavior as collection mode.
+              fully raised borrowed card. Same ranking and worker behavior as collection mode; large regional pools can take
+              longer to search.
             </p>
           )}
         </details>
@@ -578,13 +630,7 @@ export default function DeckBuilder() {
             <span style={{ color: '#a3a3a3' }}>{eligibleCards.length}</span>{' '}
             {eligibleCards.length === 1 ? 'card' : 'cards'} eligible for{' '}
             <span style={{ color: '#d4d4d8' }}>{region === 'jp' ? 'Japan' : 'Global'}</span>
-            {catalogPoolInfo.capped ? (
-              <span style={{ color: '#78716c', marginLeft: 8 }}>
-                — search uses the newest {CATALOG_POOL_CAP} by card id (performance cap)
-              </span>
-            ) : (
-              <span style={{ color: '#78716c', marginLeft: 8 }}>— full eligible pool is searched</span>
-            )}
+            <span style={{ color: '#78716c', marginLeft: 8 }}>— full eligible pool is searched</span>
             {!user && (
               <span style={{ marginLeft: 10 }}>
                 <Link to="/login" style={{ color: '#7dd3fc' }}>
@@ -745,7 +791,7 @@ export default function DeckBuilder() {
             Large collection: search time grows with combinations; very tight targets may take up to a few minutes.
           </p>
         )}
-        {!searchFromCollection && catalogPoolInfo.pool.length >= 30 && (
+        {!searchFromCollection && eligibleCards.length >= 30 && (
           <p style={{ margin: '0 0 8px', fontSize: 11, color: '#888' }}>
             Full-pool search tries many five-card combinations; very tight targets may take a few minutes.
           </p>
@@ -781,7 +827,7 @@ export default function DeckBuilder() {
               authLoading ||
               dataLoading ||
               searching ||
-              (searchFromCollection ? ownedInRegion.length < 5 : catalogPoolInfo.pool.length < 5)
+              (searchFromCollection ? ownedInRegion.length < 5 : eligibleCards.length < 5)
             }
             onClick={() => runSearch()}
             style={{
@@ -794,13 +840,13 @@ export default function DeckBuilder() {
               fontSize: 13,
               cursor:
                 searching ||
-                (searchFromCollection ? ownedInRegion.length < 5 : catalogPoolInfo.pool.length < 5)
+                (searchFromCollection ? ownedInRegion.length < 5 : eligibleCards.length < 5)
                   ? 'default'
                   : 'pointer',
               opacity:
                 authLoading ||
                 dataLoading ||
-                (searchFromCollection ? ownedInRegion.length < 5 : catalogPoolInfo.pool.length < 5)
+                (searchFromCollection ? ownedInRegion.length < 5 : eligibleCards.length < 5)
                   ? 0.45
                   : 1,
             }}
@@ -808,6 +854,77 @@ export default function DeckBuilder() {
             {searching ? 'Searching…' : 'Find decks'}
           </button>
         </div>
+
+        {searching && (
+          <div style={{ marginBottom: 10, maxWidth: 480 }}>
+            {searchProgress?.source === 'server' ? (
+              <p style={{ margin: 0, fontSize: 12, color: '#9ca3af' }}>Searching on server…</p>
+            ) : searchProgress?.source === 'worker' ? (
+              <>
+                <div
+                  style={{
+                    height: 8,
+                    borderRadius: 4,
+                    background: '#252530',
+                    overflow: 'hidden',
+                  }}
+                  role="progressbar"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={
+                    searchProgress.totalCombos > 0
+                      ? Math.round(
+                          Math.min(100, (searchProgress.comboIdx / searchProgress.totalCombos) * 100),
+                        )
+                      : 0
+                  }
+                  aria-label="Deck search progress through five-card combinations"
+                >
+                  <div
+                    style={{
+                      height: '100%',
+                      width: `${(() => {
+                        const t = searchProgress.totalCombos
+                        if (t > 0 && Number.isFinite(t)) {
+                          return Math.min(99.5, (searchProgress.comboIdx / t) * 100)
+                        }
+                        return 0
+                      })()}%`,
+                      background: 'linear-gradient(90deg, #0369a1, #38bdf8)',
+                      borderRadius: 4,
+                      transition: 'width 0.12s ease-out',
+                    }}
+                  />
+                </div>
+                <p style={{ margin: '6px 0 0', fontSize: 11, color: '#6b7280', lineHeight: 1.4 }}>
+                  Five-card combos explored:{' '}
+                  <span style={{ color: '#a3a3a3' }}>
+                    {searchProgress.comboIdx.toLocaleString()} / {searchProgress.totalCombos.toLocaleString()}
+                  </span>
+                  {' · '}
+                  Stat checks:{' '}
+                  <span style={{ color: '#a3a3a3' }}>{searchProgress.iterations.toLocaleString()}</span>
+                  {deckSearchEta != null && (
+                    <>
+                      {' · '}
+                      {deckSearchEta.remaining == null ? (
+                        <span style={{ color: '#71717a' }}>Estimating time…</span>
+                      ) : deckSearchEta.remaining <= 0 ? (
+                        <span style={{ color: '#a3a3a3' }}>Finishing…</span>
+                      ) : (
+                        <span style={{ color: '#a3a3a3' }}>
+                          {formatRemainingShort(deckSearchEta.remaining)} left (rough)
+                        </span>
+                      )}
+                    </>
+                  )}
+                </p>
+              </>
+            ) : (
+              <p style={{ margin: 0, fontSize: 12, color: '#9ca3af' }}>Starting search…</p>
+            )}
+          </div>
+        )}
 
         {searchMessage && (
           <div style={{ marginTop: 8, fontSize: 12, color: '#fbbf24' }}>{searchMessage}</div>

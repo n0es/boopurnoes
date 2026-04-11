@@ -126,6 +126,30 @@ function comboIncludesAllRequired(
   return true
 }
 
+/** Number of ways to choose 5 cards from n (search outer loop size). */
+export function binomialChoose5(n: number): number {
+  if (n < 5) return 0
+  let r = 1
+  for (let i = 1; i <= 5; i++) {
+    r = (r * (n - 5 + i)) / i
+  }
+  return Math.round(r)
+}
+
+export interface DeckSolveProgress {
+  comboIdx: number
+  totalCombos: number
+  iterations: number
+}
+
+export interface SolveDeckCompactOptions {
+  onProgress?: (p: DeckSolveProgress) => void
+  /** Emit after every N five-card combos (default 512). */
+  progressEveryCombo?: number
+  /** Emit when inner checks cross multiples of this (default 65536). */
+  progressEveryIterations?: number
+}
+
 function pushTopK(buf: CompactDeckSolutionEntry[], K: number, entry: CompactDeckSolutionEntry): void {
   if (buf.length < K) {
     buf.push(entry)
@@ -143,7 +167,10 @@ function pushTopK(buf: CompactDeckSolutionEntry[], K: number, entry: CompactDeck
  * `maxSolutions === 1`: first valid deck (original behavior).
  * `maxSolutions > 1`: among all valid decks found before timeout, keep the top `maxSolutions` by score.
  */
-export function solveDeckCompact(input: CompactDeckInput): CompactDeckResult {
+export function solveDeckCompact(
+  input: CompactDeckInput,
+  opts?: SolveDeckCompactOptions,
+): CompactDeckResult {
   const {
     k,
     ownedFlat,
@@ -160,6 +187,10 @@ export function solveDeckCompact(input: CompactDeckInput): CompactDeckResult {
     requiredOwnedIndices,
     forcedPoolIndex: forcedPoolIndexRaw,
   } = input
+
+  const onProgress = opts?.onProgress
+  const progressEveryCombo = Math.max(1, opts?.progressEveryCombo ?? 512)
+  const progressEveryIterations = Math.max(1, opts?.progressEveryIterations ?? 65_536)
 
   const maxSol = Math.min(100, Math.max(1, maxSolutionsRaw ?? 1))
   const useTopK = maxSol > 1
@@ -198,6 +229,8 @@ export function solveDeckCompact(input: CompactDeckInput): CompactDeckResult {
     return { solutions: [], iterations: 0, capped: false }
   }
 
+  const totalCombos = binomialChoose5(nOwned)
+
   const deadline = Date.now() + maxTimeMs
   const poolMin = new Float64Array(k)
   const poolMax = new Float64Array(k)
@@ -207,7 +240,12 @@ export function solveDeckCompact(input: CompactDeckInput): CompactDeckResult {
   let iterations = 0
   let innerSinceCheck = 0
   let comboIdx = 0
+  let lastProgressIter = 0
   const topBuf: CompactDeckSolutionEntry[] = []
+
+  const emitProgress = () => {
+    if (onProgress) onProgress({ comboIdx, totalCombos, iterations })
+  }
 
   const n = nOwned
   for (let a = 0; a < n; a++)
@@ -216,6 +254,9 @@ export function solveDeckCompact(input: CompactDeckInput): CompactDeckResult {
         for (let d = c + 1; d < n; d++)
           for (let e = d + 1; e < n; e++) {
             comboIdx++
+            if (onProgress && (comboIdx === 1 || comboIdx % progressEveryCombo === 0)) {
+              emitProgress()
+            }
             if ((comboIdx & 1023) === 0 && Date.now() > deadline) {
               if (useTopK) {
                 topBuf.sort((x, y) => y.score - x.score)
@@ -261,6 +302,13 @@ export function solveDeckCompact(input: CompactDeckInput): CompactDeckResult {
               }
 
               iterations++
+              if (
+                onProgress &&
+                iterations - lastProgressIter >= progressEveryIterations
+              ) {
+                lastProgressIter = iterations
+                emitProgress()
+              }
               const row = pi * k
               let ok = true
               for (let j = 0; j < k; j++) {

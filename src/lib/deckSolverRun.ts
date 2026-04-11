@@ -4,10 +4,19 @@ import {
   type SolveDeckArgs,
   type SolveDeckResult,
 } from './deckBuilderSolver'
-import type { CompactDeckResult } from '../../shared/deckSolverCore'
+import type { CompactDeckResult, DeckSolveProgress } from '../../shared/deckSolverCore'
+
+type WorkerToMain =
+  | { type: 'progress'; comboIdx: number; totalCombos: number; iterations: number }
+  | { type: 'done'; result: CompactDeckResult }
+
+export type { DeckSolveProgress }
 
 /** Run search off the main thread (same numeric core as the server). */
-export function runDeckSolveInWorker(args: SolveDeckArgs): Promise<SolveDeckResult> {
+export function runDeckSolveInWorker(
+  args: SolveDeckArgs,
+  options?: { onProgress?: (p: DeckSolveProgress) => void },
+): Promise<SolveDeckResult> {
   const payload = buildDeckSolvePayload(args)
   if (!payload) {
     return Promise.resolve({ solutions: [], iterations: 0, capped: false })
@@ -17,9 +26,14 @@ export function runDeckSolveInWorker(args: SolveDeckArgs): Promise<SolveDeckResu
     const worker = new Worker(new URL('../workers/deckSolver.worker.ts', import.meta.url), {
       type: 'module',
     })
-    worker.onmessage = (ev: MessageEvent<CompactDeckResult>) => {
+    worker.onmessage = (ev: MessageEvent<WorkerToMain>) => {
+      const data = ev.data
+      if (data.type === 'progress') {
+        options?.onProgress?.(data)
+        return
+      }
       worker.terminate()
-      resolve(reconstructDeckSolutions(args, ev.data))
+      resolve(reconstructDeckSolutions(args, data.result))
     }
     worker.onerror = err => {
       worker.terminate()
