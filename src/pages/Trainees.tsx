@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { AptitudeGrid } from '../components/AptitudeGrid'
 import {
   CatalogShell,
   CatalogHeader,
+  CatalogCollectionControls,
   CatalogGrid,
   RegionFilter,
   FilterPill,
@@ -15,11 +15,10 @@ import {
   hasReleaseInfo,
   releaseSummaryLines,
   passesRegionAvailabilityFilter,
-  parseRegionParam,
   todayIsoDateLocal,
   type ReleaseMetadata,
-  type RegionAvailabilityFilter,
 } from '../lib/releaseMetadata'
+import { useRegionSearchParam } from '../lib/useRegionSearchParam'
 import { isMissingTableError } from '../lib/supabaseErrors'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -827,7 +826,8 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
 
 export default function Trainees() {
   const { user } = useAuth()
-  const [searchParams, setSearchParams] = useSearchParams()
+  const { region: regionFilter, setRegion: setRegionFilter, searchParams, setSearchParams } =
+    useRegionSearchParam()
   const [trainees, setTrainees] = useState<Trainee[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -884,17 +884,7 @@ export default function Trainees() {
       return n
     }, { replace: true })
   }
-  const regionFilter = parseRegionParam(searchParams.get('region'))
   const todayIso = todayIsoDateLocal()
-
-  function setRegionFilter(r: RegionAvailabilityFilter) {
-    setSearchParams(p => {
-      const n = new URLSearchParams(p)
-      if (r === 'jp') n.delete('region')
-      else n.set('region', 'global')
-      return n
-    }, { replace: true })
-  }
 
   const unownedMode = searchParams.get('unowned') === '1'
   function toggleUnownedMode() {
@@ -995,15 +985,7 @@ export default function Trainees() {
 
   return (
     <CatalogShell>
-      <CatalogHeader
-        title="Trainees"
-        collectionMode={collectionMode}
-        onToggleCollection={toggleCollectionMode}
-        unownedMode={unownedMode}
-        onToggleUnowned={toggleUnownedMode}
-        collectionDisabled={!user}
-        warningMessage={collectionMode && !user ? 'Sign in to use collection mode' : undefined}
-      />
+      <CatalogHeader title="Trainees" />
 
       {/* Filters */}
       <div style={{ padding: '8px 16px 10px', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', borderTop: '1px solid #1a1a1a' }}>
@@ -1044,6 +1026,14 @@ export default function Trainees() {
             </FilterPill>
           ))}
         </div>
+        <CatalogCollectionControls
+          collectionMode={collectionMode}
+          onToggleCollection={toggleCollectionMode}
+          unownedMode={unownedMode}
+          onToggleUnowned={toggleUnownedMode}
+          collectionDisabled={!user}
+          warningMessage={collectionMode && !user ? 'Sign in to use collection mode' : undefined}
+        />
         <CardSizeSlider
           value={cardSize}
           onChange={setCardSize}

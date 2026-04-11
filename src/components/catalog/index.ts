@@ -1,5 +1,6 @@
 export { CatalogShell } from './CatalogShell'
 export { CatalogHeader } from './CatalogHeader'
+export { CatalogCollectionControls } from './CatalogCollectionControls'
 export { RegionFilter } from './RegionFilter'
 export { FilterPill } from './FilterPill'
 export { CardSizeSlider } from './CardSizeSlider'

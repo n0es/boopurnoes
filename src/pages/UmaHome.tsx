@@ -80,6 +80,11 @@ export default function UmaHome() {
               description="Card library, levels, and skill data."
               to="/support-cards"
             />
+            <ToolCard
+              title="Deck Builder"
+              description="Plan and build support card decks."
+              to="/deck-builder"
+            />
           </div>
         </section>
 

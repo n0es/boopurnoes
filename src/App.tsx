@@ -8,6 +8,7 @@ import Signup from './pages/Signup'
 import SupportCardImporter from './pages/SupportCardImporter'
 import SupportCards from './pages/SupportCards'
 import Trainees from './pages/Trainees'
+import DeckBuilder from './pages/DeckBuilder'
 import './index.css'
 
 export default function App() {
@@ -22,6 +23,7 @@ export default function App() {
           <Route path="/import-support-card" element={<SupportCardImporter />} />
           <Route path="/support-cards" element={<SupportCards />} />
           <Route path="/trainees" element={<Trainees />} />
+          <Route path="/deck-builder" element={<DeckBuilder />} />
         </Routes>
         <div className="app-version" aria-hidden>
           v{APP_VERSION}

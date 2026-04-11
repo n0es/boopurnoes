@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Semantic version — patch per commit
 
-Agents **may and should** change `package.json` **`version`** so it stays aligned with commit cadence. The UI reads this at build time via `vite.config.ts` (`__APP_VERSION__`); do not duplicate the number elsewhere.
+Agents **may and should** change `package.json` **`version`** so it stays aligned with commit cadence. The UI reads it from `src/version.ts`, which imports `../package.json` (dev picks up HMR when the version changes; production embeds whatever `package.json` says at `vite build` time). Do not duplicate the number elsewhere.
 
 ## Pre-1.0 (current)
 

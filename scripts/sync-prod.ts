@@ -9,7 +9,10 @@
  *
  * Skipped intentionally:
  *   - profiles  (tied to auth.users UUIDs that don't exist locally)
- *   - user_collection  (still in development)
+ *
+ * To copy a specific user's support + trainee collections from prod, use:
+ *   npm run db:import-user-collection -- <prod-auth-user-uuid>
+ * See scripts/import-user-collection-from-prod.ts
  *
  * Usage:
  *   npm run db:sync              # skip already-uploaded images

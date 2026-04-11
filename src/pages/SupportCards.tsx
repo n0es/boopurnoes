@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import {
   CatalogShell,
   CatalogHeader,
+  CatalogCollectionControls,
   CatalogGrid,
   RegionFilter,
   FilterPill,
@@ -15,12 +16,12 @@ import {
   hasReleaseInfo,
   releaseSummaryLines,
   passesRegionAvailabilityFilter,
-  parseRegionParam,
   todayIsoDateLocal,
   type ReleaseMetadata,
-  type RegionAvailabilityFilter,
 } from '../lib/releaseMetadata'
+import { useRegionSearchParam } from '../lib/useRegionSearchParam'
 import { isMissingTableError } from '../lib/supabaseErrors'
+import { maxLevelForUncap } from '../lib/supportCardLevel'
 
 interface SupportCard extends ReleaseMetadata {
   id: number
@@ -83,13 +84,6 @@ const RARITY_STYLE: Record<string, { color: string; bg: string }> = {
   R:   { color: '#9ca3af', bg: 'rgba(156,163,175,0.15)' },
 }
 
-const BASE_LEVEL: Record<string, number> = { SSR: 30, SR: 25, R: 20 }
-
-/** Max level for a given uncap tier and rarity. */
-function maxLevelForUncap(uncap: number, rarity: string) {
-  return (BASE_LEVEL[rarity] ?? 30) + uncap * 5
-}
-
 type SortField = 'id' | 'name' | 'rarity' | 'card_type'
 type SortDir   = 'asc' | 'desc'
 
@@ -107,7 +101,8 @@ export default function SupportCards() {
   const [sortDir, setSortDir]           = useState<SortDir>('asc')
   const [collectionMode, setCollectionMode] = useState(false)
   const [ownedMap, setOwnedMap]         = useState<Map<number, OwnedEntry> | null>(null)
-  const [searchParams, setSearchParams] = useSearchParams()
+  const { region: regionFilter, setRegion: setRegionFilter, searchParams, setSearchParams } =
+    useRegionSearchParam()
   const unownedMode = searchParams.get('unowned') === '1'
   function toggleUnownedMode() {
     if (!collectionMode) return
@@ -121,17 +116,7 @@ export default function SupportCards() {
   const [modalCard, setModalCard]       = useState<SupportCard | null>(null)
   const [cardSize, setCardSize]         = useState(100) // min card width in px
 
-  const regionFilter = parseRegionParam(searchParams.get('region'))
   const todayIso = todayIsoDateLocal()
-
-  function setRegionFilter(r: RegionAvailabilityFilter) {
-    setSearchParams(p => {
-      const n = new URLSearchParams(p)
-      if (r === 'jp') n.delete('region')
-      else n.set('region', 'global')
-      return n
-    }, { replace: true })
-  }
 
   function toggleCollectionMode() {
     if (collectionMode) {
@@ -220,15 +205,7 @@ export default function SupportCards() {
 
   return (
     <CatalogShell>
-      <CatalogHeader
-        title="Support Cards"
-        collectionMode={collectionMode}
-        onToggleCollection={toggleCollectionMode}
-        unownedMode={unownedMode}
-        onToggleUnowned={toggleUnownedMode}
-        collectionDisabled={!user}
-        warningMessage={collectionMode && !user ? 'Sign in to use collection mode' : undefined}
-      />
+      <CatalogHeader title="Support Cards" />
 
       {/* Filters */}
       <div style={{ padding: '8px 16px 10px', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', borderTop: '1px solid #1a1a1a' }}>
@@ -290,6 +267,14 @@ export default function SupportCards() {
             </button>
           ))}
         </div>
+        <CatalogCollectionControls
+          collectionMode={collectionMode}
+          onToggleCollection={toggleCollectionMode}
+          unownedMode={unownedMode}
+          onToggleUnowned={toggleUnownedMode}
+          collectionDisabled={!user}
+          warningMessage={collectionMode && !user ? 'Sign in to use collection mode' : undefined}
+        />
         <CardSizeSlider
           value={cardSize}
           onChange={setCardSize}

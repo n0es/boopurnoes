@@ -1,34 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase'
+import { SUPPORT_CARD_EFFECT_META as EFFECT_META } from '../lib/supportCardEffectMeta'
 import BatchCardImporter from '../components/Batchcardimporter';
-
-// ── Effect metadata (for display only — the edge function handles insertion) ──
-const EFFECT_META: Record<number, { name: string; symbol: string }> = {
-  1: { name: 'Friendship Bonus', symbol: 'percent' },
-  2: { name: 'Mood Effect', symbol: 'percent' },
-  3: { name: 'Speed Bonus', symbol: 'none' },
-  4: { name: 'Stamina Bonus', symbol: 'none' },
-  5: { name: 'Power Bonus', symbol: 'none' },
-  6: { name: 'Guts Bonus', symbol: 'none' },
-  7: { name: 'Wit Bonus', symbol: 'none' },
-  8: { name: 'Training Effectiveness', symbol: 'percent' },
-  9: { name: 'Initial Speed', symbol: 'none' },
-  10: { name: 'Initial Stamina', symbol: 'none' },
-  11: { name: 'Initial Power', symbol: 'none' },
-  12: { name: 'Initial Guts', symbol: 'none' },
-  13: { name: 'Initial Wit', symbol: 'none' },
-  14: { name: 'Initial Friendship', symbol: 'none' },
-  15: { name: 'Race Bonus', symbol: 'percent' },
-  16: { name: 'Fan Bonus', symbol: 'percent' },
-  17: { name: 'Hint Levels', symbol: 'level' },
-  18: { name: 'Hint Frequency', symbol: 'percent' },
-  19: { name: 'Specialty Priority', symbol: 'none' },
-  25: { name: 'Event Recovery', symbol: 'percent' },
-  26: { name: 'Event Effectiveness', symbol: 'percent' },
-  27: { name: 'Failure Protection', symbol: 'percent' },
-  28: { name: 'Energy Cost Reduction', symbol: 'percent' },
-  30: { name: 'Skill Point Bonus', symbol: 'none' },
-};
 
 interface CardEffect {
   name: string;

@@ -4,6 +4,7 @@ import { createProxyMiddleware } from 'http-proxy-middleware'
 import { createClient } from '@supabase/supabase-js'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { compactInputFromJson, solveDeckCompact } from '../shared/deckSolverCore.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -19,6 +20,33 @@ const studioPass = process.env.STUDIO_PASS!
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 app.use(cookieParser())
+app.use(express.json({ limit: '12mb' }))
+
+/**
+ * Proxy uma.moe v3 search (browser cannot call uma.moe directly due to CORS).
+ * Query string is passed through unchanged.
+ */
+app.get('/api/uma-v3/search', async (req, res) => {
+  try {
+    const qs = new URLSearchParams(req.query as Record<string, string>).toString()
+    const url = `https://uma.moe/api/v3/search?${qs}`
+    const r = await fetch(url, { headers: { Accept: 'application/json' } })
+    const text = await r.text()
+    res.status(r.status).type('application/json').send(text)
+  } catch (e) {
+    res.status(502).json({ error: e instanceof Error ? e.message : String(e) })
+  }
+})
+
+/** Deck search runs on the Node process (same numeric core as the browser worker). */
+app.post('/api/deck-solve', (req, res) => {
+  try {
+    const cr = solveDeckCompact(compactInputFromJson(req.body))
+    res.json(cr)
+  } catch (e) {
+    res.status(400).json({ error: e instanceof Error ? e.message : String(e) })
+  }
+})
 
 // Auth check middleware for studio
 async function checkAdminAuth(
