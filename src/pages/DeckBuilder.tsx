@@ -575,11 +575,15 @@ export default function DeckBuilder() {
           <div style={{ color: '#f87171', fontSize: 13 }}>{dataError}</div>
         ) : !searchFromCollection ? (
           <div style={{ fontSize: 12, color: '#6b7280', marginTop: 10 }}>
-            <span style={{ color: '#a3a3a3' }}>{catalogPoolInfo.pool.length}</span> cards in the search pool
-            {catalogPoolInfo.capped && (
+            <span style={{ color: '#a3a3a3' }}>{eligibleCards.length}</span>{' '}
+            {eligibleCards.length === 1 ? 'card' : 'cards'} eligible for{' '}
+            <span style={{ color: '#d4d4d8' }}>{region === 'jp' ? 'Japan' : 'Global'}</span>
+            {catalogPoolInfo.capped ? (
               <span style={{ color: '#78716c', marginLeft: 8 }}>
-                (newest {CATALOG_POOL_CAP} by id — narrow the region filter to search a different slice)
+                — search uses the newest {CATALOG_POOL_CAP} by card id (performance cap)
               </span>
+            ) : (
+              <span style={{ color: '#78716c', marginLeft: 8 }}>— full eligible pool is searched</span>
             )}
             {!user && (
               <span style={{ marginLeft: 10 }}>
