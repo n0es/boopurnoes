@@ -249,9 +249,10 @@ export default function DeckBuilder() {
     })()
   }, [constraints, ownedInRegion, eligibleCards, effectsByCard, maxSuggestions])
 
+  /** Must encode which card is the wildcard; sorting all six ids collides when the same six cards swap owned vs borrowed. */
   function deckSuggestionKey(s: DeckSolution) {
-    const ids = [...s.owned.map(o => o.cardId), s.wildcard.cardId].sort((a, b) => a - b)
-    return ids.join('-')
+    const ownedSorted = [...s.owned.map(o => o.cardId)].sort((a, b) => a - b)
+    return `w${s.wildcard.cardId}-${ownedSorted.join('-')}`
   }
 
   const displayedSolutions = useMemo(() => {
