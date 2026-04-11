@@ -985,7 +985,28 @@ export default function Trainees() {
 
   return (
     <CatalogShell>
-      <CatalogHeader title="Trainees" />
+      <CatalogHeader title="Trainees">
+        <div
+          style={{
+            marginLeft: 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            flexWrap: 'wrap',
+            flexShrink: 0,
+          }}
+        >
+          <RegionFilter value={regionFilter} onChange={setRegionFilter} />
+          <CatalogCollectionControls
+            collectionMode={collectionMode}
+            onToggleCollection={toggleCollectionMode}
+            unownedMode={unownedMode}
+            onToggleUnowned={toggleUnownedMode}
+            collectionDisabled={!user}
+            warningMessage={collectionMode && !user ? 'Sign in to use collection mode' : undefined}
+          />
+        </div>
+      </CatalogHeader>
 
       {/* Filters */}
       <div style={{ padding: '8px 16px 10px', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', borderTop: '1px solid #1a1a1a' }}>
@@ -997,7 +1018,6 @@ export default function Trainees() {
             padding: '5px 10px', color: '#fff', fontSize: 12, outline: 'none', width: 160,
           }}
         />
-        <RegionFilter value={regionFilter} onChange={setRegionFilter} />
         <div style={{ display: 'flex', gap: 4 }}>
           {([null, 1, 2, 3] as const).map(r => {
             const rs = r !== null ? RARITY_STYLE[r] : null
@@ -1026,21 +1046,15 @@ export default function Trainees() {
             </FilterPill>
           ))}
         </div>
-        <CatalogCollectionControls
-          collectionMode={collectionMode}
-          onToggleCollection={toggleCollectionMode}
-          unownedMode={unownedMode}
-          onToggleUnowned={toggleUnownedMode}
-          collectionDisabled={!user}
-          warningMessage={collectionMode && !user ? 'Sign in to use collection mode' : undefined}
-        />
-        <CardSizeSlider
-          value={cardSize}
-          onChange={setCardSize}
-          min={70} max={200}
-          count={filtered.length}
-          ownedCount={collectionMode && user && collectionIds !== null ? collectionIds.size : undefined}
-        />
+        <div style={{ marginLeft: 'auto', flexShrink: 0 }}>
+          <CardSizeSlider
+            value={cardSize}
+            onChange={setCardSize}
+            min={70} max={200}
+            count={filtered.length}
+            ownedCount={collectionMode && user && collectionIds !== null ? collectionIds.size : undefined}
+          />
+        </div>
       </div>
 
       {/* Block pointer events to grid while modal open so nothing underneath steals the closing gesture. */}

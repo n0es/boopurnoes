@@ -205,7 +205,28 @@ export default function SupportCards() {
 
   return (
     <CatalogShell>
-      <CatalogHeader title="Support Cards" />
+      <CatalogHeader title="Support Cards">
+        <div
+          style={{
+            marginLeft: 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            flexWrap: 'wrap',
+            flexShrink: 0,
+          }}
+        >
+          <RegionFilter value={regionFilter} onChange={setRegionFilter} />
+          <CatalogCollectionControls
+            collectionMode={collectionMode}
+            onToggleCollection={toggleCollectionMode}
+            unownedMode={unownedMode}
+            onToggleUnowned={toggleUnownedMode}
+            collectionDisabled={!user}
+            warningMessage={collectionMode && !user ? 'Sign in to use collection mode' : undefined}
+          />
+        </div>
+      </CatalogHeader>
 
       {/* Filters */}
       <div style={{ padding: '8px 16px 10px', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', borderTop: '1px solid #1a1a1a' }}>
@@ -217,7 +238,6 @@ export default function SupportCards() {
             padding: '5px 10px', color: '#fff', fontSize: 12, outline: 'none', width: 160,
           }}
         />
-        <RegionFilter value={regionFilter} onChange={setRegionFilter} />
         <div style={{ display: 'flex', gap: 4 }}>
           {(['id', 'name', 'rarity', 'card_type'] as SortField[]).map(field => (
             <FilterPill
@@ -267,21 +287,15 @@ export default function SupportCards() {
             </button>
           ))}
         </div>
-        <CatalogCollectionControls
-          collectionMode={collectionMode}
-          onToggleCollection={toggleCollectionMode}
-          unownedMode={unownedMode}
-          onToggleUnowned={toggleUnownedMode}
-          collectionDisabled={!user}
-          warningMessage={collectionMode && !user ? 'Sign in to use collection mode' : undefined}
-        />
-        <CardSizeSlider
-          value={cardSize}
-          onChange={setCardSize}
-          min={60} max={180}
-          count={filtered.length}
-          ownedCount={collectionMode && user && ownedMap !== null ? ownedMap.size : undefined}
-        />
+        <div style={{ marginLeft: 'auto', flexShrink: 0 }}>
+          <CardSizeSlider
+            value={cardSize}
+            onChange={setCardSize}
+            min={60} max={180}
+            count={filtered.length}
+            ownedCount={collectionMode && user && ownedMap !== null ? ownedMap.size : undefined}
+          />
+        </div>
       </div>
 
       <CatalogGrid loading={loading} error={error} emptyMessage="No cards found." cardSize={cardSize}>

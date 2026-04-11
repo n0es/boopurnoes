@@ -1,8 +1,9 @@
 import { maxLevelForUncap } from './supportCardLevel'
 import {
   addStatVectors,
-  vectorForOwnedCard,
-  vectorForWildcardCard,
+  statVectorAtLevel,
+  clampFriendTrainLevel,
+  clampOwnedTrainLevel,
   type SupportCardEffectRow,
 } from './deckBuilderStats'
 import {
@@ -26,6 +27,11 @@ export interface OwnedDeckEntry {
   level: number
   uncap: number
   effects: SupportCardEffectRow[]
+  /**
+   * Training level used for effect totals in the solver (clamped to max for `uncap`).
+   * If omitted, max level for uncap is used (same as before fixed-slot levels).
+   */
+  statTrainLevel?: number
 }
 
 export interface WildcardCandidate {
@@ -34,6 +40,8 @@ export interface WildcardCandidate {
   rarity: string
   card_type: string
   effects: SupportCardEffectRow[]
+  /** Training level for the friend slot (clamped to max at uncap 4). Omit = max level. */
+  statTrainLevel?: number
 }
 
 export interface UpgradeHint {
@@ -91,6 +99,22 @@ export function normalizeConstraints(constraints: StatConstraint[]): StatConstra
     .map(([effectTypeId, { min, max }]) => ({ effectTypeId, min, max }))
 }
 
+function statVectorForOwnedSolver(o: OwnedDeckEntry): Record<number, number> {
+  const lv =
+    o.statTrainLevel != null
+      ? clampOwnedTrainLevel(o.statTrainLevel, o.uncap, o.rarity)
+      : maxLevelForUncap(o.uncap, o.rarity)
+  return statVectorAtLevel(o.effects, lv)
+}
+
+function statVectorForWildcardSolver(w: WildcardCandidate): Record<number, number> {
+  const lv =
+    w.statTrainLevel != null
+      ? clampFriendTrainLevel(w.statTrainLevel, w.rarity)
+      : maxLevelForUncap(4, w.rarity)
+  return statVectorAtLevel(w.effects, lv)
+}
+
 /** Default number of ranked decks to return (top by total stat sum). */
 export const DEFAULT_MAX_DECK_SUGGESTIONS = 25
 
@@ -101,6 +125,10 @@ export interface SolveDeckArgs {
   maxTimeMs?: number
   /** How many valid decks to rank and return (1 = first match only, faster). */
   maxSolutions?: number
+  /** Card ids that must appear among the five owned picks (subset of `owned`). */
+  forcedOwnedCardIds?: number[]
+  /** Friend slot must be this card id (must exist in `wildcardPool`). */
+  forcedWildcardCardId?: number | null
 }
 
 export interface SolveDeckResult {
@@ -122,6 +150,8 @@ export interface DeckSolveJsonPayload {
   maxSolutions?: number
   ownedScore?: number[]
   poolScore?: number[]
+  requiredOwnedIndices?: number[]
+  forcedPoolIndex?: number
 }
 
 export function buildDeckSolvePayload(args: SolveDeckArgs): DeckSolveJsonPayload | null {
@@ -135,11 +165,11 @@ export function buildDeckSolvePayload(args: SolveDeckArgs): DeckSolveJsonPayload
 
   const ownedPre = args.owned.map(o => ({
     entry: o,
-    vec: vectorForOwnedCard(o.effects, o.uncap, o.rarity),
+    vec: statVectorForOwnedSolver(o),
   }))
   const poolPre = args.wildcardPool.map(w => ({
     card: w,
-    vec: vectorForWildcardCard(w.effects, w.rarity),
+    vec: statVectorForWildcardSolver(w),
   }))
 
   const owned: number[][] = ownedPre.map(({ vec }) =>
@@ -165,6 +195,24 @@ export function buildDeckSolvePayload(args: SolveDeckArgs): DeckSolveJsonPayload
     poolScore,
   }
 
+  const forcedOwned = args.forcedOwnedCardIds?.filter(id => Number.isFinite(id)) ?? []
+  if (forcedOwned.length > 0) {
+    const idToIdx = new Map(args.owned.map((o, i) => [o.cardId, i]))
+    const idxSet = new Set<number>()
+    for (const id of forcedOwned) {
+      const ix = idToIdx.get(id)
+      if (ix === undefined) return null
+      idxSet.add(ix)
+    }
+    payload.requiredOwnedIndices = [...idxSet].sort((a, b) => a - b)
+  }
+
+  if (args.forcedWildcardCardId != null && Number.isFinite(args.forcedWildcardCardId)) {
+    const pix = args.wildcardPool.findIndex(w => w.cardId === args.forcedWildcardCardId)
+    if (pix < 0) return null
+    payload.forcedPoolIndex = pix
+  }
+
   return payload
 }
 
@@ -178,12 +226,12 @@ function solutionFromIndices(
   const w = args.wildcardPool[poolIdx]!
 
   const vecs = [
-    vectorForOwnedCard(ownedEntries[0]!.effects, ownedEntries[0]!.uncap, ownedEntries[0]!.rarity),
-    vectorForOwnedCard(ownedEntries[1]!.effects, ownedEntries[1]!.uncap, ownedEntries[1]!.rarity),
-    vectorForOwnedCard(ownedEntries[2]!.effects, ownedEntries[2]!.uncap, ownedEntries[2]!.rarity),
-    vectorForOwnedCard(ownedEntries[3]!.effects, ownedEntries[3]!.uncap, ownedEntries[3]!.rarity),
-    vectorForOwnedCard(ownedEntries[4]!.effects, ownedEntries[4]!.uncap, ownedEntries[4]!.rarity),
-    vectorForWildcardCard(w.effects, w.rarity),
+    statVectorForOwnedSolver(ownedEntries[0]!),
+    statVectorForOwnedSolver(ownedEntries[1]!),
+    statVectorForOwnedSolver(ownedEntries[2]!),
+    statVectorForOwnedSolver(ownedEntries[3]!),
+    statVectorForOwnedSolver(ownedEntries[4]!),
+    statVectorForWildcardSolver(w),
   ]
   const total = addStatVectors(...vecs)
 

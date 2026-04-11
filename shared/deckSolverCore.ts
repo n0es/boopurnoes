@@ -27,6 +27,13 @@ export interface CompactDeckInput {
   ownedScore?: Float64Array
   /** Same for each pool / wildcard row. */
   poolScore?: Float64Array
+  /**
+   * Indices into `ownedIds` that must appear in every 5-card combo (sorted, unique, length 0–5).
+   * Omitted or empty = no restriction.
+   */
+  requiredOwnedIndices?: Int32Array
+  /** If set (&gt;= 0), only this pool row may be the friend slot. */
+  forcedPoolIndex?: number
 }
 
 export interface CompactDeckSolutionEntry {
@@ -104,6 +111,21 @@ function canWildcardWork(
   return true
 }
 
+function comboIncludesAllRequired(
+  a: number,
+  b: number,
+  c: number,
+  d: number,
+  e: number,
+  required: Int32Array,
+): boolean {
+  for (let i = 0; i < required.length; i++) {
+    const x = required[i]!
+    if (x !== a && x !== b && x !== c && x !== d && x !== e) return false
+  }
+  return true
+}
+
 function pushTopK(buf: CompactDeckSolutionEntry[], K: number, entry: CompactDeckSolutionEntry): void {
   if (buf.length < K) {
     buf.push(entry)
@@ -135,6 +157,8 @@ export function solveDeckCompact(input: CompactDeckInput): CompactDeckResult {
     maxSolutions: maxSolutionsRaw,
     ownedScore,
     poolScore,
+    requiredOwnedIndices,
+    forcedPoolIndex: forcedPoolIndexRaw,
   } = input
 
   const maxSol = Math.min(100, Math.max(1, maxSolutionsRaw ?? 1))
@@ -142,6 +166,23 @@ export function solveDeckCompact(input: CompactDeckInput): CompactDeckResult {
 
   const nOwned = ownedIds.length
   const nPool = poolIds.length
+
+  const forcedPoolIndex = forcedPoolIndexRaw !== undefined && forcedPoolIndexRaw >= 0 ? forcedPoolIndexRaw : -1
+
+  if (requiredOwnedIndices && requiredOwnedIndices.length > 5) {
+    return { solutions: [], iterations: 0, capped: false }
+  }
+  if (forcedPoolIndex >= nPool) {
+    return { solutions: [], iterations: 0, capped: false }
+  }
+  if (requiredOwnedIndices && requiredOwnedIndices.length > 0) {
+    for (let i = 0; i < requiredOwnedIndices.length; i++) {
+      const ix = requiredOwnedIndices[i]!
+      if (ix < 0 || ix >= nOwned) {
+        return { solutions: [], iterations: 0, capped: false }
+      }
+    }
+  }
 
   if (k <= 0 || nOwned < 5 || nPool === 0) {
     return { solutions: [], iterations: 0, capped: false }
@@ -183,6 +224,14 @@ export function solveDeckCompact(input: CompactDeckInput): CompactDeckResult {
               return { solutions: [], iterations, capped: true }
             }
 
+            if (
+              requiredOwnedIndices &&
+              requiredOwnedIndices.length > 0 &&
+              !comboIncludesAllRequired(a, b, c, d, e, requiredOwnedIndices)
+            ) {
+              continue
+            }
+
             sum5Owned(ownedFlat, k, a, b, c, d, e, sum5)
 
             if (!canWildcardWork(sum5, k, targetMin, targetMax, poolMin, poolMax)) continue
@@ -193,7 +242,9 @@ export function solveDeckCompact(input: CompactDeckInput): CompactDeckResult {
             const idd = ownedIds[d]!
             const ide = ownedIds[e]!
 
-            for (let pi = 0; pi < nPool; pi++) {
+            const piLo = forcedPoolIndex >= 0 ? forcedPoolIndex : 0
+            const piHi = forcedPoolIndex >= 0 ? forcedPoolIndex + 1 : nPool
+            for (let pi = piLo; pi < piHi; pi++) {
               const pid = poolIds[pi]!
               if (pid === ida || pid === idb || pid === idc || pid === idd || pid === ide) continue
 
@@ -266,6 +317,8 @@ export function compactInputFromJson(raw: {
   maxSolutions?: number
   ownedScore?: number[]
   poolScore?: number[]
+  requiredOwnedIndices?: number[]
+  forcedPoolIndex?: number
 }): CompactDeckInput {
   const k = raw.k
   const nO = raw.owned.length
@@ -293,5 +346,11 @@ export function compactInputFromJson(raw: {
   if (raw.maxSolutions != null) out.maxSolutions = raw.maxSolutions
   if (raw.ownedScore != null) out.ownedScore = Float64Array.from(raw.ownedScore)
   if (raw.poolScore != null) out.poolScore = Float64Array.from(raw.poolScore)
+  if (raw.requiredOwnedIndices != null && raw.requiredOwnedIndices.length > 0) {
+    out.requiredOwnedIndices = Int32Array.from(raw.requiredOwnedIndices)
+  }
+  if (raw.forcedPoolIndex != null && raw.forcedPoolIndex >= 0) {
+    out.forcedPoolIndex = raw.forcedPoolIndex
+  }
   return out
 }

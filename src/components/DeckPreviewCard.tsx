@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { maxLevelForUncap } from '../lib/supportCardLevel'
+import { maxLevelForUncap, uncapDisplayForTrainLevel } from '../lib/supportCardLevel'
 
 const SUPABASE_STORAGE = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/umamusume`
 
@@ -217,7 +217,6 @@ export interface DeckPreviewCardProps {
   name: string
   rarity: string
   cardType: string
-  uncap: number
   displayLevel: number
   /** Wildcard slot: pink border, raised level row, bottom type strip (e.g. Friends). */
   wildcard?: boolean
@@ -230,11 +229,11 @@ export function DeckPreviewCard({
   name,
   rarity,
   cardType,
-  uncap,
   displayLevel,
   wildcard = false,
   compact = false,
 }: DeckPreviewCardProps) {
+  const uncapDiamonds = uncapDisplayForTrainLevel(displayLevel, rarity)
   const cw = compact ? 102 : 132
   const levelFs = compact ? 12 : 15
   const nameFs = compact ? 10 : 11
@@ -257,7 +256,7 @@ export function DeckPreviewCard({
         gap: compact ? 4 : 6,
       }}
     >
-      <UncapRow value={Math.min(4, Math.max(0, uncap))} compact={compact} />
+      <UncapRow value={uncapDiamonds} compact={compact} />
       <span
         style={{
           fontSize: levelFs,

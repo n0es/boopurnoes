@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'r
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
-import { CatalogShell, CatalogHeader, RegionFilter } from '../components/catalog'
+import { CatalogShell, CatalogHeader, CatalogCollectionControls, RegionFilter } from '../components/catalog'
 import {
   passesRegionAvailabilityFilter,
   todayIsoDateLocal,
@@ -21,12 +21,16 @@ import {
 import type { SupportCardEffectRow } from '../lib/deckBuilderStats'
 import {
   DEFAULT_MAX_DECK_SUGGESTIONS,
+  type OwnedDeckEntry,
   type SolveDeckResult,
   type StatConstraint,
   type DeckSolution,
 } from '../lib/deckBuilderSolver'
+import { maxLevelForUncap } from '../lib/supportCardLevel'
 import { runDeckSolveInWorker, runDeckSolveOnServer } from '../lib/deckSolverRun'
 import { UmaTrainerLookup } from '../components/UmaTrainerLookup'
+import { DeckBuilderForcedSlots, type DeckBuilderForcedSlot } from '../components/DeckBuilderForcedSlots'
+import { clampFriendTrainLevel, clampOwnedTrainLevel } from '../lib/deckBuilderStats'
 
 const SUPABASE_STORAGE = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/umamusume`
 
@@ -86,6 +90,44 @@ const CONSTRAINT_INPUT_STYLE: CSSProperties = {
 /** Upper bound sent to the solver when the UI does not ask for a max (effectively “no ceiling”). */
 const CONSTRAINT_MAX_TOTAL = 999_999
 
+/** When not using the user’s collection, all six slots assume max uncap like the borrowed card. */
+const CATALOG_POOL_UNCAP = 4
+
+/**
+ * Solver cost is O(C(n,5)·pool); a full regional catalog is too large to enumerate in-browser.
+ * When there are more eligible cards than this, we search the newest-by-id slice only.
+ */
+const CATALOG_POOL_CAP = 52
+
+const USE_COLLECTION_KEY = 'boopurnoes:deckBuilderUseCollection:v1'
+/** @deprecated migrated to USE_COLLECTION_KEY */
+const LEGACY_DECK_MODE_KEY = 'boopurnoes:deckBuilderMode:v1'
+
+function loadUseCollection(): boolean {
+  if (typeof localStorage === 'undefined') return true
+  const v = localStorage.getItem(USE_COLLECTION_KEY)
+  if (v === '0' || v === 'false') return false
+  if (v === '1' || v === 'true') return true
+  const legacy = localStorage.getItem(LEGACY_DECK_MODE_KEY)
+  if (legacy === 'theorycraft') return false
+  return true
+}
+
+function saveUseCollection(on: boolean): void {
+  if (typeof localStorage === 'undefined') return
+  try {
+    localStorage.setItem(USE_COLLECTION_KEY, on ? '1' : '0')
+  } catch {
+    /* ignore */
+  }
+}
+
+function catalogPoolForSearch(cards: CatalogCard[]): { pool: CatalogCard[]; capped: boolean } {
+  if (cards.length <= CATALOG_POOL_CAP) return { pool: cards, capped: false }
+  const sorted = [...cards].sort((a, b) => b.id - a.id)
+  return { pool: sorted.slice(0, CATALOG_POOL_CAP), capped: true }
+}
+
 export default function DeckBuilder() {
   const { user, loading: authLoading } = useAuth()
   const { region, setRegion } = useRegionSearchParam()
@@ -113,6 +155,18 @@ export default function DeckBuilder() {
   const [solveResult, setSolveResult] = useState<SolveDeckResult | null>(null)
   const [maxSuggestions, setMaxSuggestions] = useState(DEFAULT_MAX_DECK_SUGGESTIONS)
   const [sortMode, setSortMode] = useState<'stats' | 'upgrades'>('stats')
+  const [useCollection, setUseCollection] = useState(loadUseCollection)
+
+  useEffect(() => {
+    saveUseCollection(useCollection)
+  }, [useCollection])
+
+  const searchFromCollection = Boolean(user) && useCollection
+
+  useEffect(() => {
+    setSolveResult(null)
+    setSearchMessage(null)
+  }, [searchFromCollection])
 
   useEffect(() => {
     let cancelled = false
@@ -182,6 +236,92 @@ export default function DeckBuilder() {
     return out.sort((a, b) => a.card.name.localeCompare(b.card.name))
   }, [collectionMap, eligibleCards])
 
+  const catalogPoolInfo = useMemo(() => catalogPoolForSearch(eligibleCards), [eligibleCards])
+
+  const [forcedSlots, setForcedSlots] = useState<DeckBuilderForcedSlot[]>([
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+  ])
+
+  const cardIdToOwned = useMemo(() => {
+    const m = new Map<number, { card: CatalogCard; level: number; uncap: number }>()
+    for (const o of ownedInRegion) m.set(o.card.id, o)
+    return m
+  }, [ownedInRegion])
+
+  const pickableForSlot = useCallback(
+    (slotIndex: number) => {
+      const pool: CatalogCard[] = user ? ownedInRegion.map(o => o.card) : catalogPoolInfo.pool
+      return pool.map(c => {
+        const owned = cardIdToOwned.get(c.id)
+        if (owned && user) {
+          return {
+            id: c.id,
+            name: c.name,
+            rarity: c.rarity,
+            card_type: c.card_type,
+            displayLevel: plannedDisplayLevel(c.rarity, owned.uncap, slotIndex === 5),
+            wildcardPreview: slotIndex === 5,
+          }
+        }
+        return {
+          id: c.id,
+          name: c.name,
+          rarity: c.rarity,
+          card_type: c.card_type,
+          displayLevel: plannedDisplayLevel(c.rarity, 0, slotIndex === 5),
+          wildcardPreview: slotIndex === 5,
+        }
+      })
+    },
+    [user, catalogPoolInfo.pool, ownedInRegion, cardIdToOwned],
+  )
+
+  /** Fixed slots plan at full limit break (4) so level can go up to the game max for that rarity. */
+  const getSlotPreview = useCallback(
+    (slotIndex: number) => {
+      const slot = forcedSlots[slotIndex]
+      if (!slot) return undefined
+      const c = eligibleCards.find(x => x.id === slot.cardId)
+      if (!c) return undefined
+      const maxLv = maxLevelForUncap(CATALOG_POOL_UNCAP, c.rarity)
+      const lv = Math.max(1, Math.min(slot.level, maxLv))
+      return {
+        id: c.id,
+        name: c.name,
+        rarity: c.rarity,
+        card_type: c.card_type,
+        displayLevel: lv,
+        wildcardPreview: slotIndex === 5,
+      }
+    },
+    [forcedSlots, eligibleCards],
+  )
+
+  const defaultTrainLevel = useCallback(
+    (cardId: number, _slotIndex: number) => {
+      const c = eligibleCards.find(x => x.id === cardId)
+      if (!c) return 1
+      return maxLevelForUncap(CATALOG_POOL_UNCAP, c.rarity)
+    },
+    [eligibleCards],
+  )
+
+  const maxTrainLevelForSlot = useCallback(
+    (slotIndex: number) => {
+      const slot = forcedSlots[slotIndex]
+      if (!slot) return 50
+      const c = eligibleCards.find(x => x.id === slot.cardId)
+      if (!c) return 50
+      return maxLevelForUncap(CATALOG_POOL_UNCAP, c.rarity)
+    },
+    [forcedSlots, eligibleCards],
+  )
+
   const runSearch = useCallback(() => {
     setSearchMessage(null)
     setSolveResult(null)
@@ -199,37 +339,108 @@ export default function DeckBuilder() {
       return
     }
 
-    if (ownedInRegion.length < 5) {
+    if (!searchFromCollection) {
+      if (catalogPoolInfo.pool.length < 5) {
+        setSearchMessage('Need at least five support cards legal on this server (check the region in the header).')
+        return
+      }
+    } else if (ownedInRegion.length < 5) {
       setSearchMessage('Need at least five support cards in your collection that are legal on this server.')
       return
     }
 
-    const ownedEntries = ownedInRegion.map(o => ({
-      cardId: o.card.id,
-      name: o.card.name,
-      rarity: o.card.rarity,
-      card_type: o.card.card_type,
-      level: o.level,
-      uncap: o.uncap,
-      effects: effectsByCard.get(o.card.id) ?? [],
-    }))
+    const ownedEntries: OwnedDeckEntry[] = searchFromCollection
+      ? ownedInRegion.map(o => ({
+          cardId: o.card.id,
+          name: o.card.name,
+          rarity: o.card.rarity,
+          card_type: o.card.card_type,
+          level: o.level,
+          uncap: o.uncap,
+          effects: effectsByCard.get(o.card.id) ?? [],
+        }))
+      : catalogPoolInfo.pool.map(c => ({
+          cardId: c.id,
+          name: c.name,
+          rarity: c.rarity,
+          card_type: c.card_type,
+          level: maxLevelForUncap(CATALOG_POOL_UNCAP, c.rarity),
+          uncap: CATALOG_POOL_UNCAP,
+          effects: effectsByCard.get(c.id) ?? [],
+        }))
 
-    const wildcardPool = eligibleCards.map(c => ({
-      cardId: c.id,
-      name: c.name,
-      rarity: c.rarity,
-      card_type: c.card_type,
-      effects: effectsByCard.get(c.id) ?? [],
-    }))
+    const wildcardPool = searchFromCollection
+      ? eligibleCards.map(c => ({
+          cardId: c.id,
+          name: c.name,
+          rarity: c.rarity,
+          card_type: c.card_type,
+          effects: effectsByCard.get(c.id) ?? [],
+        }))
+      : catalogPoolInfo.pool.map(c => ({
+          cardId: c.id,
+          name: c.name,
+          rarity: c.rarity,
+          card_type: c.card_type,
+          effects: effectsByCard.get(c.id) ?? [],
+        }))
+
+    const forcedAllIds = forcedSlots.map(s => s?.cardId).filter((x): x is number => x != null)
+    if (new Set(forcedAllIds).size !== forcedAllIds.length) {
+      setSearchMessage('Fixed slots cannot repeat the same card.')
+      return
+    }
+    const forcedOwnedIds = [0, 1, 2, 3, 4].map(i => forcedSlots[i]?.cardId).filter((x): x is number => x != null)
+    for (const id of forcedOwnedIds) {
+      if (!ownedEntries.some(o => o.cardId === id)) {
+        setSearchMessage(
+          'A fixed card is not in the current search pool. Clear fixed slots or change region / My Collection.',
+        )
+        return
+      }
+    }
+    const friendForcedId = forcedSlots[5]?.cardId
+    if (friendForcedId != null) {
+      if (!wildcardPool.some(w => w.cardId === friendForcedId)) {
+        setSearchMessage('Fixed friend card is not in the borrow pool for this search.')
+        return
+      }
+    }
+
+    const ownedEntriesWithForced: OwnedDeckEntry[] = ownedEntries.map(o => {
+      for (let i = 0; i < 5; i++) {
+        const fs = forcedSlots[i]
+        if (fs && fs.cardId === o.cardId) {
+          const lv = clampOwnedTrainLevel(fs.level, CATALOG_POOL_UNCAP, o.rarity)
+          return {
+            ...o,
+            uncap: CATALOG_POOL_UNCAP,
+            statTrainLevel: fs.level,
+            level: lv,
+          }
+        }
+      }
+      return o
+    })
+
+    const wildcardPoolWithForced = wildcardPool.map(w => {
+      const fs = forcedSlots[5]
+      if (fs && fs.cardId === w.cardId) {
+        return { ...w, statTrainLevel: fs.level }
+      }
+      return w
+    })
 
     setSearching(true)
     void (async () => {
       try {
         const args = {
-          owned: ownedEntries,
-          wildcardPool,
+          owned: ownedEntriesWithForced,
+          wildcardPool: wildcardPoolWithForced,
           constraints: parsed,
           maxSolutions: maxSuggestions,
+          ...(forcedOwnedIds.length > 0 ? { forcedOwnedCardIds: forcedOwnedIds } : {}),
+          ...(friendForcedId != null ? { forcedWildcardCardId: friendForcedId } : {}),
         }
         let res = import.meta.env.PROD ? await runDeckSolveOnServer(args) : null
         if (!res) res = await runDeckSolveInWorker(args)
@@ -247,7 +458,16 @@ export default function DeckBuilder() {
         setSearching(false)
       }
     })()
-  }, [constraints, ownedInRegion, eligibleCards, effectsByCard, maxSuggestions])
+  }, [
+    searchFromCollection,
+    constraints,
+    ownedInRegion,
+    eligibleCards,
+    effectsByCard,
+    maxSuggestions,
+    catalogPoolInfo,
+    forcedSlots,
+  ])
 
   /** Must encode which card is the wildcard; sorting all six ids collides when the same six cards swap owned vs borrowed. */
   function deckSuggestionKey(s: DeckSolution) {
@@ -273,18 +493,28 @@ export default function DeckBuilder() {
   return (
     <CatalogShell>
       <CatalogHeader title="Deck Builder">
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-          <div
-            style={{
-              borderLeft: '1px solid #2a2a38',
-              paddingLeft: 14,
-              marginLeft: 4,
-              display: 'flex',
-              alignItems: 'center',
+        <div
+          style={{
+            marginLeft: 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            flexWrap: 'wrap',
+            flexShrink: 0,
+          }}
+        >
+          <RegionFilter value={region} onChange={setRegion} />
+          <CatalogCollectionControls
+            collectionMode={searchFromCollection}
+            onToggleCollection={() => {
+              if (user && !authLoading) setUseCollection(c => !c)
             }}
-          >
-            <RegionFilter value={region} onChange={setRegion} />
-          </div>
+            unownedMode={false}
+            onToggleUnowned={() => {}}
+            hideUnowned
+            myCollectionDisabled={!user || authLoading}
+            myCollectionTitle={!user ? 'Sign in to search using cards you own' : undefined}
+          />
         </div>
       </CatalogHeader>
 
@@ -295,6 +525,12 @@ export default function DeckBuilder() {
           maxWidth: 1100,
         }}
       >
+        <p style={{ margin: '0 0 10px', fontSize: 11, color: '#52525b', maxWidth: 720, lineHeight: 1.45 }}>
+          {searchFromCollection
+            ? 'Five from your collection and one borrowed card — uses your levels and uncaps.'
+            : 'Search the regional card pool: five slots plus one friend, all at max unlock. Sign in and enable My Collection to use owned cards.'}
+        </p>
+
         <details style={{ marginBottom: 0 }}>
           <summary
             style={{
@@ -306,35 +542,56 @@ export default function DeckBuilder() {
             <span style={{ color: '#e5e5e5', fontWeight: 600 }}>How it works</span>
             <span style={{ marginLeft: 8, color: '#6b7280' }}>— six cards, constraints, ranking</span>
           </summary>
-          <p style={{ margin: '10px 0 0', fontSize: 13, color: '#9ca3af', lineHeight: 1.55 }}>
-            Build a six-card support deck: <strong style={{ color: '#e5e5e5' }}>five from your collection</strong> and{' '}
-            <strong style={{ color: '#e5e5e5' }}>one wildcard</strong> (any card legal for the server in the header).{' '}
-            <strong style={{ color: '#9ca3af' }}>Global</strong> hides cards not yet released globally so JP-only picks
-            don&apos;t appear in the wildcard pool or your eligible collection; your choice is remembered for next visit.
-            Bonuses use each card&apos;s stat curve at the{' '}
-            <strong style={{ color: '#7dd3fc' }}>maximum level allowed by its unlock tier</strong> (collection uncap on your
-            cards; max uncap for the wildcard). If your card is still low level in-game, level it to that cap to match the
-            plan. Search runs in a <strong style={{ color: '#a3a3a3' }}>background worker</strong> so the page stays
-            responsive; production builds can also solve on the server via{' '}
-            <code style={{ fontSize: 12 }}>/api/deck-solve</code>. You can list several valid decks at once; they&apos;re
-            ranked by <strong style={{ color: '#a3a3a3' }}>total bonus strength</strong> (sum of all support effects at max
-            unlock levels).
-          </p>
+          {searchFromCollection ? (
+            <p style={{ margin: '10px 0 0', fontSize: 13, color: '#9ca3af', lineHeight: 1.55 }}>
+              Build a six-card support deck: <strong style={{ color: '#e5e5e5' }}>five from your collection</strong> and{' '}
+              <strong style={{ color: '#e5e5e5' }}>one wildcard</strong> (any card legal for the server in the header).{' '}
+              <strong style={{ color: '#9ca3af' }}>Global</strong> hides cards not yet released globally so JP-only picks
+              don&apos;t appear in the wildcard pool or your eligible collection; your choice is remembered for next visit.
+              Bonuses use each card&apos;s stat curve at the{' '}
+              <strong style={{ color: '#7dd3fc' }}>maximum level allowed by its unlock tier</strong> (collection uncap on your
+              cards; max uncap for the wildcard). If your card is still low level in-game, level it to that cap to match the
+              plan. Search runs in a <strong style={{ color: '#a3a3a3' }}>background worker</strong> so the page stays
+              responsive; production builds can also solve on the server via{' '}
+              <code style={{ fontSize: 12 }}>/api/deck-solve</code>. You can list several valid decks at once; they&apos;re
+              ranked by <strong style={{ color: '#a3a3a3' }}>total bonus strength</strong> (sum of all support effects at
+              max unlock levels).
+            </p>
+          ) : (
+            <p style={{ margin: '10px 0 0', fontSize: 13, color: '#9ca3af', lineHeight: 1.55 }}>
+              With <strong style={{ color: '#e5e5e5' }}>My collection</strong> off, your account is not used. Any legal card
+              on this server can fill the five personal slots or the one <strong style={{ color: '#e5e5e5' }}>friend</strong>{' '}
+              slot; stats assume <strong style={{ color: '#7dd3fc' }}>maximum unlock (uncap 4)</strong> on every card, like a
+              fully raised borrowed card. The search space is huge, so when there are many regional cards we only{' '}
+              <strong style={{ color: '#e5e5e5' }}>search the newest {CATALOG_POOL_CAP} by card id</strong> (see note below).
+              Same ranking and worker behavior as collection mode.
+            </p>
+          )}
         </details>
 
         {authLoading || dataLoading ? (
           <div style={{ color: '#6b7280', fontSize: 13 }}>Loading…</div>
         ) : dataError ? (
           <div style={{ color: '#f87171', fontSize: 13 }}>{dataError}</div>
-        ) : !user ? (
-          <div style={{ fontSize: 13, color: '#9ca3af' }}>
-            <Link to="/login" style={{ color: '#7dd3fc' }}>
-              Sign in
-            </Link>{' '}
-            to load your support card collection (five cards must come from it).
+        ) : !searchFromCollection ? (
+          <div style={{ fontSize: 12, color: '#6b7280', marginTop: 10 }}>
+            <span style={{ color: '#a3a3a3' }}>{catalogPoolInfo.pool.length}</span> cards in the search pool
+            {catalogPoolInfo.capped && (
+              <span style={{ color: '#78716c', marginLeft: 8 }}>
+                (newest {CATALOG_POOL_CAP} by id — narrow the region filter to search a different slice)
+              </span>
+            )}
+            {!user && (
+              <span style={{ marginLeft: 10 }}>
+                <Link to="/login" style={{ color: '#7dd3fc' }}>
+                  Sign in
+                </Link>{' '}
+                to enable <strong style={{ color: '#a3a3a3' }}>My collection</strong>.
+              </span>
+            )}
           </div>
         ) : (
-          <div style={{ fontSize: 12, color: '#6b7280' }}>
+          <div style={{ fontSize: 12, color: '#6b7280', marginTop: 10 }}>
             <span style={{ color: '#a3a3a3' }}>{ownedInRegion.length}</span> collection cards on this server
             {ownedInRegion.length < 5 && (
               <span style={{ color: '#fbbf24', marginLeft: 8 }}>
@@ -350,6 +607,16 @@ export default function DeckBuilder() {
       </div>
 
       <div style={{ padding: '10px 16px 18px', maxWidth: 1100 }}>
+        <DeckBuilderForcedSlots
+          slots={forcedSlots}
+          onSlotsChange={setForcedSlots}
+          pickableForSlot={pickableForSlot}
+          getSlotPreview={getSlotPreview}
+          defaultTrainLevel={defaultTrainLevel}
+          maxTrainLevel={maxTrainLevelForSlot}
+          disabled={authLoading || dataLoading}
+        />
+
         <div
           style={{
             display: 'flex',
@@ -469,9 +736,14 @@ export default function DeckBuilder() {
           })}
         </div>
 
-        {ownedInRegion.length > 35 && (
+        {searchFromCollection && ownedInRegion.length > 35 && (
           <p style={{ margin: '0 0 8px', fontSize: 11, color: '#888' }}>
             Large collection: search time grows with combinations; very tight targets may take up to a few minutes.
+          </p>
+        )}
+        {!searchFromCollection && catalogPoolInfo.pool.length >= 30 && (
+          <p style={{ margin: '0 0 8px', fontSize: 11, color: '#888' }}>
+            Full-pool search tries many five-card combinations; very tight targets may take a few minutes.
           </p>
         )}
 
@@ -501,7 +773,12 @@ export default function DeckBuilder() {
           </label>
           <button
             type="button"
-            disabled={authLoading || dataLoading || !user || ownedInRegion.length < 5 || searching}
+            disabled={
+              authLoading ||
+              dataLoading ||
+              searching ||
+              (searchFromCollection ? ownedInRegion.length < 5 : catalogPoolInfo.pool.length < 5)
+            }
             onClick={() => runSearch()}
             style={{
               padding: '7px 16px',
@@ -511,8 +788,17 @@ export default function DeckBuilder() {
               color: '#7dd3fc',
               fontWeight: 600,
               fontSize: 13,
-              cursor: searching || ownedInRegion.length < 5 ? 'default' : 'pointer',
-              opacity: authLoading || dataLoading || !user || ownedInRegion.length < 5 ? 0.45 : 1,
+              cursor:
+                searching ||
+                (searchFromCollection ? ownedInRegion.length < 5 : catalogPoolInfo.pool.length < 5)
+                  ? 'default'
+                  : 'pointer',
+              opacity:
+                authLoading ||
+                dataLoading ||
+                (searchFromCollection ? ownedInRegion.length < 5 : catalogPoolInfo.pool.length < 5)
+                  ? 0.45
+                  : 1,
             }}
           >
             {searching ? 'Searching…' : 'Find decks'}
@@ -664,8 +950,11 @@ export default function DeckBuilder() {
                       name={o.name}
                       rarity={o.rarity}
                       cardType={o.card_type}
-                      uncap={o.uncap}
-                      displayLevel={plannedDisplayLevel(o.rarity, o.uncap, false)}
+                      displayLevel={
+                        o.statTrainLevel != null
+                          ? clampOwnedTrainLevel(o.statTrainLevel, o.uncap, o.rarity)
+                          : plannedDisplayLevel(o.rarity, o.uncap, false)
+                      }
                       compact
                     />
                   ))}
@@ -674,8 +963,11 @@ export default function DeckBuilder() {
                     name={solution.wildcard.name}
                     rarity={solution.wildcard.rarity}
                     cardType={solution.wildcard.card_type}
-                    uncap={4}
-                    displayLevel={plannedDisplayLevel(solution.wildcard.rarity, 0, true)}
+                    displayLevel={
+                      solution.wildcard.statTrainLevel != null
+                        ? clampFriendTrainLevel(solution.wildcard.statTrainLevel, solution.wildcard.rarity)
+                        : plannedDisplayLevel(solution.wildcard.rarity, 0, true)
+                    }
                     wildcard
                     compact
                   />

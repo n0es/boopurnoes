@@ -59,3 +59,14 @@ export function vectorForWildcardCard(effects: SupportCardEffectRow[], rarity: s
   const lv = maxLevelForUncap(MAX_WILDCARD_UNCAP, rarity)
   return statVectorAtLevel(effects, lv)
 }
+
+export function clampOwnedTrainLevel(trainLevel: number, uncap: number, rarity: string): number {
+  const maxLv = maxLevelForUncap(uncap, rarity)
+  return Math.max(1, Math.min(Math.floor(trainLevel), maxLv))
+}
+
+/** Friend slot is always uncap 4 in this builder. */
+export function clampFriendTrainLevel(trainLevel: number, rarity: string): number {
+  const maxLv = maxLevelForUncap(MAX_WILDCARD_UNCAP, rarity)
+  return Math.max(1, Math.min(Math.floor(trainLevel), maxLv))
+}
