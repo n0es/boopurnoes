@@ -2,11 +2,29 @@ import express from 'express'
 import cookieParser from 'cookie-parser'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import { createClient } from '@supabase/supabase-js'
+import { existsSync } from 'node:fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { compactInputFromJson, solveDeckCompact } from '../shared/deckSolverCore.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+/** Vite output lives at repo `dist/`; compiled server is `dist-server/server/`, so one `../dist` is wrong there. */
+function resolveFrontendDist(): string {
+  const candidates = [
+    path.join(__dirname, '../dist'),
+    path.join(__dirname, '../../dist'),
+    path.join(process.cwd(), 'dist'),
+  ]
+  for (const dir of candidates) {
+    if (existsSync(path.join(dir, 'index.html'))) return dir
+  }
+  throw new Error(
+    `Vite build not found (index.html). Tried: ${candidates.join(', ')}. Run npm run build.`
+  )
+}
+
+const frontendDist = resolveFrontendDist()
 
 const app = express()
 const port = process.env.PORT || 3000
@@ -101,11 +119,11 @@ const studioProxy = createProxyMiddleware({
 app.use('/studio', checkAdminAuth, studioProxy)
 
 // Serve static files
-app.use(express.static(path.join(__dirname, '../dist')))
+app.use(express.static(frontendDist))
 
 // SPA fallback
 app.get('/{*splat}', (req, res) => {
-  res.sendFile(path.join(__dirname, '../dist/index.html'))
+  res.sendFile(path.join(frontendDist, 'index.html'))
 })
 
 app.listen(port, () => {
