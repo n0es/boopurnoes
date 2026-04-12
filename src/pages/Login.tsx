@@ -31,7 +31,8 @@ export default function Login() {
   // the hash fragment and fires SIGNED_IN. Redirect to the target.
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN' && redirectTarget !== '/') {
+      // Include redirectTarget === '/' so GitHub OAuth returns to home, not this page.
+      if (event === 'SIGNED_IN') {
         if (redirectTarget.startsWith('http')) {
           window.location.href = redirectTarget
         } else {
