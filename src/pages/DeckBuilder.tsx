@@ -1025,14 +1025,6 @@ export default function DeckBuilder() {
             </button>
           </div>
 
-          {selectedScenario === 'twinkle-star-climax' && (
-            <p style={{ margin: '8px 0 0', fontSize: 11, color: '#6b7280', lineHeight: 1.45 }}>
-              Auto-fill uses 50% Race Bonus (uma.guide floor) and 40% Friendship — adjust Race Bonus in the targets grid
-              if you want a higher floor. Final evaluation rank (SS–UG) also depends on skills, factors, and unique level —
-              not modeled here.
-            </p>
-          )}
-
           {selectedTrainee && (
             <div style={{ marginTop: 8, fontSize: 11, color: '#6b7280' }}>
               <span style={{ color: '#a3a3a3' }}>{selectedTrainee.name}</span>
