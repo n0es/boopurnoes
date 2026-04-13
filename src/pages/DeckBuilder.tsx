@@ -18,6 +18,12 @@ import {
   saveDeckBuilderConstraints,
   type DeckConstraintRow,
 } from '../lib/deckBuilderConstraintsStorage'
+import {
+  SCENARIOS,
+  recommendedConstraints,
+  type ScenarioSlug,
+  type TraineeProfile,
+} from '../lib/deckBuilderRecommendedTargets'
 import type { SupportCardEffectRow } from '../lib/deckBuilderStats'
 import {
   DEFAULT_MAX_DECK_SUGGESTIONS,
@@ -217,6 +223,8 @@ export default function DeckBuilder() {
   const [etaTick, setEtaTick] = useState(0)
   const searchAbortRef = useRef<AbortController | null>(null)
   const [searchMessage, setSearchMessage] = useState<string | null>(null)
+  /** Non-null when the last successful search required relaxing the original targets. */
+  const [relaxationPct, setRelaxationPct] = useState<number | null>(null)
   const [solveResult, setSolveResult] = useState<SolveDeckResult | null>(null)
   const [maxSuggestions, setMaxSuggestions] = useState(DEFAULT_MAX_DECK_SUGGESTIONS)
   const [sortMode, setSortMode] = useState<'stats' | 'upgrades'>('stats')
@@ -231,6 +239,55 @@ export default function DeckBuilder() {
   useEffect(() => {
     saveRarityFilter(rarityFilter)
   }, [rarityFilter])
+
+  // ── Auto-target state: trainee + scenario → recommended constraints ──
+  const [traineeQuery, setTraineeQuery] = useState('')
+  const [traineeResults, setTraineeResults] = useState<
+    { id: number; name: string; title: string | null; stat_growth: number[] | null;
+      apt_short: string | null; apt_mile: string | null; apt_mid: string | null; apt_long: string | null;
+      apt_leading: string | null; apt_stalking: string | null; apt_mid_pack: string | null; apt_chasing: string | null;
+    }[]
+  >([])
+  const [selectedTrainee, setSelectedTrainee] = useState<TraineeProfile & { id: number; name: string; title: string | null } | null>(null)
+  const [selectedScenario, setSelectedScenario] = useState<ScenarioSlug | ''>('')
+  const [traineeDropdownOpen, setTraineeDropdownOpen] = useState(false)
+  const traineePickerRef = useRef<HTMLDivElement>(null)
+
+  // Search trainees on query change
+  useEffect(() => {
+    if (traineeQuery.length < 2) { setTraineeResults([]); return }
+    let cancelled = false
+    const term = `%${traineeQuery}%`
+    supabase
+      .from('trainees')
+      .select('id, name, title, stat_growth, apt_short, apt_mile, apt_mid, apt_long, apt_leading, apt_stalking, apt_mid_pack, apt_chasing')
+      .or(`name.ilike.${term},name_jp.ilike.${term},title.ilike.${term}`)
+      .order('name')
+      .limit(12)
+      .then(({ data }) => {
+        if (!cancelled && data) setTraineeResults(data as typeof traineeResults)
+      })
+    return () => { cancelled = true }
+  }, [traineeQuery])
+
+  // Close trainee dropdown on outside click
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (traineePickerRef.current && !traineePickerRef.current.contains(e.target as Node)) {
+        setTraineeDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  // Auto-fill constraints when both trainee and scenario are selected
+  const applyRecommendedTargets = useCallback(() => {
+    if (!selectedTrainee || !selectedScenario) return
+    const rec = recommendedConstraints(selectedTrainee, selectedScenario)
+    setConstraints(rec)
+    saveDeckBuilderConstraints(rec)
+  }, [selectedTrainee, selectedScenario])
 
   const searchFromCollection = Boolean(user) && useCollection
 
@@ -506,6 +563,7 @@ export default function DeckBuilder() {
     })
 
     setSearching(true)
+    setRelaxationPct(null)
     setWorkerSearchStartedAt(null)
     setSearchProgress({
       source: 'worker',
@@ -515,12 +573,28 @@ export default function DeckBuilder() {
     })
     const abort = new AbortController()
     searchAbortRef.current = abort
+
+    // Build relaxation tiers: each round scales every min by 0.75 (cumulative).
+    // The solver tries all tiers in a single worker pass — no re-spawning.
+    const RELAX_FACTOR = 0.75
+    const MAX_RELAX_ROUNDS = 3
+    const relaxationTiers: StatConstraint[][] = []
+    let scaledConstraints = parsed
+    for (let r = 0; r < MAX_RELAX_ROUNDS; r++) {
+      scaledConstraints = scaledConstraints.map(c => ({
+        ...c,
+        min: Math.floor(c.min * RELAX_FACTOR),
+      }))
+      relaxationTiers.push(scaledConstraints)
+    }
+
     void (async () => {
       try {
         const args = {
           owned: ownedEntriesWithForced,
           wildcardPool: wildcardPoolWithForced,
           constraints: parsed,
+          relaxationTiers,
           maxSolutions: maxSuggestions,
           ...(forcedOwnedIds.length > 0 ? { forcedOwnedCardIds: forcedOwnedIds } : {}),
           ...(friendForcedId != null ? { forcedWildcardCardId: friendForcedId } : {}),
@@ -532,12 +606,28 @@ export default function DeckBuilder() {
           onProgress: p => setSearchProgress({ source: 'worker', ...p }),
         })
         setSolveResult(res)
+
         if (res.capped) {
           setSearchMessage(
             'Search timed out before finishing the full search (5 minute limit). Results may be partial; loosen targets or try again.',
           )
         } else if (res.solutions.length === 0) {
-          setSearchMessage('No deck found. Loosen your target ranges or change server filter.')
+          setSearchMessage('No deck found even after relaxing targets. Try changing server filter, rarity, or fixed slots.')
+        } else if (res.relaxTierUsed > 0) {
+          // Solver found results using a relaxed tier — update displayed constraints
+          const factor = Math.pow(RELAX_FACTOR, res.relaxTierUsed)
+          const pct = Math.round((1 - factor) * 100)
+          const relaxed: Record<number, DeckConstraintRow> = { ...constraints }
+          const usedTier = relaxationTiers[res.relaxTierUsed - 1]!
+          for (const c of usedTier) {
+            relaxed[c.effectTypeId] = { enabled: true, minStr: String(Math.floor(c.min)) }
+          }
+          setConstraints(relaxed)
+          saveDeckBuilderConstraints(relaxed)
+          setRelaxationPct(pct)
+          setSearchMessage(
+            `Targets relaxed by ${pct}% to find results. Constraints have been updated — tweak as needed.`,
+          )
         }
       } catch (e) {
         const aborted =
@@ -777,6 +867,205 @@ export default function DeckBuilder() {
               )
             })}
           </div>
+        </div>
+
+        {/* ── Auto-target: trainee + scenario picker ─────────────── */}
+        <div
+          style={{
+            marginBottom: 12,
+            padding: '10px 12px',
+            border: '1px solid #1f1f28',
+            borderRadius: 8,
+            background: '#0c0c10',
+          }}
+        >
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#a3a3a3', marginBottom: 8 }}>
+            Auto-fill targets
+            <span style={{ fontWeight: 400, fontSize: 11, color: '#6b7280', marginLeft: 8 }}>
+              Pick a trainee and scenario to set recommended minimums
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'flex-end' }}>
+            {/* Trainee picker */}
+            <div ref={traineePickerRef} style={{ position: 'relative', flex: '1 1 200px', maxWidth: 320 }}>
+              <label style={{ display: 'block', fontSize: 11, color: '#71717a', marginBottom: 4 }}>Trainee</label>
+              <input
+                type="text"
+                placeholder={selectedTrainee ? `${selectedTrainee.name}${selectedTrainee.title ? ` [${selectedTrainee.title}]` : ''}` : 'Search by name…'}
+                value={traineeQuery}
+                onChange={e => {
+                  setTraineeQuery(e.target.value)
+                  setTraineeDropdownOpen(true)
+                }}
+                onFocus={() => { if (traineeResults.length > 0) setTraineeDropdownOpen(true) }}
+                style={{
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  padding: '6px 10px',
+                  borderRadius: 6,
+                  border: selectedTrainee ? '1px solid #4ade80' : '1px solid #2a2a38',
+                  background: '#1a1a22',
+                  color: '#e5e5e5',
+                  fontSize: 12,
+                }}
+              />
+              {selectedTrainee && !traineeQuery && (
+                <button
+                  type="button"
+                  onClick={() => { setSelectedTrainee(null); setTraineeQuery('') }}
+                  style={{
+                    position: 'absolute',
+                    right: 6,
+                    top: 24,
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#71717a',
+                    cursor: 'pointer',
+                    fontSize: 14,
+                    lineHeight: 1,
+                    padding: '2px 4px',
+                  }}
+                  title="Clear trainee"
+                >
+                  ×
+                </button>
+              )}
+              {traineeDropdownOpen && traineeResults.length > 0 && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    zIndex: 20,
+                    marginTop: 2,
+                    maxHeight: 200,
+                    overflowY: 'auto',
+                    background: '#18181b',
+                    border: '1px solid #2a2a38',
+                    borderRadius: 6,
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+                  }}
+                >
+                  {traineeResults.map(t => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedTrainee(t)
+                        setTraineeQuery('')
+                        setTraineeDropdownOpen(false)
+                      }}
+                      style={{
+                        display: 'block',
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '6px 10px',
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#e5e5e5',
+                        fontSize: 12,
+                        cursor: 'pointer',
+                        borderBottom: '1px solid #1f1f28',
+                      }}
+                      onMouseEnter={e => { (e.target as HTMLElement).style.background = '#252530' }}
+                      onMouseLeave={e => { (e.target as HTMLElement).style.background = 'transparent' }}
+                    >
+                      <span style={{ fontWeight: 600 }}>{t.name}</span>
+                      {t.title && <span style={{ color: '#71717a', marginLeft: 6 }}>[{t.title}]</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Scenario picker */}
+            <div style={{ flex: '0 0 auto', minWidth: 180 }}>
+              <label style={{ display: 'block', fontSize: 11, color: '#71717a', marginBottom: 4 }}>Scenario</label>
+              <select
+                value={selectedScenario}
+                onChange={e => setSelectedScenario(e.target.value as ScenarioSlug | '')}
+                style={{
+                  width: '100%',
+                  padding: '6px 10px',
+                  borderRadius: 6,
+                  border: selectedScenario ? '1px solid #4ade80' : '1px solid #2a2a38',
+                  background: '#1a1a22',
+                  color: '#e5e5e5',
+                  fontSize: 12,
+                }}
+              >
+                <option value="">Choose scenario…</option>
+                {SCENARIOS.map(s => (
+                  <option key={s.slug} value={s.slug}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Apply button */}
+            <button
+              type="button"
+              disabled={!selectedTrainee || !selectedScenario}
+              onClick={applyRecommendedTargets}
+              style={{
+                padding: '6px 14px',
+                borderRadius: 6,
+                border: '1px solid #4ade80',
+                background: selectedTrainee && selectedScenario ? 'rgba(74,222,128,0.12)' : 'transparent',
+                color: selectedTrainee && selectedScenario ? '#4ade80' : '#52525b',
+                fontWeight: 600,
+                fontSize: 12,
+                cursor: selectedTrainee && selectedScenario ? 'pointer' : 'default',
+                opacity: selectedTrainee && selectedScenario ? 1 : 0.5,
+                alignSelf: 'flex-end',
+              }}
+            >
+              Apply targets
+            </button>
+          </div>
+
+          {selectedScenario === 'twinkle-star-climax' && (
+            <p style={{ margin: '8px 0 0', fontSize: 11, color: '#6b7280', lineHeight: 1.45 }}>
+              Auto-fill uses 50% Race Bonus (uma.guide floor) and 40% Friendship — adjust Race Bonus in the targets grid
+              if you want a higher floor. Final evaluation rank (SS–UG) also depends on skills, factors, and unique level —
+              not modeled here.
+            </p>
+          )}
+
+          {selectedTrainee && (
+            <div style={{ marginTop: 8, fontSize: 11, color: '#6b7280' }}>
+              <span style={{ color: '#a3a3a3' }}>{selectedTrainee.name}</span>
+              {selectedTrainee.title && <span> [{selectedTrainee.title}]</span>}
+              {' — '}
+              Best distance:{' '}
+              <span style={{ color: '#d4d4d8' }}>
+                {(() => {
+                  const dists = [
+                    { l: 'Short', g: selectedTrainee.apt_short },
+                    { l: 'Mile', g: selectedTrainee.apt_mile },
+                    { l: 'Mid', g: selectedTrainee.apt_mid },
+                    { l: 'Long', g: selectedTrainee.apt_long },
+                  ].filter(d => d.g)
+                  dists.sort((a, b) => {
+                    const gv: Record<string, number> = { S: 7, A: 6, B: 5, C: 4, D: 3, E: 2, F: 1, G: 0 }
+                    return (gv[b.g!] ?? 0) - (gv[a.g!] ?? 0)
+                  })
+                  return dists.slice(0, 2).map(d => `${d.l} ${d.g}`).join(', ')
+                })()}
+              </span>
+              {selectedTrainee.stat_growth && selectedTrainee.stat_growth.length >= 5 && (
+                <>
+                  {' · Growth: '}
+                  <span style={{ color: '#d4d4d8' }}>
+                    {['Spd', 'Sta', 'Pow', 'Gut', 'Wit'].map((s, i) =>
+                      `${s} ${selectedTrainee.stat_growth![i]}`
+                    ).join(' / ')}
+                  </span>
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         <div
@@ -1107,6 +1396,20 @@ export default function DeckBuilder() {
               {solveResult && solveResult.capped && (
                 <span style={{ fontSize: 11, color: '#fbbf24' }}>Search stopped early — list may be partial.</span>
               )}
+              {relaxationPct != null && relaxationPct > 0 && (
+                <span
+                  style={{
+                    fontSize: 11,
+                    color: '#fb923c',
+                    background: 'rgba(251,146,60,0.1)',
+                    padding: '2px 8px',
+                    borderRadius: 4,
+                    border: '1px solid rgba(251,146,60,0.25)',
+                  }}
+                >
+                  Targets relaxed by {relaxationPct}%
+                </span>
+              )}
             </div>
 
             {displayedSolutions.map((solution, rank) => (
@@ -1140,6 +1443,18 @@ export default function DeckBuilder() {
                       · {solution.upgradeHints.length} to level
                     </span>
                   )}
+                  {/* Type synergy summary */}
+                  {(() => {
+                    const groups = Object.entries(solution.typeCounts)
+                      .filter(([, n]) => n >= 2)
+                      .sort((a, b) => b[1] - a[1])
+                    if (groups.length === 0) return null
+                    return (
+                      <span style={{ color: '#a78bfa' }}>
+                        · {groups.map(([t, n]) => `${n}× ${t}`).join(', ')}
+                      </span>
+                    )
+                  })()}
                 </div>
 
                 {solution.upgradeHints.length > 0 && (

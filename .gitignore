@@ -38,3 +38,6 @@ supabase/.branches/
 
 # Debug output from generate-trainee-icons script
 debug-icons/
+
+# Playwright MCP snapshots (local)
+.playwright-mcp/

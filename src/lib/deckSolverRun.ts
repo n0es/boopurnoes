@@ -19,7 +19,7 @@ export function runDeckSolveInWorker(
 ): Promise<SolveDeckResult> {
   const payload = buildDeckSolvePayload(args)
   if (!payload) {
-    return Promise.resolve({ solutions: [], iterations: 0, capped: false })
+    return Promise.resolve({ solutions: [], iterations: 0, capped: false, relaxTierUsed: 0 })
   }
 
   const signal = options?.signal
@@ -71,7 +71,7 @@ export function runDeckSolveInWorker(
  */
 export async function runDeckSolveOnServer(args: SolveDeckArgs): Promise<SolveDeckResult | null> {
   const payload = buildDeckSolvePayload(args)
-  if (!payload) return { solutions: [], iterations: 0, capped: false }
+  if (!payload) return { solutions: [], iterations: 0, capped: false, relaxTierUsed: 0 }
 
   try {
     const res = await fetch('/api/deck-solve', {

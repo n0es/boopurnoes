@@ -58,6 +58,11 @@ export interface DeckSolution {
   upgradeHints: UpgradeHint[]
   /** Sum of all effect values in `total` — higher means more overall bonus strength. */
   rankScore: number
+  /**
+   * Count of cards per training type in this deck.
+   * E.g. `{ speed: 3, guts: 2, friend: 1 }`.
+   */
+  typeCounts: Record<string, number>
 }
 
 function buildHints(owned: OwnedDeckEntry[]): UpgradeHint[] {
@@ -129,12 +134,34 @@ export interface SolveDeckArgs {
   forcedOwnedCardIds?: number[]
   /** Friend slot must be this card id (must exist in `wildcardPool`). */
   forcedWildcardCardId?: number | null
+  /**
+   * Optional constraint relaxation tiers.  Each entry is a list of constraints
+   * progressively looser than the primary.  If the primary yields no results the
+   * solver tries each tier in order without spawning a new worker.
+   */
+  relaxationTiers?: StatConstraint[][]
+  /**
+   * Multiplier for type-synergy scoring.  Each pair of same-type cards in a deck
+   * adds `synergyWeight` to the ranking score, rewarding rainbow/combo training
+   * potential.  Default 15.  Set 0 to disable.
+   */
+  synergyWeight?: number
 }
 
 export interface SolveDeckResult {
   solutions: DeckSolution[]
   iterations: number
   capped: boolean
+  /** 0 = original constraints; 1+ = which relaxation tier produced results. */
+  relaxTierUsed: number
+}
+
+/** Map card_type string → numeric ID for the synergy scorer. */
+const CARD_TYPE_NUM: Record<string, number> = {
+  speed: 0, stamina: 1, power: 2, guts: 3, intelligence: 4, friend: 5, group: 6,
+}
+function cardTypeToNum(t: string): number {
+  return CARD_TYPE_NUM[t] ?? 7
 }
 
 /** JSON-safe payload for worker / POST /api/deck-solve */
@@ -152,6 +179,13 @@ export interface DeckSolveJsonPayload {
   poolScore?: number[]
   requiredOwnedIndices?: number[]
   forcedPoolIndex?: number
+  relaxTiers?: Array<{ targetMin: number[]; targetMax: number[] }>
+  /** Numeric card-type ID per owned card (for synergy scoring). */
+  ownedTypes?: number[]
+  /** Numeric card-type ID per pool card. */
+  poolTypes?: number[]
+  /** Multiplier for type-synergy pairs.  0 = disabled.  Positive = prefer same-type stacking. */
+  synergyWeight?: number
 }
 
 export function buildDeckSolvePayload(args: SolveDeckArgs): DeckSolveJsonPayload | null {
@@ -193,6 +227,9 @@ export function buildDeckSolvePayload(args: SolveDeckArgs): DeckSolveJsonPayload
     maxSolutions,
     ownedScore,
     poolScore,
+    ownedTypes: args.owned.map(o => cardTypeToNum(o.card_type)),
+    poolTypes: args.wildcardPool.map(w => cardTypeToNum(w.card_type)),
+    synergyWeight: args.synergyWeight ?? 15,
   }
 
   const forcedOwned = args.forcedOwnedCardIds?.filter(id => Number.isFinite(id)) ?? []
@@ -211,6 +248,18 @@ export function buildDeckSolvePayload(args: SolveDeckArgs): DeckSolveJsonPayload
     const pix = args.wildcardPool.findIndex(w => w.cardId === args.forcedWildcardCardId)
     if (pix < 0) return null
     payload.forcedPoolIndex = pix
+  }
+
+  // Build relaxation tiers (same column order as primary constraints)
+  if (args.relaxationTiers && args.relaxationTiers.length > 0) {
+    payload.relaxTiers = args.relaxationTiers.map(tierConstraints => {
+      const tierNorm = normalizeConstraints(tierConstraints)
+      const tierMap = new Map(tierNorm.map(c => [c.effectTypeId, c]))
+      return {
+        targetMin: colIds.map(id => tierMap.get(id)?.min ?? 0),
+        targetMax: colIds.map(id => tierMap.get(id)?.max ?? 999_999),
+      }
+    })
   }
 
   return payload
@@ -235,19 +284,26 @@ function solutionFromIndices(
   ]
   const total = addStatVectors(...vecs)
 
+  // Count cards per training type
+  const typeCounts: Record<string, number> = {}
+  for (const card of [...ownedEntries, w]) {
+    typeCounts[card.card_type] = (typeCounts[card.card_type] ?? 0) + 1
+  }
+
   return {
     owned: ownedEntries,
     wildcard: w,
     total,
     upgradeHints: buildHints(ownedEntries),
     rankScore: sumStatVectorValues(total),
+    typeCounts,
   }
 }
 
 export function solveDeck(args: SolveDeckArgs): SolveDeckResult {
   const payload = buildDeckSolvePayload(args)
   if (!payload) {
-    return { solutions: [], iterations: 0, capped: false }
+    return { solutions: [], iterations: 0, capped: false, relaxTierUsed: 0 }
   }
 
   const compact = compactInputFromJson(payload)
@@ -258,11 +314,12 @@ export function solveDeck(args: SolveDeckArgs): SolveDeckResult {
 /** After compact solve (worker/server), rebuild full solutions + totals on the client. */
 export function reconstructDeckSolutions(args: SolveDeckArgs, cr: CompactDeckResult): SolveDeckResult {
   if (cr.solutions.length === 0) {
-    return { solutions: [], iterations: cr.iterations, capped: cr.capped }
+    return { solutions: [], iterations: cr.iterations, capped: cr.capped, relaxTierUsed: cr.relaxTierUsed }
   }
   return {
     solutions: cr.solutions.map(s => solutionFromIndices(args, s.ownedIdx, s.poolIdx)),
     iterations: cr.iterations,
     capped: cr.capped,
+    relaxTierUsed: cr.relaxTierUsed,
   }
 }
