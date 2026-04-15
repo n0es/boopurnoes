@@ -57,6 +57,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     await supabase.auth.signOut()
+    // Redirect through link's logout so it clears its own session too
+    window.location.href = `https://link.boopurno.es/logout?next=${encodeURIComponent(window.location.origin + '/')}`
   }
 
   return (
