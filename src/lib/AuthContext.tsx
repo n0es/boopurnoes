@@ -22,23 +22,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) {
-        // No session in local storage — try hydrating from shared .boopurno.es cookies
-        // (set by link after login)
-        const cookies = Object.fromEntries(
-          document.cookie.split(';').map(c => c.trim().split('=').map(decodeURIComponent))
-        )
-        const accessToken = cookies['sb-access-token']
-        const refreshToken = cookies['sb-refresh-token']
-        if (accessToken && refreshToken) {
-          const { data } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
-          setSession(data.session)
-          setUser(data.session?.user ?? null)
-          setLoading(false)
-          return
-        }
-      }
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
