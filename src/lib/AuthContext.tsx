@@ -22,7 +22,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Link passes session tokens in the URL hash after login (cross-domain handoff).
+    // Supabase's detectSessionInUrl only handles this for implicit flow, but we use
+    // PKCE by default, so parse the hash manually.
+    const hash = window.location.hash.substring(1)
+    const params = new URLSearchParams(hash)
+    const accessToken = params.get('access_token')
+    const refreshToken = params.get('refresh_token')
+
+    const init = accessToken && refreshToken
+      ? supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+          .then(({ data }) => {
+            window.history.replaceState({}, '', window.location.pathname + window.location.search)
+            return data.session
+          })
+      : supabase.auth.getSession().then(({ data }) => data.session)
+
+    init.then((session) => {
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
