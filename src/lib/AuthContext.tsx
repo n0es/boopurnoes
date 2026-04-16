@@ -27,8 +27,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // PKCE by default, so parse the hash manually.
     const hash = window.location.hash.substring(1)
     const params = new URLSearchParams(hash)
-    const accessToken = params.get('access_token')
-    const refreshToken = params.get('refresh_token')
+    let accessToken = params.get('access_token')
+    let refreshToken = params.get('refresh_token')
+
+    // Fall back to shared domain cookies written by link.boopurno.es
+    if (!accessToken || !refreshToken) {
+      const cookies = Object.fromEntries(
+        document.cookie.split('; ').filter(Boolean).map(c => {
+          const eq = c.indexOf('=')
+          return [c.slice(0, eq), c.slice(eq + 1)]
+        })
+      )
+      accessToken = accessToken || cookies['sb-access-token'] || null
+      refreshToken = refreshToken || cookies['sb-refresh-token'] || null
+    }
 
     const init = accessToken && refreshToken
       ? supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
