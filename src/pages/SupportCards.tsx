@@ -409,7 +409,6 @@ function CardTile({ card, owned, dimmed, onClick, user, isAdmin, adminRoleLoadin
               kind="support_card"
               entityId={card.id}
               title={card.title}
-              displayFallback={card.card_type}
               decorate="none"
               variant="compact"
               isAdmin={isAdmin}
@@ -589,21 +588,25 @@ function CardModal({ card, user, owned, onClose, onAdd, onRemove, onCardUpdated,
           <img src={getIconUrl(card.id)} alt="" style={{ width: 36, height: 36, borderRadius: 6, border: '1px solid #333' }} />
           <div>
             <div style={{ fontWeight: 700, fontSize: 15 }}>{card.name}</div>
-            <div style={{ fontSize: 11, color: '#666', marginTop: 4, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
-              <CatalogEntityTitleLine
-                kind="support_card"
-                entityId={card.id}
-                title={card.title}
-                displayFallback={card.card_type}
-                decorate="none"
-                variant="comfortable"
-                isAdmin={isAdmin}
-                adminRoleLoading={adminRoleLoading}
-                user={user}
-                hasPendingSuggestions={hasPendingSuggestion}
-                onRefreshSuggestionPresence={onRefreshSuggestionPresence}
-                onTitleApplied={t => onCardTitleApplied(card.id, t)}
-              />
+            {(card.title || user || isAdmin) && (
+              <div style={{ fontSize: 11, color: '#666', marginTop: 4, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
+                <CatalogEntityTitleLine
+                  kind="support_card"
+                  entityId={card.id}
+                  title={card.title}
+                  decorate="none"
+                  variant="comfortable"
+                  isAdmin={isAdmin}
+                  adminRoleLoading={adminRoleLoading}
+                  user={user}
+                  hasPendingSuggestions={hasPendingSuggestion}
+                  onRefreshSuggestionPresence={onRefreshSuggestionPresence}
+                  onTitleApplied={t => onCardTitleApplied(card.id, t)}
+                />
+              </div>
+            )}
+            <div style={{ fontSize: 10, color: '#666', marginTop: 4, textTransform: 'capitalize' }}>
+              {card.card_type}
             </div>
             {hasReleaseInfo(card) && (
               <div style={{ fontSize: 10, color: '#888', marginTop: 6, lineHeight: 1.45 }}>
