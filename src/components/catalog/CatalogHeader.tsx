@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import type { ReactNode } from 'react'
+import { ProfileMenu } from '../ProfileMenu'
 
 interface CatalogHeaderProps {
   title: string
@@ -27,6 +28,7 @@ export function CatalogHeader({ title, children }: CatalogHeaderProps) {
         <Link to="/umamusume" style={{ color: '#aaa', textDecoration: 'none', fontSize: 13 }}>← Home</Link>
         <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{title}</h1>
         {children}
+        <ProfileMenu />
       </div>
     </div>
   )

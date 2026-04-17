@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import { useEffect } from 'react'
+import { ProfileMenu } from '../components/ProfileMenu'
 
 export default function UmaHome() {
-  const { user, loading, signOut } = useAuth()
+  const { user } = useAuth()
 
   useEffect(() => {
     const root = document.getElementById('root')
@@ -27,16 +28,7 @@ export default function UmaHome() {
         </Link>
       </header>
       <header style={{ position: 'fixed', top: 0, right: 0, padding: '1.5rem 2rem', zIndex: 10 }}>
-        {!loading &&
-          (user ? (
-            <button type="button" className="login" onClick={signOut}>
-              logout
-            </button>
-          ) : (
-            <Link to="/login" className="login">
-              login
-            </Link>
-          ))}
+        <ProfileMenu />
       </header>
 
       <main style={{ marginTop: '2rem' }}>
