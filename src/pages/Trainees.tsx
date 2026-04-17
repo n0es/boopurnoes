@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { AptitudeGrid } from '../components/AptitudeGrid'
@@ -20,6 +21,9 @@ import {
 } from '../lib/releaseMetadata'
 import { useRegionSearchParam } from '../lib/useRegionSearchParam'
 import { isMissingTableError } from '../lib/supabaseErrors'
+import { useIsAdmin } from '../lib/useIsAdmin'
+import { useCatalogTitleSuggestionPresence } from '../lib/useCatalogTitleSuggestionPresence'
+import { CatalogEntityTitleLine } from '../components/CatalogEntityTitleLine'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -150,7 +154,17 @@ function getStatsForRank(trainee: Trainee, rank: number): number[] {
 
 // ─── Trainee tile ─────────────────────────────────────────────────────────────
 
-function TraineeTile({ trainee, dimmed, onClick }: { trainee: Trainee; dimmed?: boolean; onClick: () => void }) {
+function TraineeTile({ trainee, dimmed, onClick, user, isAdmin, adminRoleLoading, hasPendingSuggestion, onRefreshSuggestionPresence, onTraineeTitleApplied }: {
+  trainee: Trainee
+  dimmed?: boolean
+  onClick: () => void
+  user: User | null
+  isAdmin: boolean
+  adminRoleLoading: boolean
+  hasPendingSuggestion: boolean
+  onRefreshSuggestionPresence: () => void | Promise<void>
+  onTraineeTitleApplied: (id: number, title: string | null) => void
+}) {
   const [artLoaded, setArtLoaded] = useState(false)
   const shadow = '0 2px 12px rgba(0,0,0,0.5)'
   const hoverShadow = '0 6px 24px rgba(0,0,0,0.7)'
@@ -206,9 +220,21 @@ function TraineeTile({ trainee, dimmed, onClick }: { trainee: Trainee; dimmed?: 
         <div style={{ fontSize: 11, fontWeight: 600, color: '#fff', lineHeight: 1.3, textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
           {trainee.name}
         </div>
-        {trainee.title && (
-          <div style={{ fontSize: 9, color: '#bbb', marginTop: 1, textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
-            {trainee.title}
+        {(trainee.title || user || isAdmin) && (
+          <div style={{ marginTop: 3 }}>
+            <CatalogEntityTitleLine
+              kind="trainee"
+              entityId={trainee.id}
+              title={trainee.title}
+              decorate="none"
+              variant="compact"
+              isAdmin={isAdmin}
+              adminRoleLoading={adminRoleLoading}
+              user={user}
+              hasPendingSuggestions={hasPendingSuggestion}
+              onRefreshSuggestionPresence={onRefreshSuggestionPresence}
+              onTitleApplied={t => onTraineeTitleApplied(trainee.id, t)}
+            />
           </div>
         )}
       </div>
@@ -376,7 +402,7 @@ function EventsTab({ events }: { events: TrainingEvent[] }) {
 
 const STAT_SHORT = ['Spd', 'Stm', 'Pwr', 'Guts', 'Wit']
 
-function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initialRank, initialPot, onTabChange, onRankChange, onPotChange }: {
+function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initialRank, initialPot, onTabChange, onRankChange, onPotChange, isAdmin, adminRoleLoading, hasPendingSuggestion, onRefreshSuggestionPresence, onTraineeTitleApplied }: {
   trainee: Trainee
   onClose: () => void
   onCollectionChange?: () => void
@@ -386,6 +412,11 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
   onTabChange?: (tab: 'skills' | 'events') => void
   onRankChange?: (rank: number) => void
   onPotChange?: (pot: number) => void
+  isAdmin: boolean
+  adminRoleLoading: boolean
+  hasPendingSuggestion: boolean
+  onRefreshSuggestionPresence: () => void | Promise<void>
+  onTraineeTitleApplied: (id: number, title: string | null) => void
 }) {
   const { user } = useAuth()
   const [starRank, setStarRank] = useState(initialRank ?? trainee.rarity)
@@ -574,9 +605,21 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
             <div style={{ position: 'absolute', top: 10, right: 14, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
               <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <div style={{ textAlign: 'right' }}>
-                  {trainee.title && (
-                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
-                      [{trainee.title}]
+                  {(trainee.title || user || isAdmin) && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 4 }}>
+                      <CatalogEntityTitleLine
+                        kind="trainee"
+                        entityId={trainee.id}
+                        title={trainee.title}
+                        decorate="brackets"
+                        variant="comfortable"
+                        isAdmin={isAdmin}
+                        adminRoleLoading={adminRoleLoading}
+                        user={user}
+                        hasPendingSuggestions={hasPendingSuggestion}
+                        onRefreshSuggestionPresence={onRefreshSuggestionPresence}
+                        onTitleApplied={t => onTraineeTitleApplied(trainee.id, t)}
+                      />
                     </div>
                   )}
                   <div style={{ fontSize: 22, fontWeight: 800, color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,0.9)', lineHeight: 1.15, letterSpacing: '-0.01em' }}>
@@ -665,8 +708,22 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
                   }}
                 >
                   <img src={getIconUrl(trainee)} alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} />
-                  {trainee.title && (
-                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>[{trainee.title}]</div>
+                  {(trainee.title || user || isAdmin) && (
+                    <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                      <CatalogEntityTitleLine
+                        kind="trainee"
+                        entityId={trainee.id}
+                        title={trainee.title}
+                        decorate="brackets"
+                        variant="comfortable"
+                        isAdmin={isAdmin}
+                        adminRoleLoading={adminRoleLoading}
+                        user={user}
+                        hasPendingSuggestions={hasPendingSuggestion}
+                        onRefreshSuggestionPresence={onRefreshSuggestionPresence}
+                        onTitleApplied={t => onTraineeTitleApplied(trainee.id, t)}
+                      />
+                    </div>
                   )}
                   <div style={{ fontSize: 20, fontWeight: 800, color: '#fff', marginTop: -12 }}>{trainee.name}</div>
 
@@ -826,9 +883,15 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
 
 export default function Trainees() {
   const { user } = useAuth()
+  const { isAdmin, loading: adminRoleLoading } = useIsAdmin(user)
+  const { hasPendingSuggestions, refreshSuggestionPresence } = useCatalogTitleSuggestionPresence(isAdmin)
   const { region: regionFilter, setRegion: setRegionFilter, searchParams, setSearchParams } =
     useRegionSearchParam()
   const [trainees, setTrainees] = useState<Trainee[]>([])
+
+  const applyTraineeTitle = useCallback((id: number, title: string | null) => {
+    setTrainees(prev => prev.map(t => (t.id === id ? { ...t, title } : t)))
+  }, [])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState(() => searchParams.get('q') ?? '')
@@ -1066,6 +1129,12 @@ export default function Trainees() {
               trainee={t}
               dimmed={collectionMode && unownedMode && !!user && collectionIds !== null && !collectionIds.has(t.id)}
               onClick={() => openModal(t)}
+              user={user}
+              isAdmin={isAdmin}
+              adminRoleLoading={adminRoleLoading}
+              hasPendingSuggestion={hasPendingSuggestions('trainee', t.id)}
+              onRefreshSuggestionPresence={refreshSuggestionPresence}
+              onTraineeTitleApplied={applyTraineeTitle}
             />
           ))}
         </CatalogGrid>
@@ -1082,6 +1151,11 @@ export default function Trainees() {
           onTabChange={syncTraineeTabToUrl}
           onRankChange={syncTraineeRankToUrl}
           onPotChange={syncTraineePotToUrl}
+          isAdmin={isAdmin}
+          adminRoleLoading={adminRoleLoading}
+          hasPendingSuggestion={hasPendingSuggestions('trainee', modalTrainee.id)}
+          onRefreshSuggestionPresence={refreshSuggestionPresence}
+          onTraineeTitleApplied={applyTraineeTitle}
         />
       )}
     </CatalogShell>
