@@ -22,6 +22,9 @@ import {
 import { useRegionSearchParam } from '../lib/useRegionSearchParam'
 import { isMissingTableError } from '../lib/supabaseErrors'
 import { maxLevelForUncap } from '../lib/supportCardLevel'
+import { useIsAdmin } from '../lib/useIsAdmin'
+import { useCatalogTitleSuggestionPresence } from '../lib/useCatalogTitleSuggestionPresence'
+import { CatalogEntityTitleLine } from '../components/CatalogEntityTitleLine'
 
 interface SupportCard extends ReleaseMetadata {
   id: number
@@ -91,6 +94,8 @@ const RARITY_ORDER: Record<string, number> = { SSR: 0, SR: 1, R: 2 }
 
 export default function SupportCards() {
   const { user } = useAuth()
+  const { isAdmin, loading: adminRoleLoading } = useIsAdmin(user)
+  const { hasPendingSuggestions, refreshSuggestionPresence } = useCatalogTitleSuggestionPresence(isAdmin)
   const [cards, setCards]               = useState<SupportCard[]>([])
   const [loading, setLoading]           = useState(true)
   const [error, setError]               = useState<string | null>(null)
@@ -117,6 +122,11 @@ export default function SupportCards() {
   const [cardSize, setCardSize]         = useState(100) // min card width in px
 
   const todayIso = todayIsoDateLocal()
+
+  const applySupportCardTitle = useCallback((id: number, title: string | null) => {
+    setCards(prev => prev.map(c => (c.id === id ? { ...c, title } : c)))
+    setModalCard(prev => (prev && prev.id === id ? { ...prev, title } : prev))
+  }, [])
 
   function toggleCollectionMode() {
     if (collectionMode) {
@@ -306,6 +316,12 @@ export default function SupportCards() {
             owned={collectionMode && !!user && ownedMap !== null && ownedMap.has(card.id)}
             dimmed={collectionMode && unownedMode && !!user && ownedMap !== null && !ownedMap.has(card.id)}
             onClick={() => setModalCard(card)}
+            user={user}
+            isAdmin={isAdmin}
+            adminRoleLoading={adminRoleLoading}
+            hasPendingSuggestion={hasPendingSuggestions('support_card', card.id)}
+            onRefreshSuggestionPresence={refreshSuggestionPresence}
+            onCardTitleApplied={applySupportCardTitle}
           />
         ))}
       </CatalogGrid>
@@ -322,6 +338,11 @@ export default function SupportCards() {
             setCards(prev => prev.map(c => c.id === updated.id ? updated : c))
             setModalCard(updated)
           }}
+          isAdmin={isAdmin}
+          adminRoleLoading={adminRoleLoading}
+          hasPendingSuggestion={hasPendingSuggestions('support_card', modalCard.id)}
+          onRefreshSuggestionPresence={refreshSuggestionPresence}
+          onCardTitleApplied={applySupportCardTitle}
         />
       )}
     </CatalogShell>
@@ -331,8 +352,17 @@ export default function SupportCards() {
 // ---------------------------------------------------------------------------
 // Card tile
 // ---------------------------------------------------------------------------
-function CardTile({ card, owned, dimmed, onClick }: {
-  card: SupportCard; owned: boolean; dimmed: boolean; onClick: () => void
+function CardTile({ card, owned, dimmed, onClick, user, isAdmin, adminRoleLoading, hasPendingSuggestion, onRefreshSuggestionPresence, onCardTitleApplied }: {
+  card: SupportCard
+  owned: boolean
+  dimmed: boolean
+  onClick: () => void
+  user: User | null
+  isAdmin: boolean
+  adminRoleLoading: boolean
+  hasPendingSuggestion: boolean
+  onRefreshSuggestionPresence: () => void | Promise<void>
+  onCardTitleApplied: (id: number, title: string | null) => void
 }) {
   const [artLoaded, setArtLoaded] = useState(false)
   const ownedShadow  = '0 2px 12px rgba(125,211,252,0.25), inset 0 0 0 2px #7dd3fc'
@@ -373,6 +403,24 @@ function CardTile({ card, owned, dimmed, onClick }: {
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '32px 8px 8px', background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%)' }}>
         <div style={{ fontSize: 11, fontWeight: 600, color: '#fff', lineHeight: 1.3, textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>{card.name}</div>
         <div style={{ fontSize: 10, color: '#ccc', marginTop: 2, textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>{card.rarity}</div>
+        {(card.title || user || isAdmin) && (
+          <div style={{ marginTop: 4 }}>
+            <CatalogEntityTitleLine
+              kind="support_card"
+              entityId={card.id}
+              title={card.title}
+              displayFallback={card.card_type}
+              decorate="none"
+              variant="compact"
+              isAdmin={isAdmin}
+              adminRoleLoading={adminRoleLoading}
+              user={user}
+              hasPendingSuggestions={hasPendingSuggestion}
+              onRefreshSuggestionPresence={onRefreshSuggestionPresence}
+              onTitleApplied={t => onCardTitleApplied(card.id, t)}
+            />
+          </div>
+        )}
       </div>
       <div style={{ position: 'absolute', top: 6, left: 6, width: 40, height: 40, borderRadius: 8, overflow: 'hidden', boxShadow: '0 2px 6px rgba(0,0,0,0.7)', border: '1px solid rgba(255,255,255,0.15)' }}>
         <img src={getIconUrl(card.id)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -422,7 +470,7 @@ function UncapDiamonds({ value, max = 4, interactive, onChange }: {
 // ---------------------------------------------------------------------------
 // Card modal
 // ---------------------------------------------------------------------------
-function CardModal({ card, user, owned, onClose, onAdd, onRemove, onCardUpdated }: {
+function CardModal({ card, user, owned, onClose, onAdd, onRemove, onCardUpdated, isAdmin, adminRoleLoading, hasPendingSuggestion, onRefreshSuggestionPresence, onCardTitleApplied }: {
   card: SupportCard
   user: User | null
   owned: OwnedEntry | null
@@ -430,6 +478,11 @@ function CardModal({ card, user, owned, onClose, onAdd, onRemove, onCardUpdated 
   onAdd: (level: number, uncap: number) => Promise<void>
   onRemove: () => Promise<void>
   onCardUpdated?: (updated: SupportCard) => void
+  isAdmin: boolean
+  adminRoleLoading: boolean
+  hasPendingSuggestion: boolean
+  onRefreshSuggestionPresence: () => void | Promise<void>
+  onCardTitleApplied: (id: number, title: string | null) => void
 }) {
   const isOwned = owned !== null
   const [uncap, setUncap]   = useState(owned?.uncap ?? 0)
@@ -536,7 +589,22 @@ function CardModal({ card, user, owned, onClose, onAdd, onRemove, onCardUpdated 
           <img src={getIconUrl(card.id)} alt="" style={{ width: 36, height: 36, borderRadius: 6, border: '1px solid #333' }} />
           <div>
             <div style={{ fontWeight: 700, fontSize: 15 }}>{card.name}</div>
-            <div style={{ fontSize: 11, color: '#666', marginTop: 1 }}>{card.title || card.card_type}</div>
+            <div style={{ fontSize: 11, color: '#666', marginTop: 4, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
+              <CatalogEntityTitleLine
+                kind="support_card"
+                entityId={card.id}
+                title={card.title}
+                displayFallback={card.card_type}
+                decorate="none"
+                variant="comfortable"
+                isAdmin={isAdmin}
+                adminRoleLoading={adminRoleLoading}
+                user={user}
+                hasPendingSuggestions={hasPendingSuggestion}
+                onRefreshSuggestionPresence={onRefreshSuggestionPresence}
+                onTitleApplied={t => onCardTitleApplied(card.id, t)}
+              />
+            </div>
             {hasReleaseInfo(card) && (
               <div style={{ fontSize: 10, color: '#888', marginTop: 6, lineHeight: 1.45 }}>
                 {releaseSummaryLines(card).map(line => (
@@ -546,10 +614,10 @@ function CardModal({ card, user, owned, onClose, onAdd, onRemove, onCardUpdated 
             )}
           </div>
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
-            {user && (
+            {user && !adminRoleLoading && isAdmin && (
             <button
               onClick={() => setEditing(true)}
-              title="Edit card data"
+              title="Edit card data (admin)"
               style={{ background: 'none', border: '1px solid #333', borderRadius: 6, color: '#888', cursor: 'pointer', fontSize: 12, padding: '4px 10px', transition: 'all 0.15s' }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = '#a78bfa'; e.currentTarget.style.color = '#a78bfa' }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = '#333'; e.currentTarget.style.color = '#888' }}
