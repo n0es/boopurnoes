@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { User } from '@supabase/supabase-js'
 import { useAuth } from '../lib/AuthContext'
+import { supabase } from '../lib/supabase'
 
 const LINK_ORIGIN = import.meta.env.VITE_LINK_ORIGIN ?? 'https://link.boopurno.es'
 
@@ -16,7 +17,7 @@ function oauthAvatarFromUser(user: User): string | null {
 }
 
 export function ProfileMenu() {
-  const { user, session, loading, signOut } = useAuth()
+  const { user, loading, signOut } = useAuth()
   const [open, setOpen] = useState(false)
   const [meAvatar, setMeAvatar] = useState<string | null | undefined>(undefined)
   const [imgBroken, setImgBroken] = useState(false)
@@ -43,36 +44,25 @@ export function ProfileMenu() {
   }, [open])
 
   useEffect(() => {
-    if (!user || !session?.access_token) {
+    if (!user) {
       setMeAvatar(undefined)
       return
     }
 
-    const fallback = oauthAvatarFromUser(user)
-    setMeAvatar(undefined)
-
-    const ac = new AbortController()
-    fetch(`${LINK_ORIGIN}/api/me`, {
-      signal: ac.signal,
-      headers: { Authorization: `Bearer ${session.access_token}` },
-    })
-      .then((r) => (r.ok ? r.json() as Promise<{ avatar_url?: unknown }> : null))
-      .then((data) => {
-        if (ac.signal.aborted) return
-        if (!data) {
-          setMeAvatar(fallback)
-          return
-        }
-        const u = data.avatar_url
-        setMeAvatar(typeof u === 'string' && u.trim() ? u.trim() : null)
-      })
-      .catch((e: unknown) => {
-        if (ac.signal.aborted || (e instanceof Error && e.name === 'AbortError')) return
-        setMeAvatar(fallback)
+    let cancelled = false
+    supabase
+      .from('link_users')
+      .select('avatar_url')
+      .eq('id', user.id)
+      .single()
+      .then(({ data, error }) => {
+        if (cancelled) return
+        const url = !error && data ? data.avatar_url : null
+        setMeAvatar(typeof url === 'string' && url.trim() ? url.trim() : oauthAvatarFromUser(user))
       })
 
-    return () => ac.abort()
-  }, [user, session?.access_token])
+    return () => { cancelled = true }
+  }, [user])
 
   useEffect(() => {
     setImgBroken(false)
