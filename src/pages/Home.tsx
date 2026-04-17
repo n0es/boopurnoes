@@ -1,21 +1,16 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import ServiceMenu from '../components/ServiceMenu'
+import { ProfileMenu } from '../components/ProfileMenu'
 
 export default function Home() {
-  const { user, loading, signOut } = useAuth()
+  const { user, loading } = useAuth()
 
   return (
     <>
       {!loading && user && <ServiceMenu />}
       <header>
-        {!loading && (
-          user ? (
-            <button className="login" onClick={signOut}>logout</button>
-          ) : (
-            <Link to="/login" className="login">login</Link>
-          )
-        )}
+        <ProfileMenu />
       </header>
       <main className="home">
         <section className="hero">
