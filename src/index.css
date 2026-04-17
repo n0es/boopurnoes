@@ -40,7 +40,8 @@ header {
   padding: 1.5rem 2rem;
 }
 
-header:has(.login) {
+header:has(.login),
+header:has(.profile-menu) {
   right: 0;
 }
 
