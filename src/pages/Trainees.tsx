@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
-import { supabase } from '../lib/supabase'
+import { uma } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { AptitudeGrid } from '../components/AptitudeGrid'
 import {
@@ -448,7 +448,7 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
 
   useEffect(() => {
     const id = trainee.id
-    supabase
+    uma
       .from('trainee_awakening_skills')
       .select('awakening_level, skills(id, name, description, icon_url, rarity, cost, upgrade_of)')
       .eq('trainee_id', id)
@@ -461,7 +461,7 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
         }
         setAwakening((data ?? []) as unknown as AwakeningSkill[])
       })
-    supabase
+    uma
       .from('trainee_unique_skills')
       .select('sort_order, min_star_rank, skills(id, name, description, icon_url, rarity, cost, upgrade_of)')
       .eq('trainee_id', id)
@@ -474,7 +474,7 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
         }
         setUnique((data ?? []) as unknown as UniqueSkill[])
       })
-    supabase
+    uma
       .from('trainee_hint_skills')
       .select('skills(id, name, description, icon_url, rarity, cost, upgrade_of)')
       .eq('trainee_id', id)
@@ -486,7 +486,7 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
         }
         setHint((data ?? []) as unknown as HintSkill[])
       })
-    supabase
+    uma
       .from('trainee_training_events')
       .select('*')
       .eq('trainee_id', id)
@@ -506,7 +506,7 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
   useEffect(() => {
     if (!user) { return }
     let cancelled = false
-    supabase
+    uma
       .from('user_trainee_collection')
       .select('star_rank, awakening_level')
       .eq('user_id', user.id)
@@ -528,7 +528,7 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
   async function handleSave() {
     if (!user) return
     setSaving(true)
-    const { error } = await supabase
+    const { error } = await uma
       .from('user_trainee_collection')
       .upsert(
         { user_id: user.id, trainee_id: trainee.id, star_rank: starRank, awakening_level: potentialLevel },
@@ -541,7 +541,7 @@ function TraineeModal({ trainee, onClose, onCollectionChange, initialTab, initia
   async function handleRemove() {
     if (!user) return
     setSaving(true)
-    const { error } = await supabase
+    const { error } = await uma
       .from('user_trainee_collection')
       .delete()
       .eq('user_id', user.id)
@@ -963,7 +963,7 @@ export default function Trainees() {
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    supabase
+    uma
       .from('trainees')
       .select('*')
       .order('id', { ascending: true })
@@ -976,7 +976,7 @@ export default function Trainees() {
 
   const refreshCollection = useCallback(() => {
     if (!user) return
-    supabase
+    uma
       .from('user_trainee_collection')
       .select('trainee_id')
       .then(({ data }) => {

@@ -5,6 +5,9 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
+// UMA bucket lives in the `uma` schema (Phase 4); public compat views still exist during overlap.
+export const uma = supabase.schema('uma')
+
 const COOKIE_DOMAIN = '.boopurno.es'
 
 supabase.auth.onAuthStateChange((_event, session) => {

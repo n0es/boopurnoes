@@ -163,11 +163,11 @@ async function upsertSkills(gtIds: number[]): Promise<Map<number, number>> {
     .map(s => ({ gametora_id: s.gametora_id, name: s.name, description: s.description,
       icon_url: s.icon_url, rarity: s.rarity, cost: s.cost }))
   if (baseRows.length > 0) {
-    const { error } = await supabase.from('skills').upsert(baseRows, { onConflict: 'gametora_id' })
+    const { error } = await supabase.schema('uma').from('skills').upsert(baseRows, { onConflict: 'gametora_id' })
     if (error) throw new Error(`Upsert base skills: ${error.message}`)
   }
 
-  const { data: existing, error: fe } = await supabase.from('skills')
+  const { data: existing, error: fe } = await supabase.schema('uma').from('skills')
     .select('id, gametora_id').in('gametora_id', toUpsert.map(s => s.gametora_id))
   if (fe) throw new Error(`Fetch skills: ${fe.message}`)
   const gtToDbId = new Map<number, number>()
@@ -180,9 +180,9 @@ async function upsertSkills(gtIds: number[]): Promise<Map<number, number>> {
       icon_url: s.icon_url, rarity: s.rarity, cost: s.cost,
       upgrade_of: s.upgrade_of_gametora_id ? (gtToDbId.get(s.upgrade_of_gametora_id) ?? null) : null,
     }))
-    const { error } = await supabase.from('skills').upsert(rows, { onConflict: 'gametora_id' })
+    const { error } = await supabase.schema('uma').from('skills').upsert(rows, { onConflict: 'gametora_id' })
     if (error) throw new Error(`Upsert upgrade skills: ${error.message}`)
-    const { data: ue2 } = await supabase.from('skills').select('id, gametora_id')
+    const { data: ue2 } = await supabase.schema('uma').from('skills').select('id, gametora_id')
       .in('gametora_id', upgradeRows.map(s => s.gametora_id))
     for (const row of ue2 ?? []) result.set(row.gametora_id, row.id)
   }
@@ -239,7 +239,7 @@ async function importTrainee(slug: string): Promise<void> {
     .map(gtId => ({ gametora_id: gtId }))
 
   // 1. Upsert trainee row
-  const { error: upsertErr } = await supabase.from('trainees').upsert({
+  const { error: upsertErr } = await supabase.schema('uma').from('trainees').upsert({
     id, gametora_slug: slug, name, name_jp, rarity, title,
     apt_turf, apt_dirt, apt_short, apt_mile, apt_mid, apt_long,
     apt_leading, apt_stalking, apt_mid_pack, apt_chasing,
@@ -257,26 +257,26 @@ async function importTrainee(slug: string): Promise<void> {
   const gtToDbId = allGtIds.length > 0 ? await upsertSkills(allGtIds) : new Map<number, number>()
 
   await Promise.all([
-    supabase.from('trainee_awakening_skills').delete().eq('trainee_id', id),
-    supabase.from('trainee_unique_skills').delete().eq('trainee_id', id),
-    supabase.from('trainee_hint_skills').delete().eq('trainee_id', id),
+    supabase.schema('uma').from('trainee_awakening_skills').delete().eq('trainee_id', id),
+    supabase.schema('uma').from('trainee_unique_skills').delete().eq('trainee_id', id),
+    supabase.schema('uma').from('trainee_hint_skills').delete().eq('trainee_id', id),
   ])
 
   if (awakeningSkills.length > 0) {
     const rows = awakeningSkills.map(s => ({ trainee_id: id, skill_id: gtToDbId.get(s.gametora_id), awakening_level: s.awakening_level })).filter(r => r.skill_id)
-    if (rows.length) await supabase.from('trainee_awakening_skills').insert(rows)
+    if (rows.length) await supabase.schema('uma').from('trainee_awakening_skills').insert(rows)
   }
   if (uniqueSkills.length > 0) {
     const rows = uniqueSkills.map(s => ({ trainee_id: id, skill_id: gtToDbId.get(s.gametora_id), sort_order: s.sort_order, min_star_rank: s.min_star_rank })).filter(r => r.skill_id)
     if (rows.length) {
-      await supabase.from('trainee_unique_skills').insert(rows)
+      await supabase.schema('uma').from('trainee_unique_skills').insert(rows)
       const uniqueDbIds = rows.map(r => r.skill_id).filter((id): id is number => id != null)
-      if (uniqueDbIds.length) await supabase.from('skills').update({ cost: 0 }).in('id', uniqueDbIds)
+      if (uniqueDbIds.length) await supabase.schema('uma').from('skills').update({ cost: 0 }).in('id', uniqueDbIds)
     }
   }
   if (hintSkills.length > 0) {
     const rows = hintSkills.map(s => ({ trainee_id: id, skill_id: gtToDbId.get(s.gametora_id) })).filter(r => r.skill_id)
-    if (rows.length) await supabase.from('trainee_hint_skills').insert(rows)
+    if (rows.length) await supabase.schema('uma').from('trainee_hint_skills').insert(rows)
   }
 }
 
@@ -309,7 +309,7 @@ async function downloadImages(id: number, name: string): Promise<{ ok: number; e
     }
   }
   // Update DB paths
-  await supabase.from('trainees').update({
+  await supabase.schema('uma').from('trainees').update({
     image_path: `trainees/art/${id}.png`,
     icon_path: `trainees/icons/${id}.png`,
   }).eq('id', id)

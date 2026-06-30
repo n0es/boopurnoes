@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import type { User } from '@supabase/supabase-js'
-import { supabase } from '../lib/supabase'
+import { uma } from '../lib/supabase'
 import type { CatalogTitleEntityKind } from '../lib/useCatalogTitleSuggestionPresence'
 
 interface CatalogEntityTitleLineProps {
@@ -112,7 +112,7 @@ function SuggestTitleModal({ kind, entityId, currentTitle, user, onClose, onAfte
     }
     setBusy(true)
     setError(null)
-    const { error: err } = await supabase
+    const { error: err } = await uma
       .from('catalog_title_suggestions')
       .upsert(
         {
@@ -240,7 +240,7 @@ function AdminEditTitleModal({ kind, entityId, currentTitle, onClose, onSaved }:
     setBusy(true)
     setError(null)
     const table = kind === 'trainee' ? 'trainees' : 'support_cards'
-    const { error: err } = await supabase
+    const { error: err } = await uma
       .from(table)
       .update({ title: next })
       .eq('id', entityId)
@@ -351,7 +351,7 @@ function AdminReviewSuggestionsModal({ kind, entityId, onClose, onTitleApplied, 
 
   const load = useCallback(async () => {
     setLoading(true)
-    const { data, error } = await supabase
+    const { data, error } = await uma
       .from('catalog_title_suggestions')
       .select('id, suggested_title, user_id, created_at')
       .eq('entity_type', kind)
@@ -371,7 +371,7 @@ function AdminReviewSuggestionsModal({ kind, entityId, onClose, onTitleApplied, 
   async function accept(row: SuggestionRow) {
     setBusyId(row.id)
     const table = kind === 'trainee' ? 'trainees' : 'support_cards'
-    const { error: uErr } = await supabase
+    const { error: uErr } = await uma
       .from(table)
       .update({ title: row.suggested_title.trim() })
       .eq('id', entityId)
@@ -380,7 +380,7 @@ function AdminReviewSuggestionsModal({ kind, entityId, onClose, onTitleApplied, 
       setBusyId(null)
       return
     }
-    const { error: dErr } = await supabase.from('catalog_title_suggestions').delete().eq('id', row.id)
+    const { error: dErr } = await uma.from('catalog_title_suggestions').delete().eq('id', row.id)
     if (dErr) console.warn('delete suggestion:', dErr.message)
     onTitleApplied(row.suggested_title.trim())
     setBusyId(null)
@@ -390,7 +390,7 @@ function AdminReviewSuggestionsModal({ kind, entityId, onClose, onTitleApplied, 
 
   async function remove(row: SuggestionRow) {
     setBusyId(row.id)
-    const { error } = await supabase.from('catalog_title_suggestions').delete().eq('id', row.id)
+    const { error } = await uma.from('catalog_title_suggestions').delete().eq('id', row.id)
     if (error) console.warn('delete suggestion:', error.message)
     setBusyId(null)
     await load()

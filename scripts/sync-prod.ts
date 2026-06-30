@@ -171,7 +171,7 @@ async function fetchAll<T>(
   let from = 0
   while (true) {
     const { data, error } = await client
-      .from(table)
+      .schema('uma').from(table)
       .select('*')
       .range(from, from + PAGE - 1)
     if (error) throw new Error(`${table}: ${error.message}`)
@@ -189,7 +189,7 @@ console.log(`  fetched ${cards.length} rows from prod`)
 const BATCH = 200
 for (let i = 0; i < cards.length; i += BATCH) {
   const { error } = await local
-    .from('support_cards')
+    .schema('uma').from('support_cards')
     .upsert(cards.slice(i, i + BATCH), { onConflict: 'id' })
   if (error) { console.error(`  ✗ upsert batch ${i}: ${error.message}`); process.exit(1) }
 }
