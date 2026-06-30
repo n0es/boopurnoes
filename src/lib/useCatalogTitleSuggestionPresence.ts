@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { supabase } from './supabase'
+import { uma } from './supabase'
 
 export type CatalogTitleEntityKind = 'trainee' | 'support_card'
 
@@ -11,7 +11,7 @@ export function useCatalogTitleSuggestionPresence(isAdmin: boolean) {
       setEntityKeys(new Set())
       return
     }
-    const { data, error } = await supabase
+    const { data, error } = await uma
       .from('catalog_title_suggestions')
       .select('entity_type, entity_id')
     if (error) {

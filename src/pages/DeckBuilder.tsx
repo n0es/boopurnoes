@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { uma } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { CatalogShell, CatalogHeader, CatalogCollectionControls, RegionFilter } from '../components/catalog'
 import {
@@ -94,7 +94,7 @@ async function fetchEffectsChunked(cardIds: number[]): Promise<Map<number, Suppo
   const chunk = 100
   for (let i = 0; i < cardIds.length; i += chunk) {
     const slice = cardIds.slice(i, i + chunk)
-    const { data, error } = await supabase
+    const { data, error } = await uma
       .from('support_card_effects')
       .select('card_id, effect_type_id, effect_name, unlock_level, values_by_level')
       .in('card_id', slice)
@@ -258,7 +258,7 @@ export default function DeckBuilder() {
     if (traineeQuery.length < 2) { setTraineeResults([]); return }
     let cancelled = false
     const term = `%${traineeQuery}%`
-    supabase
+    uma
       .from('trainees')
       .select('id, name, title, stat_growth, apt_short, apt_mile, apt_mid, apt_long, apt_leading, apt_stalking, apt_mid_pack, apt_chasing')
       .or(`name.ilike.${term},name_jp.ilike.${term},title.ilike.${term}`)
@@ -308,7 +308,7 @@ export default function DeckBuilder() {
       setDataLoading(true)
       setDataError(null)
       try {
-        const { data: cardRows, error: cErr } = await supabase
+        const { data: cardRows, error: cErr } = await uma
           .from('support_cards')
           .select('id, name, rarity, card_type, released_jp, released_global, release_global_is_approximate, release_source')
           .order('id', { ascending: true })
@@ -322,7 +322,7 @@ export default function DeckBuilder() {
         setEffectsByCard(fx)
 
         if (user) {
-          const { data: col, error: colErr } = await supabase
+          const { data: col, error: colErr } = await uma
             .from('user_support_card_collection')
             .select('card_id, level, uncap')
             .eq('user_id', user.id)

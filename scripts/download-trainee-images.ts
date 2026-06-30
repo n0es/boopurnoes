@@ -139,7 +139,7 @@ async function processTrainee(
 
   // Update DB paths (idempotent — sets them to the canonical values)
   const { error } = await supabase
-    .from('trainees')
+    .schema('uma').from('trainees')
     .update({
       image_path: portraitPath(trainee.id),
       icon_path: iconStoragePath(trainee.id),
@@ -158,7 +158,7 @@ async function processTrainee(
 // Optional positional arg: trainee id to process only one
 const idArg = process.argv.find(a => /^\d{6}$/.test(a))
 
-let query = supabase.from('trainees').select('id, name').not('gametora_slug', 'is', null).order('id')
+let query = supabase.schema('uma').from('trainees').select('id, name').not('gametora_slug', 'is', null).order('id')
 if (idArg) query = query.eq('id', Number(idArg))
 
 const { data: trainees, error: fetchErr } = await query

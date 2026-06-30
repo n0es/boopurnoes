@@ -105,9 +105,9 @@ async function fetchSkills(): Promise<{ id: number; gametora_id: number; icon_ur
   if (traineeFilter !== null) {
     // Collect skill IDs associated with this trainee across all junction tables
     const [awk, unq, hint] = await Promise.all([
-      supabase.from('trainee_awakening_skills').select('skill_id').eq('trainee_id', traineeFilter),
-      supabase.from('trainee_unique_skills').select('skill_id').eq('trainee_id', traineeFilter),
-      supabase.from('trainee_hint_skills').select('skill_id').eq('trainee_id', traineeFilter),
+      supabase.schema('uma').from('trainee_awakening_skills').select('skill_id').eq('trainee_id', traineeFilter),
+      supabase.schema('uma').from('trainee_unique_skills').select('skill_id').eq('trainee_id', traineeFilter),
+      supabase.schema('uma').from('trainee_hint_skills').select('skill_id').eq('trainee_id', traineeFilter),
     ])
 
     const skillIds = [
@@ -122,7 +122,7 @@ async function fetchSkills(): Promise<{ id: number; gametora_id: number; icon_ur
     }
 
     const { data, error } = await supabase
-      .from('skills')
+      .schema('uma').from('skills')
       .select('id, gametora_id, icon_url')
       .in('id', [...new Set(skillIds)])
     if (error) throw new Error(`Fetch skills for trainee: ${error.message}`)
@@ -131,7 +131,7 @@ async function fetchSkills(): Promise<{ id: number; gametora_id: number; icon_ur
 
   // All skills with a Gametora icon URL
   const { data, error } = await supabase
-    .from('skills')
+    .schema('uma').from('skills')
     .select('id, gametora_id, icon_url')
     .not('icon_url', 'is', null)
   if (error) throw new Error(`Fetch all skills: ${error.message}`)
@@ -188,7 +188,7 @@ for (const [iconId, skills] of byIconId) {
     // Update all skills sharing this icon to point to the storage path
     const idsToUpdate = skills.map(s => s.id)
     const { error: dbErr } = await supabase
-      .from('skills')
+      .schema('uma').from('skills')
       .update({ icon_url: storagePath })
       .in('id', idsToUpdate)
     if (dbErr) throw new Error(`DB update: ${dbErr.message}`)

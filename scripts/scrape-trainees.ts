@@ -168,7 +168,7 @@ async function upsertSkills(gtIds: number[]): Promise<Map<number, number>> {
 
   if (baseRows.length > 0) {
     const { error } = await supabase
-      .from('skills')
+      .schema('uma').from('skills')
       .upsert(baseRows, { onConflict: 'gametora_id' })
     if (error) throw new Error(`Upsert base skills: ${error.message}`)
   }
@@ -176,7 +176,7 @@ async function upsertSkills(gtIds: number[]): Promise<Map<number, number>> {
   // Fetch DB ids for all skills seen so far to resolve upgrade_of FK
   const allGtIds = toUpsert.map(s => s.gametora_id)
   const { data: existing, error: fetchErr } = await supabase
-    .from('skills')
+    .schema('uma').from('skills')
     .select('id, gametora_id')
     .in('gametora_id', allGtIds)
   if (fetchErr) throw new Error(`Fetch skills: ${fetchErr.message}`)
@@ -200,14 +200,14 @@ async function upsertSkills(gtIds: number[]): Promise<Map<number, number>> {
       upgrade_of: s.upgrade_of_gametora_id ? (gtToDbId.get(s.upgrade_of_gametora_id) ?? null) : null,
     }))
     const { error } = await supabase
-      .from('skills')
+      .schema('uma').from('skills')
       .upsert(rows, { onConflict: 'gametora_id' })
     if (error) throw new Error(`Upsert upgrade skills: ${error.message}`)
 
     // Fetch ids for newly upserted upgrade skills
     const upgradeGtIds = upgradeRows.map(s => s.gametora_id)
     const { data: upgradeExisting, error: ue } = await supabase
-      .from('skills')
+      .schema('uma').from('skills')
       .select('id, gametora_id')
       .in('gametora_id', upgradeGtIds)
     if (ue) throw new Error(`Fetch upgrade skills: ${ue.message}`)
@@ -313,9 +313,9 @@ async function saveTraineeSkills(traineeId: number, charRarity: number, parsed: 
 
   // Clear existing junction rows for this trainee
   await Promise.all([
-    supabase.from('trainee_awakening_skills').delete().eq('trainee_id', traineeId),
-    supabase.from('trainee_unique_skills').delete().eq('trainee_id', traineeId),
-    supabase.from('trainee_hint_skills').delete().eq('trainee_id', traineeId),
+    supabase.schema('uma').from('trainee_awakening_skills').delete().eq('trainee_id', traineeId),
+    supabase.schema('uma').from('trainee_unique_skills').delete().eq('trainee_id', traineeId),
+    supabase.schema('uma').from('trainee_hint_skills').delete().eq('trainee_id', traineeId),
   ])
 
   // Insert awakening skills
@@ -328,7 +328,7 @@ async function saveTraineeSkills(traineeId: number, charRarity: number, parsed: 
       })
       .filter(Boolean)
     if (rows.length > 0) {
-      const { error } = await supabase.from('trainee_awakening_skills').insert(rows)
+      const { error } = await supabase.schema('uma').from('trainee_awakening_skills').insert(rows)
       if (error) throw new Error(`Insert awakening skills: ${error.message}`)
     }
   }
@@ -348,7 +348,7 @@ async function saveTraineeSkills(traineeId: number, charRarity: number, parsed: 
       })
       .filter(Boolean)
     if (rows.length > 0) {
-      const { error } = await supabase.from('trainee_unique_skills').insert(rows)
+      const { error } = await supabase.schema('uma').from('trainee_unique_skills').insert(rows)
       if (error) throw new Error(`Insert unique skills: ${error.message}`)
     }
     // Unique skills are free for the character's own training runs (cost = 0).
@@ -358,7 +358,7 @@ async function saveTraineeSkills(traineeId: number, charRarity: number, parsed: 
       .filter((id): id is number => id != null)
     if (uniqueDbIds.length > 0) {
       const { error } = await supabase
-        .from('skills')
+        .schema('uma').from('skills')
         .update({ cost: 0 })
         .in('id', uniqueDbIds)
       if (error) throw new Error(`Set unique skill cost to 0: ${error.message}`)
@@ -375,7 +375,7 @@ async function saveTraineeSkills(traineeId: number, charRarity: number, parsed: 
       })
       .filter(Boolean)
     if (rows.length > 0) {
-      const { error } = await supabase.from('trainee_hint_skills').insert(rows)
+      const { error } = await supabase.schema('uma').from('trainee_hint_skills').insert(rows)
       if (error) throw new Error(`Insert hint skills: ${error.message}`)
     }
   }
@@ -383,7 +383,7 @@ async function saveTraineeSkills(traineeId: number, charRarity: number, parsed: 
   // Update title
   if (parsed.title !== null) {
     const { error } = await supabase
-      .from('trainees')
+      .schema('uma').from('trainees')
       .update({ title: parsed.title })
       .eq('id', traineeId)
     if (error) throw new Error(`Update title: ${error.message}`)
@@ -396,7 +396,7 @@ async function scrapeOne(slugOrId: string | number) {
   await getSkillMap()
 
   // Resolve slug + rarity from DB
-  let query = supabase.from('trainees').select('id, gametora_slug, rarity, name')
+  let query = supabase.schema('uma').from('trainees').select('id, gametora_slug, rarity, name')
   if (typeof slugOrId === 'number' || /^\d+$/.test(String(slugOrId))) {
     query = query.eq('id', Number(slugOrId))
   } else {
@@ -423,7 +423,7 @@ async function scrapeAll(limit?: number) {
   await getSkillMap()
 
   const { data: trainees, error } = await supabase
-    .from('trainees')
+    .schema('uma').from('trainees')
     .select('id, gametora_slug, rarity, name')
     .not('gametora_slug', 'is', null)
     .order('id')

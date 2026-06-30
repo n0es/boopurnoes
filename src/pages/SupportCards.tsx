@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { User } from '@supabase/supabase-js'
-import { supabase } from '../lib/supabase'
+import { uma } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import {
   CatalogShell,
@@ -138,7 +138,7 @@ export default function SupportCards() {
   useEffect(() => {
     async function fetchCards() {
       setLoading(true); setError(null)
-      const { data, error } = await supabase
+      const { data, error } = await uma
         .from('support_cards')
         .select('id, name, title, rarity, card_type, released_jp, released_global, release_global_is_approximate, release_source')
         .order('id', { ascending: true })
@@ -150,7 +150,7 @@ export default function SupportCards() {
   }, [])
 
   const fetchCollection = useCallback(() => {
-    supabase
+    uma
       .from('user_support_card_collection')
       .select('card_id, level, uncap')
       .then(({ data, error }) => {
@@ -168,7 +168,7 @@ export default function SupportCards() {
   }, [])
 
   async function addToCollection(cardId: number, level: number, uncap: number) {
-    const { error } = await supabase
+    const { error } = await uma
       .from('user_support_card_collection')
       .upsert({ card_id: cardId, level, uncap, user_id: user!.id }, { onConflict: 'user_id,card_id' })
     if (error) {
@@ -181,7 +181,7 @@ export default function SupportCards() {
   }
 
   async function removeFromCollection(cardId: number) {
-    const { error } = await supabase
+    const { error } = await uma
       .from('user_support_card_collection')
       .delete()
       .eq('card_id', cardId)
@@ -497,7 +497,7 @@ function CardModal({ card, user, owned, onClose, onAdd, onRemove, onCardUpdated,
   const maxLevel = maxLevelForUncap(uncap, card.rarity)
 
   useEffect(() => {
-    supabase
+    uma
       .from('support_card_effects')
       .select('id, effect_name, symbol, unlock_level, values_by_level')
       .eq('card_id', card.id)
@@ -510,7 +510,7 @@ function CardModal({ card, user, owned, onClose, onAdd, onRemove, onCardUpdated,
         setEffects((data ?? []) as SupportCardEffect[])
       })
 
-    supabase
+    uma
       .from('support_card_hints')
       .select('id, sort_order, skills(name, description, icon_url, condition)')
       .eq('card_id', card.id)
@@ -524,7 +524,7 @@ function CardModal({ card, user, owned, onClose, onAdd, onRemove, onCardUpdated,
         setHints((data ?? []) as unknown as HintSkill[])
       })
 
-    supabase
+    uma
       .from('support_card_event_skills')
       .select('id, sort_order, skills(name, description, icon_url, condition)')
       .eq('card_id', card.id)
@@ -538,7 +538,7 @@ function CardModal({ card, user, owned, onClose, onAdd, onRemove, onCardUpdated,
         setEventSkills((data ?? []) as unknown as EventSkill[])
       })
 
-    supabase
+    uma
       .from('support_card_training_events')
       .select('id, name, event_type, chain_level, sort_order')
       .eq('card_id', card.id)
@@ -916,7 +916,7 @@ function EditCardModal({ card, effects, onClose, onSaved }: {
     setBusy(true); setError(null)
     try {
       // 1. Update card fields
-      const { error: cardErr } = await supabase
+      const { error: cardErr } = await uma
         .from('support_cards')
         .update({ name, title: title || null, rarity, card_type: cardType })
         .eq('id', card.id)
@@ -929,7 +929,7 @@ function EditCardModal({ card, effects, onClose, onSaved }: {
 
       // Delete removed effects
       if (toDelete.length) {
-        const { error: delErr } = await supabase
+        const { error: delErr } = await uma
           .from('support_card_effects')
           .delete()
           .in('id', toDelete.map(r => r.id!))
@@ -939,7 +939,7 @@ function EditCardModal({ card, effects, onClose, onSaved }: {
       // Update existing effects
       for (const row of toUpdate) {
         const vals = row.values_by_level.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n))
-        const { error: upErr } = await supabase
+        const { error: upErr } = await uma
           .from('support_card_effects')
           .update({
             effect_name: row.effect_name,
@@ -955,7 +955,7 @@ function EditCardModal({ card, effects, onClose, onSaved }: {
       for (const row of toInsert) {
         if (!row.effect_name.trim()) continue
         const vals = row.values_by_level.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n))
-        const { error: insErr } = await supabase
+        const { error: insErr } = await uma
           .from('support_card_effects')
           .insert({
             card_id: card.id,
@@ -968,7 +968,7 @@ function EditCardModal({ card, effects, onClose, onSaved }: {
       }
 
       // 3. Re-fetch effects and notify parent
-      const { data: freshEffects } = await supabase
+      const { data: freshEffects } = await uma
         .from('support_card_effects')
         .select('id, effect_name, symbol, unlock_level, values_by_level')
         .eq('card_id', card.id)

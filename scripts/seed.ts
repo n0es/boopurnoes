@@ -67,7 +67,7 @@ for (let i = 0; i < cards.length; i += BATCH_SIZE) {
   }))
 
   const { error } = await supabase
-    .from('support_cards')
+    .schema('uma').from('support_cards')
     .upsert(batch, { onConflict: 'id', ignoreDuplicates: true })
 
   if (error) {

@@ -99,7 +99,7 @@ async function ensureLocalAuthUser(): Promise<void> {
 
 async function fetchProdSupportCollection() {
   const { data, error } = await prod
-    .from('user_support_card_collection')
+    .schema('uma').from('user_support_card_collection')
     .select('user_id, card_id, level, uncap, added_at')
     .eq('user_id', userId)
   if (error) throw new Error(`prod user_support_card_collection: ${error.message}`)
@@ -108,7 +108,7 @@ async function fetchProdSupportCollection() {
 
 async function fetchProdTraineeCollection() {
   const { data, error } = await prod
-    .from('user_trainee_collection')
+    .schema('uma').from('user_trainee_collection')
     .select('user_id, trainee_id, star_rank, awakening_level')
     .eq('user_id', userId)
   if (error) {
@@ -135,11 +135,11 @@ async function main() {
 
   console.log('\nWriting locally (service role)…')
 
-  const { error: delS } = await local.from('user_support_card_collection').delete().eq('user_id', userId)
+  const { error: delS } = await local.schema('uma').from('user_support_card_collection').delete().eq('user_id', userId)
   if (delS) console.warn('  warn delete support collection:', delS.message)
 
   if (supportRows.length > 0) {
-    const { error: upS } = await local.from('user_support_card_collection').upsert(supportRows, {
+    const { error: upS } = await local.schema('uma').from('user_support_card_collection').upsert(supportRows, {
       onConflict: 'user_id,card_id',
     })
     if (upS) {
@@ -151,11 +151,11 @@ async function main() {
     console.log('  ✓ user_support_card_collection: (empty on prod, nothing to write)')
   }
 
-  const { error: delT } = await local.from('user_trainee_collection').delete().eq('user_id', userId)
+  const { error: delT } = await local.schema('uma').from('user_trainee_collection').delete().eq('user_id', userId)
   if (delT) console.warn('  warn delete trainee collection:', delT.message)
 
   if (traineeRows.length > 0) {
-    const { error: upT } = await local.from('user_trainee_collection').upsert(traineeRows, {
+    const { error: upT } = await local.schema('uma').from('user_trainee_collection').upsert(traineeRows, {
       onConflict: 'user_id,trainee_id',
     })
     if (upT) {

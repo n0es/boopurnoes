@@ -82,7 +82,7 @@ export default function BatchCardImporter({ supabase }: BatchCardImporterProps) 
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('support_cards')
+        .schema('uma').from('support_cards')
         .select('id');
       if (!error && data) {
         setImportedIds(new Set(data.map((r: { id: number }) => r.id)));
