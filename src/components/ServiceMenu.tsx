@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { MenuIcon, CloseIcon } from './Icons'
-import { supabase } from '../lib/supabase'
+import { boop } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useUserTags } from '../lib/useUserTags'
 
@@ -19,7 +19,7 @@ export default function ServiceMenu() {
   const [services, setServices] = useState<Service[]>([])
 
   useEffect(() => {
-    supabase
+    boop
       .from('services')
       .select('id, name, href, icon_url, tag_required')
       .order('name')
